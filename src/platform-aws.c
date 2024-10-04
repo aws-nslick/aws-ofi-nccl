@@ -42,7 +42,7 @@ static struct ec2_platform_data platform_data_map[] = {
 		.name = "p4d.24xlarge",
 		.topology = "p4d-24xl-topo.xml",
 		.default_dup_conns = 0,
-		.latency = 75.0,
+		.latency = 75.0f,
 		.gdr_required = true,
 		.net_flush_required = true,
 		.default_protocol = "SENDRECV",
@@ -52,7 +52,7 @@ static struct ec2_platform_data platform_data_map[] = {
 		.name = "p4de.24xlarge",
 		.topology = "p4de-24xl-topo.xml",
 		.default_dup_conns = 0,
-		.latency = 75.0,
+		.latency = 75.0f,
 		.gdr_required = true,
 		.net_flush_required = true,
 		.default_protocol = "SENDRECV",
@@ -62,7 +62,7 @@ static struct ec2_platform_data platform_data_map[] = {
 		.name = "p3dn.24xlarge",
 		.topology = NULL,
 		.default_dup_conns = 4,
-		.latency = 150.0,
+		.latency = 150.0f,
 		.gdr_required = false,
 		.net_flush_required = true,
 		.default_protocol = "SENDRECV",
@@ -72,7 +72,7 @@ static struct ec2_platform_data platform_data_map[] = {
 		.name = "p5.48xlarge",
 		.topology = NULL,
 		.default_dup_conns = 0,
-		.latency = 75.0,
+		.latency = 75.0f,
 		.gdr_required = true,
 		.net_flush_required = false,
 		.default_protocol = "RDMA",
@@ -82,7 +82,7 @@ static struct ec2_platform_data platform_data_map[] = {
 		.name = "p5e.48xlarge",
 		.topology = NULL,
 		.default_dup_conns = 0,
-		.latency = 75.0,
+		.latency = 75.0f,
 		.gdr_required = true,
 		.net_flush_required = false,
 		.default_protocol = "RDMA",
@@ -92,7 +92,7 @@ static struct ec2_platform_data platform_data_map[] = {
 		.name = "p5en.48xlarge",
 		.topology = NULL,
 		.default_dup_conns = 0,
-		.latency = 75.0,
+		.latency = 75.0f,
 		.gdr_required = true,
 		.net_flush_required = false,
 		.default_protocol = "RDMA",
@@ -102,7 +102,7 @@ static struct ec2_platform_data platform_data_map[] = {
 		.name = "g5.48xlarge",
 		.topology = "g5.48xl-topo.xml",
 		.default_dup_conns = 0,
-		.latency = 75.0,
+		.latency = 75.0f,
 		.gdr_required = false,
 		.net_flush_required = true,
 		.default_protocol = "SENDRECV",
@@ -112,7 +112,7 @@ static struct ec2_platform_data platform_data_map[] = {
 		.name = "trn1.32xlarge",
 		.topology = NULL,
 		.default_dup_conns = 0,
-		.latency = 75.0,
+		.latency = 75.0f,
 		.gdr_required = true,
 		.net_flush_required = true,
 		.default_protocol = "SENDRECV",
@@ -122,7 +122,7 @@ static struct ec2_platform_data platform_data_map[] = {
 		.name = "trn1n.32xlarge",
 		.topology = NULL,
 		.default_dup_conns = 0,
-		.latency = 75.0,
+		.latency = 75.0f,
 		.gdr_required = true,
 		.net_flush_required = true,
 		.default_protocol = "SENDRECV",
@@ -132,7 +132,7 @@ static struct ec2_platform_data platform_data_map[] = {
 		.name = "trn2.48xlarge",
 		.topology = NULL,
 		.default_dup_conns = 0,
-		.latency = 75.0,
+		.latency = 75.0f,
 		.gdr_required = true,
 		.net_flush_required = true,
 		.default_protocol = "RDMA",
@@ -142,7 +142,7 @@ static struct ec2_platform_data platform_data_map[] = {
 		.name = "trn2n.48xlarge",
 		.topology = NULL,
 		.default_dup_conns = 0,
-		.latency = 75.0,
+		.latency = 75.0f,
 		.gdr_required = true,
 		.net_flush_required = true,
 		.default_protocol = "RDMA",
@@ -539,7 +539,7 @@ int platform_init(const char **provider_filter)
 		nic_dup_conns = platform_data->default_dup_conns;
 
 	if (ofi_nccl_net_latency() < 0) {
-		if (platform_data && platform_data->latency >= 0.0) {
+		if (platform_data && platform_data->latency >= 0.0f) {
 			net_latency = platform_data->latency;
 		} else {
 			/*
@@ -549,10 +549,9 @@ int platform_init(const char **provider_filter)
 			 * generations of EFA, using it as the fall-through
 			 * default for undefined platforms.
 			 */
-			net_latency = 75.0;
+			net_latency = 75.0f;
 		}
-		NCCL_OFI_INFO(NCCL_INIT | NCCL_NET, "Internode latency set at %.1f us",
-				net_latency);
+		NCCL_OFI_INFO(NCCL_INIT | NCCL_NET, "Internode latency set at %.1lf us", (double)net_latency);
 	}
 
 	if (select_efa && ofi_nccl_protocol() == NULL && platform_data) {

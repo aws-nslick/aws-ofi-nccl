@@ -62,7 +62,7 @@ bool virt_addr_mr = false;
 const char *nccl_ofi_selected_protocol = NULL;
 
 /* Internode network latency. */
-float net_latency = .0;
+float net_latency = .0f;
 
 /* Size of a memory page */
 size_t system_page_size = 0;
@@ -387,7 +387,7 @@ static int set_nic_props_default(int dev_id, struct fi_info *nic_prov,
 	props->max_communicators = 0;
 	props->guid = dev_id;
 
-	props->latency = net_latency >= .0 ? net_latency : .0;
+	props->latency = net_latency >= .0f ? net_latency : .0f;
 
 	/*
 	 * Maximum number of grouped receives. Currently, we set it to 1 to
@@ -471,7 +471,7 @@ int nccl_net_ofi_info_properties(nccl_net_ofi_plugin_t *plugin, struct fi_info *
 	}
 
 	/* Speed reported in Mbps */
-	props->port_speed = nic_info->link_attr->speed / (1e6);
+	props->port_speed = (int)(nic_info->link_attr->speed / (1000000ULL));
 
 	/*
 	 * When running on AWS, newer platforms might return incorrect link
