@@ -261,7 +261,6 @@ AS_IF([test "${enable_cxx}" = "yes"],
        CFLAGS="-x c++ ${CXXFLAGS}"])
 
 AC_SUBST([NCCL_NET_OFI_DISTCHCK_CONFIGURE_FLAGS])
-
 AC_CONFIG_FILES([Makefile
                  include/Makefile
                  3rd-party/Makefile
