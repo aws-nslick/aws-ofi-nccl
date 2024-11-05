@@ -4,8 +4,8 @@
 
 #include "config.h"
 
-#include <uthash/uthash.h>
-#include <uthash/utlist.h>
+#include <uthash.h>
+#include <utlist.h>
 
 #include "nccl_ofi.h"
 #include "nccl_ofi_pthread.h"

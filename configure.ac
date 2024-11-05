@@ -132,6 +132,8 @@ CHECK_PKG_NVTX()
 
 CHECK_PKG_HWLOC([],
 		[AC_MSG_ERROR([Could not find the hwloc library. Use --with-hwloc to provide the path to non-standard hwloc installation.])])
+CHECK_PKG_UTHASH([],
+		[AC_MSG_ERROR([Could not find uthash. Use --with-uthash to provide the path to non-standard uthash installation.])])
 
 CHECK_PKG_VALGRIND()
 CHECK_VAR_REDZONE()

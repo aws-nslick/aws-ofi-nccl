@@ -20,7 +20,7 @@ extern "C" {
 #include <rdma/fi_tagged.h>
 #include <rdma/fi_rma.h>
 #include <nccl/net.h>
-#include <uthash/uthash.h>
+#include <uthash.h>
 
 #include "nccl_ofi_log.h"
 #include "nccl_ofi_topo.h"

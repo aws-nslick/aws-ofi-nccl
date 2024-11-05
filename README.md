@@ -43,12 +43,12 @@ Other operating systems are likely to work; there is very little
 distribution-specific code in the plugin.
 
 To build the plugin, you need to have
-[Libfabric](http://github.com/ofiwg/libfabric/) and
-[HWLOC](https://www.open-mpi.org/projects/hwloc/) installed prior to
-building the plugin., If you want to run the included multi-node
-tests, you also need  an MPI Implementation installed.  Each release of the
-plugin has a list of dependency versions in the top-level README.md
-file.
+[uthash-dev](https://repology.org/project/uthash/packages),
+[Libfabric](http://github.com/ofiwg/libfabric/), and
+[HWLOC](https://www.open-mpi.org/projects/hwloc/) installed prior to building
+the plugin., If you want to run the included multi-node tests, you also need an
+MPI Implementation installed. Each release of the plugin has a list of
+dependency versions in the top-level README.md file.
 
 The plugin does not require NCCL to be pre-installed, but obviously a
 NCCL installation is required to use the plugin.  As of NCCL 2.4.8,

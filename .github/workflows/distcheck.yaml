@@ -32,6 +32,7 @@ env:
     build-essential
     git
     libhwloc-dev
+    uthash-dev
     make
 
   # note, related to issue around actions/checkout@v4, linked below. This
@@ -87,7 +88,7 @@ jobs:
 
       - name: Install hwloc, utilities.
         run: |
-          yum -y install hwloc-devel autoconf automake libtool gcc g++ git make
+          yum -y install uthash-devel hwloc-devel autoconf automake libtool gcc g++ git make
 
       - name: Install CUDA
         if: matrix.sdk == 'cuda'
