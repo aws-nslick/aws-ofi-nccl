@@ -196,9 +196,6 @@ AC_DEFUN([ADD_PICKY_FLAGS],[
 
 dnl standard and normal
 ADD_PICKY_FLAGS([-Wall -Wextra])
-dnl C specific warning that warngs when using C features which prevent parsing
-dnl as C++. Best-effort, and doesn't cover everything.
-ADD_PICKY_FLAGS([-Wc++-compat])
 dnl gcc manual says this is enabled with c++-compat, but seemingly bugged.
 ADD_PICKY_FLAGS([-Wjump-misses-init])
 

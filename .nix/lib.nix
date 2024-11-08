@@ -16,6 +16,7 @@ rec {
     }).overrideAttrs (pprev: {
       src = inputs.self;
       version = mkGitVersion inputs.self;
+      NIX_CFLAGS_COMPILE="-Wno-unused-command-line-argument";
     });
 
   genAttrsFromCombo = { pkgs }: combo: let
