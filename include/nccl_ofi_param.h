@@ -319,6 +319,12 @@ OFI_NCCL_PARAM_INT(net_latency, "NET_LATENCY", -1);
 OFI_NCCL_PARAM_UINT(eager_max_size, "EAGER_MAX_SIZE", 8192);
 
 /*
+ * If `1`, never send eagerly, regardless of the contents of EAGER_MAX_SIZE or
+ * the size of the transfer. Default: allow for eager messages.
+ */
+OFI_NCCL_PARAM_UINT(disable_eager, "DISABLE_EAGER", 0);
+
+/*
  * Decide whether or not mutexes should default to errorcheck mode.
  * Defaults to no, unless debugging is enabled, in which case it
  * defaults to 1.

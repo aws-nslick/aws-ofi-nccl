@@ -5747,6 +5747,7 @@ static inline int check_post_bounce_req(nccl_net_ofi_rdma_req_t *bounce_req)
 static int send(nccl_net_ofi_send_comm_t *send_comm, void *data, int size, int tag,
 			 nccl_net_ofi_mr_handle_t *mhandle, nccl_net_ofi_req_t **base_req)
 {
+	static const bool eager_env_enabled = !((bool)ofi_nccl_disable_eager());
 	int ret = 0;
 	nccl_net_ofi_rdma_send_comm_t *s_comm = (nccl_net_ofi_rdma_send_comm_t *)send_comm;
 	nccl_net_ofi_rdma_mr_handle_t *mr_handle = (nccl_net_ofi_rdma_mr_handle_t *)mhandle;
@@ -5857,7 +5858,7 @@ retry:
 
 	/* Determine if this should be sent eagerly. */
 	eager = false;
-	if ((!have_ctrl && (size_t)size <= eager_max_size) || (size == 0)) {
+	if (OFI_LIKELY(eager_env_enabled) && ((!have_ctrl && (size_t)size <= eager_max_size) || (size == 0))) {
 		eager = true;
 	}
 
