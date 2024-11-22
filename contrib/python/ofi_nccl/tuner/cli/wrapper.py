@@ -63,7 +63,7 @@ class Tuner:
         }
         py_level = level_map.get(level, logging.DEBUG)
         message = f"NCCL [{file.decode('utf-8')}:{line}]: {fmt.decode('utf-8')} {args}"
-        self.logger.log(py_level, message)
+        #self.logger.log(py_level, message)
 
     def __init__(
             self, tuner_dso: pathlib.Path, nranks: int, nnodes: int, platform: TunerPlatform, log_level=logging.DEBUG

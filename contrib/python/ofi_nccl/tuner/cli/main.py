@@ -12,15 +12,21 @@ app = typer.Typer(name="show-tuner-decisions")
 def show_all(library: pathlib.Path,
              min_ranks_per_node: int = 1,
              max_ranks_per_node: int = 64,
-             inc_ranks_per_node: int = 1,
+             inc_ranks_per_node: int | None = None,
+             mul_ranks_per_node: int | None = 2,
              min_nnodes: int = 2,
-             max_nnodes: int = np.log2(2048),
-             inc_nnodes: int = 2,
+             max_nnodes: int = 2048,
+             inc_nnodes: None | int = None,
+             mul_nnodes: None | int = 2,
+             min_size: int = 1024,
+             max_size: int = 16*1024*1024*1024,
+             inc_size: int | None = None,
+             mul_size: int | None = 2
              ):
     df = (
         pd.concat(
             [
-                Tuner(library, nranks=(rpn * nodecnt), nnodes=nodecnt, platform=platform).analyze_all()
+                Tuner(library, nranks=(rpn * nodecnt), nnodes=nodecnt, platform=platform).analyze_all(min_size, max_size)
                 for nodecnt in range(min_nnodes, max_nnodes+1, inc_nnodes)
                 for rpn in range(min_ranks_per_node, max_ranks_per_node+1, inc_ranks_per_node)
                 for platform in TunerPlatform
