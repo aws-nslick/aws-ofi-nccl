@@ -5,6 +5,7 @@ requires-python = ">=3.12"
 dependencies = [
     "pandas>=2.2.3",
     "setuptools>=75.6.0",
+    "torch>=2.5.1",
     "typer>=0.13.1",
 ]
 
@@ -14,9 +15,13 @@ Homepage = "https://github.com/aws/aws-ofi-nccl"
 [project.scripts]
 show-tuner-decisions = "ofi_nccl.tuner.cli.main:app"
 
+[tool.scikit-build]
+minimum-version = "build-system.requires"
+build-dir = "build/{wheel_tag}"
+
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["scikit-build-core>=0.10", "nanobind>=2.2.0"]
+build-backend = "scikit_build_core.build"
 
 [dependency-groups]
 dev = [
