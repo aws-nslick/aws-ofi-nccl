@@ -1,0 +1,8 @@
+{
+  "source_dir": "/home/ANT.AMAZON.COM/nslick/nccl-net-ofi/contrib/tools/bind",
+  "build_dir": "/home/ANT.AMAZON.COM/nslick/nccl-net-ofi/contrib/tools/bind/build/cp312-cp312-linux_x86_64",
+  "cmake_path": "/home/ANT.AMAZON.COM/nslick/.nix-profile/bin/cmake",
+  "skbuild_path": "/home/ANT.AMAZON.COM/nslick/.cache/uv/builds-v0/.tmpBOOVdW/lib/python3.12/site-packages/scikit_build_core",
+  "skbuild_version": "0.10.7",
+  "python_executable": "/home/ANT.AMAZON.COM/nslick/.cache/uv/builds-v0/.tmpBOOVdW/bin/python"
+}

@@ -1,0 +1,19 @@
+[project]
+name = "ofi-nccl"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "pandas>=2.2.3",
+    "typer>=0.13.1",
+]
+
+[project.scripts]
+show-tuner-decisions = "ofi_nccl.show_tuner_decisions.main:app"
+
+[tool.scikit-build]
+minimum-version = "build-system.requires"
+build-dir = "build/{wheel_tag}"
+
+[build-system]
+requires = ["scikit-build-core>=0.10", "nanobind>=2.2.0", "cmake>=3.15"]
+build-backend = "scikit_build_core.build"

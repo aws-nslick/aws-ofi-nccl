@@ -1,0 +1,14 @@
+# ninja log v5
+5	1306	1732158664217533906	CMakeFiles/nanobind-static-abi3.dir/home/ANT.AMAZON.COM/nslick/.cache/uv/builds-v0/.tmp7wtpXY/lib/python3.12/site-packages/nanobind/src/nb_static_property.cpp.o	80347aee7ade08bc
+2	1372	1732158664279533574	CMakeFiles/_tuner_bindings.dir/src/ofi_nccl/tuner_bindings/impl.cc.o	203fd41a27cc234
+17	1682	1732158664591531906	CMakeFiles/nanobind-static-abi3.dir/home/ANT.AMAZON.COM/nslick/.cache/uv/builds-v0/.tmp7wtpXY/lib/python3.12/site-packages/nanobind/src/implicit.cpp.o	52e7cbf8f13a0b78
+13	3098	1732158666009524326	CMakeFiles/nanobind-static-abi3.dir/home/ANT.AMAZON.COM/nslick/.cache/uv/builds-v0/.tmp7wtpXY/lib/python3.12/site-packages/nanobind/src/trampoline.cpp.o	a01b89ec1f039ed2
+2	3171	1732158666077523963	CMakeFiles/nanobind-static-abi3.dir/home/ANT.AMAZON.COM/nslick/.cache/uv/builds-v0/.tmp7wtpXY/lib/python3.12/site-packages/nanobind/src/nb_internals.cpp.o	2e49df3b6de7e8ff
+6	3259	1732158666172523455	CMakeFiles/nanobind-static-abi3.dir/home/ANT.AMAZON.COM/nslick/.cache/uv/builds-v0/.tmp7wtpXY/lib/python3.12/site-packages/nanobind/src/common.cpp.o	afcc27946fc38660
+13	3272	1732158666185523385	CMakeFiles/nanobind-static-abi3.dir/home/ANT.AMAZON.COM/nslick/.cache/uv/builds-v0/.tmp7wtpXY/lib/python3.12/site-packages/nanobind/src/error.cpp.o	2d5c868c1fa3f48e
+5	3483	1732158666397522252	CMakeFiles/nanobind-static-abi3.dir/home/ANT.AMAZON.COM/nslick/.cache/uv/builds-v0/.tmp7wtpXY/lib/python3.12/site-packages/nanobind/src/nb_ndarray.cpp.o	57b1c889b4568d89
+3	3643	1732158666557521397	CMakeFiles/nanobind-static-abi3.dir/home/ANT.AMAZON.COM/nslick/.cache/uv/builds-v0/.tmp7wtpXY/lib/python3.12/site-packages/nanobind/src/nb_enum.cpp.o	690fd6215139bef1
+3	3836	1732158666749520371	CMakeFiles/nanobind-static-abi3.dir/home/ANT.AMAZON.COM/nslick/.cache/uv/builds-v0/.tmp7wtpXY/lib/python3.12/site-packages/nanobind/src/nb_func.cpp.o	3fe79feda99292a
+3	4434	1732158667348517171	CMakeFiles/nanobind-static-abi3.dir/home/ANT.AMAZON.COM/nslick/.cache/uv/builds-v0/.tmp7wtpXY/lib/python3.12/site-packages/nanobind/src/nb_type.cpp.o	47b71b5f6d5bb9f6
+4434	4463	1732158667378517010	libnanobind-static-abi3.a	984592bef50a4d7b
+4464	4591	1732158667503516342	_tuner_bindings.abi3.so	ecf539070a96f576
