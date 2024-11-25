@@ -90,7 +90,8 @@ const char *ofi_nccl_##name(void)
 #define OFI_NCCL_PARAM_INT(name, env, default_value) \
 int64_t ofi_nccl_##name(); \
 static pthread_mutex_t ofi_nccl_param_lock_##name = PTHREAD_MUTEX_INITIALIZER; \
-int64_t ofi_nccl_##name() { \
+__attribute__((const))
+int64_t ofi_nccl_##name() {      \
     static bool initialized = false; \
     static int64_t value = default_value; \
     if (initialized) { \
