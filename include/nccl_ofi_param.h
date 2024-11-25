@@ -168,15 +168,6 @@ OFI_NCCL_PARAM_INT(use_ipv6_tcp, "USE_IPV6_TCP", 0);
 OFI_NCCL_PARAM_STR(exclude_tcp_if, "EXCLUDE_TCP_IF", "lo,docker0");
 
 /*
- * Disable flush operation when using GPUDirect. Flush commands
- * are used to enforce data consistency at the receiving GPU. It should
- * only be disabled when underlying libfabric provider or hardware
- * ensures data consistency.
- * By default, plugin issues flush commands.
- */
-OFI_NCCL_PARAM_INT(gdr_flush_disable, "GDR_FLUSH_DISABLE", 0);
-
-/*
  * Specify the number of network connections created by
  * NIC_DUP_CONNS.  Each chosen Libfabric provider will be duplicated N
  * times and exposed to NCCL as a unique endpoint.
@@ -192,6 +183,15 @@ OFI_NCCL_PARAM_INT(nic_dup_conns, "NIC_DUP_CONNS", 0);
  * is not provided by this option.
  */
 OFI_NCCL_PARAM_INT(cuda_flush_enable, "CUDA_FLUSH_ENABLE", 0);
+
+/*
+ * Disable flush operation when using GPUDirect. Flush commands
+ * are used to enforce data consistency at the receiving GPU. It should
+ * only be disabled when underlying libfabric provider or hardware
+ * ensures data consistency.
+ * By default, plugin issues flush commands.
+ */
+OFI_NCCL_PARAM_INT(gdr_flush_disable, "GDR_FLUSH_DISABLE", 0);
 
 /*
  * Specify the memory registration key size in bytes when using a libfabric
