@@ -2518,6 +2518,59 @@ static int nccl_net_ofi_sendrecv_plugin_create(size_t num_devices,
 	return 0;
 }
 
+/* The goal of the next chunk of code is to make
+ * provider_list contain the existing providr
+ * structures nic_dup_conns times each.  We start by
+ * multiplying the number of devices (ie, the size of
+ * the provider_list array) by nic_dup_conns.  We then
+ * iterate over a new info list, adding that number of
+ * devices by repeatedly copying the entries in the
+ * original list.
+ *
+ * If the input list was info objects A, B, C and
+ * dup_conns was 2, the output array (ie, provider_list
+ * at the end) will be A, B, C, A, B, C.
+ *
+ * Note that this isn't entirely sufficient to get
+ * NCCL to use all the connections.  We must also fake
+ * the locality of the info structures so that they
+ * look like more appealing paths; see the dup_conns
+ * code in the PCIe path discovery logic.
+ */
+static void handle_nic_dup_conns(struct fi_info **provider_list, unsigned int *num_providers)
+{
+	struct fi_info *head = NULL;
+	struct fi_info *prev = NULL;
+	int niters = 0;
+
+	for (int dup = 0; dup < nic_dup_conns; ++dup) {
+		for (struct fi_info *cur = *provider_list; cur != NULL; cur = cur->next) {
+			struct fi_info *tmp = fi_dupinfo(cur);
+			if (!tmp) {
+				NCCL_OFI_WARN("-ENOMEM in handle_nic_dup_conns.");
+				assert(false);
+			}
+
+			if (head == NULL) {
+				head = tmp;
+			}
+
+			if (prev != NULL) {
+				prev->next = tmp;
+			}
+
+			prev = tmp;
+			niters++;
+		}
+	}
+
+	*num_providers = (*num_providers) * nic_dup_conns;
+	assert(*num_providers == niters);
+	fi_freeinfo(*provider_list);
+	*provider_list = head;
+
+	NCCL_OFI_INFO(NCCL_INIT, "DUP_CONNS of %d changed device count to %d", nic_dup_conns, *num_providers);
+}
 
 int nccl_net_ofi_sendrecv_init(const char *provider_filter,
 			       nccl_net_ofi_plugin_t **plugin_p)
@@ -2598,73 +2651,11 @@ found:
 		goto error;
 	}
 
-	/* Allow for multiple virtual nics per nic to increase
-	 * throughput for NICs that do not handle single QP situations
-	 * well. */
+	/* Allow for multiple virtual nics per nic to increase throughput for NICs
+	 * that do not handle single QP situations well. This is not preferred, but
+	 * certain maintained platforms do still rely on this. Notably, aws p3dn */
 	if (nic_dup_conns > 1) {
-		struct fi_info *input_iter, *tmp, *output_head, *output_tail;
-
-		/* The goal of the next chunk of code is to make
-		 * provider_list contain the existing providr
-		 * structures nic_dup_conns times each.  We start by
-		 * multiplying the number of devices (ie, the size of
-		 * the provider_list array) by nic_dup_conns.  We then
-		 * iterate over a new info list, adding that number of
-		 * devices by repeatedly copying the entries in the
-		 * original list.
-		 *
-		 * If the input list was info objects A, B, C and
-		 * dup_conns was 2, the output array (ie, provider_list
-		 * at the end) will be A, B, C, A, B, C.
-		 *
-		 * Note that this isn't entirely sufficient to get
-		 * NCCL to use all the connections.  We must also fake
-		 * the locality of the info structures so that they
-		 * look like more appealing paths; see the dup_conns
-		 * code in the PCIe path discovery logic.
-		 */
-		num_providers *= nic_dup_conns;
-
-		input_iter = NULL;
-		output_head = output_tail = NULL;
-		for (size_t i = 0 ; i < num_providers ; i++) {
-			/* note that because we'll iterate through
-			   provider_list multiple times (because
-			   num_providers is already multiplied by
-			   nic_dup_conns), this check has to be in the
-			   for loop.  Each time we reach the end of
-			   the list, we'll see iter as NULL and
-			   restart. */
-			if (!input_iter)
-				input_iter = provider_list;
-
-			tmp = fi_dupinfo(input_iter);
-			if (!tmp) {
-				NCCL_OFI_WARN("DUP_CONNS fi_dupinfo failed.");
-				ret = -ENOMEM;
-				goto error;
-			}
-			/* just in case */
-			tmp->next = NULL;
-
-			if (!output_head)
-				output_head = tmp;
-
-			if (!output_tail) {
-				output_tail = tmp;
-			} else {
-				output_tail->next = tmp;
-				output_tail = tmp;
-			}
-
-			input_iter = input_iter->next;
-		}
-
-		fi_freeinfo(provider_list);
-		provider_list = output_head;
-
-		NCCL_OFI_INFO(NCCL_INIT, "DUP_CONNS of %d changing device count to %d",
-			      nic_dup_conns, num_providers);
+		handle_nic_dup_conns(&provider_list, &num_providers);
 	}
 
 	ret = nccl_net_ofi_query_provider_capabilities(provider_list, num_providers);
