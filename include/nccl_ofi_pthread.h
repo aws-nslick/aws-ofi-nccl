@@ -9,6 +9,8 @@
 extern "C" {
 #endif
 
+#include "config.h"
+
 #include <errno.h>
 #include <pthread.h>
 #include <string.h>

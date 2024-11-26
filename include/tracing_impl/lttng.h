@@ -2,6 +2,9 @@
  * Copyright (c) 2024 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
+#ifndef NCCL_OFI_TRACING_IMPL_LTTNG_H_
+#define NCCL_OFI_TRACING_IMPL_LTTNG_H_
+
 #undef LTTNG_UST_TRACEPOINT_PROVIDER
 #define LTTNG_UST_TRACEPOINT_PROVIDER nccl_ofi_plugin
 
@@ -293,3 +296,5 @@ LTTNG_UST_TRACEPOINT_EVENT(
 #define lttng_ust_tracepoint(...)
 
 #endif /* HAVE_LIBLTTNG_UST == 1 */
+
+#endif /* NCCL_OFI_TRACING_IMPL_LTTNG_H_ */

@@ -2,10 +2,11 @@
  * Copyright (c) 2022-2024 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#ifndef NVTX_H
-#define NVTX_H
+#ifndef OFI_NCCL_TRACING_IMPL_NVTX_H_
+#define OFI_NCCL_TRACING_IMPL_NVTX_H_
 
 #if HAVE_NVTX_TRACING
+#include "config.h"
 #include <nvtx3/nvToolsExt.h>
 
 #define NCCL_OFI_N_NVTX_DOMAIN_PER_COMM 8
@@ -235,4 +236,4 @@ static inline void nvtx_end(nvtxRangeId_t id) {
 
 #endif
 
-#endif /* NVTX_H */
+#endif /* OFI_NCCL_TRACING_IMPL_NVTX_H */

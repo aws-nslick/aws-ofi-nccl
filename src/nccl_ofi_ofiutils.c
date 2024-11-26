@@ -10,19 +10,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <inttypes.h>
 #include <sys/mman.h>
-#include <ctype.h>
 
 #include "nccl_ofi.h"
 #include "nccl_ofi_param.h"
-#include "nccl_ofi_tracepoint.h"
-#include "nccl_ofi_math.h"
 #include "nccl_ofi_ofiutils.h"
 #include "nccl_ofi_platform.h"
-
-#define EFA_PROVIDER_NAME "efa"
-#define IS_EFA_PROVIDER(NAME) (strcmp((NAME), EFA_PROVIDER_NAME)==0)
 
 static int in_list(const char *item, const char *list)
 {

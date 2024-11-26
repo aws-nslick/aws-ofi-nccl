@@ -5,6 +5,8 @@
 #ifndef NCCL_OFI_OFIUTILS_H
 #define NCCL_OFI_OFIUTILS_H
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
