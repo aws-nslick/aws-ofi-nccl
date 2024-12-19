@@ -9,6 +9,7 @@
 #include "config.hh"
 
 #include "test-common.hh"
+#include <vector>
 
 int main(int argc, char *argv[]) {
   ncclResult_t res = ncclSuccess;
@@ -28,7 +29,7 @@ int main(int argc, char *argv[]) {
   ofi_log_function = logger;
 
   /* Indicates if NICs support GPUDirect */
-  int *test_support_gdr = NULL;
+  std::vector<int> test_support_gdr(ndev);
 
   MPI_Init(&argc, &argv);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -37,15 +38,13 @@ int main(int argc, char *argv[]) {
     NCCL_OFI_WARN("Expected two ranks but got %d. "
                   "The nccl_connection functional test should be run with exactly two ranks.",
                   size);
-    res = ncclInvalidArgument;
-    goto exit;
+    return ncclInvalidArgument;
   }
   if (!(0 <= rank && rank <= 1)) {
     NCCL_OFI_WARN("World size was %d, but was local rank is %d. "
                   "MPI is behaving strangely, cannot continue.",
                   size, rank);
-    res = ncclInvalidArgument;
-    goto exit;
+    return ncclInvalidArgument;
   }
 
   MPI_Get_processor_name(name, &proc_name);
@@ -53,29 +52,26 @@ int main(int argc, char *argv[]) {
   /* Get external Network from NCCL-OFI library */
   extNet = get_extNet();
   if (extNet == NULL) {
-    res = ncclInternalError;
-    goto exit;
+    return ncclInternalError;
   }
 
   /* Init API */
-  OFINCCLCHECKGOTO(extNet->init(logger), res, exit);
+  if (res = extNet->init(logger); res != ncclSuccess) {
+    return res;
+  }
+
   NCCL_OFI_INFO(NCCL_INIT, "Process rank %d started. NCCLNet device used on %s is %s.", rank, name, extNet->name);
 
   /* Devices API */
-  OFINCCLCHECKGOTO(extNet->devices(&ndev), res, exit);
+  if (res = extNet->devices(&ndev); res != ncclSuccess)
+    return res;
   NCCL_OFI_INFO(NCCL_INIT, "Received %d network devices", ndev);
-
-  test_support_gdr = (int *)malloc(sizeof(int) * ndev);
-  if (test_support_gdr == NULL) {
-    NCCL_OFI_WARN("Failed to allocate memory");
-    res = ncclInternalError;
-    goto exit;
-  }
 
   /* Get Properties for the device */
   for (int dev = 0; dev < ndev; dev++) {
     test_nccl_properties_t props = {};
-    OFINCCLCHECKGOTO(extNet->getProperties(dev, &props), res, exit);
+    if (res = extNet->getProperties(dev, &props); res != ncclSuccess)
+      return res;
     print_dev_props(dev, &props);
 
     /* Set CUDA support */
@@ -99,7 +95,8 @@ int main(int argc, char *argv[]) {
 
     /* Listen API */
     NCCL_OFI_INFO(NCCL_INIT, "Server: Listening on dev %d", dev);
-    OFINCCLCHECKGOTO(extNet->listen(dev, (void *)&handle, (void **)&lComm), res, exit);
+    if (res = extNet->listen(dev, (void *)&handle, (void **)&lComm); res != ncclSuccess)
+      return res;
 
     if (rank == 0) {
       int peer_rank = (rank + 1) % size;
@@ -116,12 +113,12 @@ int main(int argc, char *argv[]) {
       while (sComm == NULL || rComm == NULL) {
         /* Connect API */
         if (sComm == NULL) {
-          OFINCCLCHECKGOTO(extNet->connect(dev, (void *)src_handle, (void **)&sComm, &s_ignore), res, exit);
+          OFINCCLCHECKGOTO(extNet->connect(dev, (void *)src_handle, (void **)&sComm, &s_ignore), res);
         }
 
         /* Accept API */
         if (rComm == NULL) {
-          OFINCCLCHECKGOTO(extNet->accept((void *)lComm, (void **)&rComm, &r_ignore), res, exit);
+          OFINCCLCHECKGOTO(extNet->accept((void *)lComm, (void **)&rComm, &r_ignore), res);
         }
       }
 
@@ -141,12 +138,12 @@ int main(int argc, char *argv[]) {
       while (sComm == NULL || rComm == NULL) {
         /* Connect API */
         if (sComm == NULL) {
-          OFINCCLCHECKGOTO(extNet->connect(dev, (void *)src_handle, (void **)&sComm, &s_ignore), res, exit);
+          OFINCCLCHECKGOTO(extNet->connect(dev, (void *)src_handle, (void **)&sComm, &s_ignore), res);
         }
 
         /* Accept API */
         if (rComm == NULL) {
-          OFINCCLCHECKGOTO(extNet->accept((void *)lComm, (void **)&rComm, &r_ignore), res, exit);
+          OFINCCLCHECKGOTO(extNet->accept((void *)lComm, (void **)&rComm, &r_ignore), res);
         }
       }
 
@@ -166,12 +163,6 @@ int main(int argc, char *argv[]) {
   MPI_Barrier(MPI_COMM_WORLD);
   MPI_Finalize();
   NCCL_OFI_INFO(NCCL_NET, "Test completed successfully for rank %d", rank);
-
-exit:
-  if (test_support_gdr) {
-    free(test_support_gdr);
-    test_support_gdr = NULL;
-  }
 
   return res;
 }

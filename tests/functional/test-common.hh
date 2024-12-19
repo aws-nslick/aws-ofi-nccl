@@ -38,12 +38,12 @@
     }                                                                                                                                                          \
   } while (false);
 
-#define OFINCCLCHECKGOTO(call, res, label)                                                                                                                     \
+#define OFINCCLCHECKGOTO(call, res)                                                                                                                            \
   do {                                                                                                                                                         \
     res = call;                                                                                                                                                \
-    if (res != ncclSuccess) {                                                                                                                                  \
+    if (res = call; res != ncclSuccess) {                                                                                                                      \
       NCCL_OFI_WARN("OFI NCCL failure: %d", res);                                                                                                              \
-      goto label;                                                                                                                                              \
+      return res;                                                                                                                                              \
     }                                                                                                                                                          \
   } while (false);
 
@@ -63,7 +63,7 @@
 typedef ncclNet_v8_t test_nccl_net_t;
 typedef ncclNetProperties_v8_t test_nccl_properties_t;
 
-static void logger(ncclDebugLogLevel level, unsigned long flags, const char *filefunc, int line, const char *fmt, ...) {
+void static logger(ncclDebugLogLevel level, unsigned long flags, char const *filefunc, int line, char const *fmt, ...) {
   va_list vargs;
 
   switch (level) {
@@ -96,7 +96,7 @@ static void logger(ncclDebugLogLevel level, unsigned long flags, const char *fil
 #pragma GCC diagnostic pop
 }
 
-static inline void print_dev_props(int dev, test_nccl_properties_t *props) {
+void inline static print_dev_props(int dev, test_nccl_properties_t *props) {
   NCCL_OFI_TRACE(NCCL_NET, "****************** Device %d Properties ******************", dev);
   NCCL_OFI_TRACE(NCCL_NET, "%s: PCIe Path: %s", props->name, props->pciPath);
   NCCL_OFI_TRACE(NCCL_NET, "%s: Plugin Support: %d", props->name, props->ptrSupport);
@@ -108,14 +108,14 @@ static inline void print_dev_props(int dev, test_nccl_properties_t *props) {
   NCCL_OFI_TRACE(NCCL_NET, "%s: Global registration: %d", props->name, props->regIsGlobal);
 }
 
-static inline int is_gdr_supported_nic(uint64_t ptr_support) {
+int inline static is_gdr_supported_nic(uint64_t ptr_support) {
   if (ptr_support & NCCL_PTR_CUDA)
     return 1;
 
   return 0;
 }
 
-static inline ncclResult_t allocate_buff(void **buf, size_t size, int buffer_type) {
+ncclResult_t inline static allocate_buff(void **buf, size_t size, int buffer_type) {
   switch (buffer_type) {
   case NCCL_PTR_CUDA:
     NCCL_OFI_TRACE(NCCL_NET, "Allocating CUDA buffer");
@@ -133,7 +133,7 @@ static inline ncclResult_t allocate_buff(void **buf, size_t size, int buffer_typ
   return ncclSuccess;
 }
 
-static inline ncclResult_t initialize_buff(void *buf, size_t size, int buffer_type) {
+ncclResult_t inline static initialize_buff(void *buf, size_t size, int buffer_type) {
   switch (buffer_type) {
   case NCCL_PTR_CUDA:
     CUDACHECK(cudaMemset(buf, '1', size));
@@ -149,7 +149,7 @@ static inline ncclResult_t initialize_buff(void *buf, size_t size, int buffer_ty
   return ncclSuccess;
 }
 
-static inline ncclResult_t deallocate_buffer(void *buf, int buffer_type) {
+ncclResult_t inline static deallocate_buffer(void *buf, int buffer_type) {
   switch (buffer_type) {
   case NCCL_PTR_CUDA:
     CUDACHECK(cudaFree(buf));
@@ -165,7 +165,7 @@ static inline ncclResult_t deallocate_buffer(void *buf, int buffer_type) {
   return ncclSuccess;
 }
 
-static inline ncclResult_t validate_data(char *recv_buf, char *expected_buf, size_t size, int buffer_type) {
+ncclResult_t inline static validate_data(char *recv_buf, char *expected_buf, size_t size, int buffer_type) {
   int ret = 0;
   char *recv_buf_host = NULL;
 
@@ -195,7 +195,7 @@ static inline ncclResult_t validate_data(char *recv_buf, char *expected_buf, siz
   return ncclSuccess;
 }
 
-static test_nccl_net_t *get_extNet(void) {
+test_nccl_net_t static *get_extNet(void) {
   void *netPluginLib = NULL;
   test_nccl_net_t *extNet = NULL;
 
