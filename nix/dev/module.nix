@@ -89,6 +89,7 @@
         hadolint.enable = true;
         headache.enable = true;
         headache.exclude_types = [ "markdown" ];
+        headache.excludes = [ "3rd-party/*" ];
         headache.settings.header-file =
           (pkgs.writeTextFile {
             text = ''

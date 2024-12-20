@@ -1,3 +1,9 @@
+######################################################################################
+#  Copyright (c) 2018-2023 Amazon.com, Inc. or its affiliates. All rights reserved.  #
+#  Copyright (c) 2015-2018, NVIDIA CORPORATION. All rights reserved.                 #
+#                                                                                    #
+######################################################################################
+
 #
 # Copyright (c) 2023-2024 Amazon.com, Inc. or its affiliates. All rights reserved.
 #
@@ -24,5 +30,6 @@ noinst_HEADERS = \
 	nccl/neuron/include/nccl/net.h \
 	nccl/neuron/include/nccl/net_v4.h \
 	nccl/neuron/include/nccl/net_v5.h \
+	expected/include/tl/expected.hpp \
 	uthash/include/uthash/utlist.h \
 	uthash/include/uthash/uthash.h
