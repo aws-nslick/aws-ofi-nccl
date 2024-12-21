@@ -15,7 +15,6 @@
 #
 sources = \
 	nccl_ofi_api.cc \
-	nccl_ofi_compat.cc \
 	nccl_ofi_net.cc \
 	nccl_ofi_sendrecv.cc \
 	nccl_ofi_system.cc \

@@ -661,19 +661,16 @@ int nccl_net_ofi_plugin_fini(nccl_net_ofi_plugin_t *plugin) {
  * the device->get_ep call, hold the lock while we're also creating
  * the ep.
  */
-static nccl_net_ofi_domain_t *nccl_net_ofi_device_get_domain_impl(nccl_net_ofi_device_t *device) {
+nccl_net_ofi_domain_t static *nccl_net_ofi_device_get_domain_impl(nccl_net_ofi_device_t *device) {
   nccl_net_ofi_plugin_t *plugin = NULL;
   nccl_net_ofi_domain_t *domain = NULL;
-  long lookup_key = 0;
 
   assert(device != NULL);
 
   plugin = device->plugin;
   assert(plugin != NULL);
 
-  if (plugin->domain_per_thread) {
-    lookup_key = nccl_net_ofi_gettid();
-  }
+  auto lookup_key = plugin->domain_per_thread ? std::this_thread::get_id() : decltype(domain->creating_thread_id){};
 
   HASH_FIND(hh, device->domain_table, &lookup_key, sizeof(domain->creating_thread_id), domain);
 
@@ -780,12 +777,11 @@ int nccl_net_ofi_device_fini(nccl_net_ofi_device_t *device) {
 
 static int nccl_net_ofi_domain_get_ep(nccl_net_ofi_domain_t *domain, nccl_net_ofi_ep_t **ep_p) {
   int ret = 0;
-  long thread_id;
   nccl_net_ofi_ep_t *ep = NULL;
 
   nccl_net_ofi_mutex_lock(&domain->domain_lock);
 
-  thread_id = nccl_net_ofi_gettid();
+  auto thread_id = std::this_thread::get_id();
   HASH_FIND(hh, domain->endpoint_table, &thread_id, sizeof(ep->creating_thread_id), ep);
 
   if (ep == NULL) {
@@ -857,7 +853,7 @@ int nccl_net_ofi_domain_init(nccl_net_ofi_device_t *device, nccl_net_ofi_domain_
   domain->get_ep = nccl_net_ofi_domain_get_ep;
   domain->release = nccl_net_ofi_domain_release;
   domain->endpoint_table = NULL;
-  domain->creating_thread_id = 0;
+  domain->creating_thread_id = std::thread::id{};
 
   domain->mr_cache = NULL;
   if (!ofi_nccl_mr_cache_disable()) {
@@ -940,7 +936,7 @@ int nccl_net_ofi_endpoint_init(nccl_net_ofi_domain_t *domain, nccl_net_ofi_ep_t 
   ep->domain = domain;
   ep->release_ep = nccl_net_ofi_endpoint_release;
 
-  ep->creating_thread_id = 0;
+  ep->creating_thread_id = std::thread::id{};
   ep->ref_cnt = 0;
 
   return 0;

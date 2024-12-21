@@ -14,8 +14,6 @@ concept Request = requires(RequestType request) {
 template <typename DomainType>
 concept Domain = requires(DomainType domain) {
   typename DomainType::EndpointType;
-  {
-    domain.endpoint()
-  } -> std::convertible_to<tl::expected<std::reference_wrapper<typename DomainType::EndpointType>, typename DomainType::ErrorType>>;
+  { domain.endpoint() } -> std::convertible_to<tl::expected<std::reference_wrapper<typename DomainType::EndpointType>, typename DomainType::ErrorType>>;
 };
 }; // namespace aon::detail::concepts

@@ -19,6 +19,8 @@
 #include "nccl_ofi_mr.hh"
 #include "nccl_ofi_topo.hh"
 
+#include <thread>
+
 /*
  * NCCL_NET_HANDLE_MAXSIZE is a limited resource (and defined in NCCL).
  * An endpoint address buffer of 56 bytes *should* be large enough to hold
@@ -341,7 +343,7 @@ struct nccl_net_ofi_domain {
 
   /* thread id of the thread that called get_domain().  Used as
      the hash key for the domain hash */
-  long creating_thread_id;
+  std::thread::id creating_thread_id;
 
   /* hash table handle */
   UT_hash_handle hh;
@@ -413,7 +415,7 @@ struct nccl_net_ofi_ep {
 
   /* thread id of the thread that called get_ep().  Used as the
      hash key for the endpoint hash */
-  long creating_thread_id;
+  std::thread::id creating_thread_id;
 
   /* hash table handle */
   UT_hash_handle hh;
@@ -686,9 +688,3 @@ int nccl_net_ofi_query_provider_capabilities(const struct fi_info *selected_prov
  *              error, on others
  */
 int get_inject_rma_size_opt(struct fid_ep *ofi_ep, size_t *max_write_inline_size);
-
-/*
- * @brief       gettid() wrapper
- * return       thread id of the current thread (always succeeds)
- */
-long nccl_net_ofi_gettid(void);
