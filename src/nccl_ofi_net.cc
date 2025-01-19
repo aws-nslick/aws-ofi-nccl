@@ -3,7 +3,7 @@
  * Copyright (c) 2015-2018, NVIDIA CORPORATION. All rights reserved.
  */
 
-#include "config.h"
+#include "config.hh"
 
 #include <limits.h>
 #include <stdio.h>
@@ -14,21 +14,21 @@
 #include <sys/mman.h>
 #include <ctype.h>
 
-#include "nccl_ofi.h"
-#include "nccl_ofi_param.h"
-#include "nccl_ofi_tracepoint.h"
+#include "nccl_ofi.hh"
+#include "nccl_ofi_param.hh"
+#include "nccl_ofi_tracepoint.hh"
 #if HAVE_CUDA
-#include "nccl_ofi_cuda.h"
+#include "nccl_ofi_cuda.hh"
 #endif
-#include "nccl_ofi_sendrecv.h"
-#include "nccl_ofi_rdma.h"
-#include "nccl_ofi_topo.h"
-#include "nccl_ofi_math.h"
-#include "nccl_ofi_idpool.h"
-#include "nccl_ofi_dmabuf.h"
-#include "nccl_ofi_platform.h"
-#include "nccl_ofi_ofiutils.h"
-#include "nccl_ofi_system.h"
+#include "nccl_ofi_sendrecv.hh"
+#include "nccl_ofi_rdma.hh"
+#include "nccl_ofi_topo.hh"
+#include "nccl_ofi_math.hh"
+#include "nccl_ofi_idpool.hh"
+#include "nccl_ofi_dmabuf.hh"
+#include "nccl_ofi_platform.hh"
+#include "nccl_ofi_ofiutils.hh"
+#include "nccl_ofi_system.hh"
 
 /* Indicates if GPUDirect is supported by libfabric provider */
 enum gdr_support_level_t support_gdr = GDR_UNKNOWN;

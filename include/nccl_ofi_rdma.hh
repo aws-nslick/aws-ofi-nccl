@@ -9,19 +9,19 @@
 extern "C" {
 #endif
 
-#include "config.h"
+#include "config.hh"
 
 #include <rdma/fabric.h>
 
-#include "nccl_ofi.h"
-#include "nccl_ofi_deque.h"
-#include "nccl_ofi_ep_addr_list.h"
-#include "nccl_ofi_freelist.h"
-#include "nccl_ofi_idpool.h"
-#include "nccl_ofi_log.h"
-#include "nccl_ofi_msgbuff.h"
-#include "nccl_ofi_scheduler.h"
-#include "nccl_ofi_topo.h"
+#include "nccl_ofi.hh"
+#include "nccl_ofi_deque.hh"
+#include "nccl_ofi_ep_addr_list.hh"
+#include "nccl_ofi_freelist.hh"
+#include "nccl_ofi_idpool.hh"
+#include "nccl_ofi_log.hh"
+#include "nccl_ofi_msgbuff.hh"
+#include "nccl_ofi_scheduler.hh"
+#include "nccl_ofi_topo.hh"
 #if HAVE_NVTX_TRACING
 #include <nvtx3/nvToolsExt.h>
 #endif

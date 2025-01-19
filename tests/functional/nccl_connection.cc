@@ -6,9 +6,9 @@
  * This test validates functionality of NCCL connection establishment APIs
  */
 
-#include "config.h"
+#include "config.hh"
 
-#include "test-common.h"
+#include "test-common.hh"
 
 int main(int argc, char* argv[])
 {

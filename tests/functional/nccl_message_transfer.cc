@@ -7,9 +7,9 @@
  * data transfer APIs
  */
 
-#include "config.h"
+#include "config.hh"
 
-#include "test-common.h"
+#include "test-common.hh"
 
 #define PROC_NAME_IDX(i) (i * MPI_MAX_PROCESSOR_NAME)
 

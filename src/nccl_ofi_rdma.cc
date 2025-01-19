@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2023=2024 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
-#include "config.h"
+#include "config.hh"
 
 #include <assert.h>
 #include <inttypes.h>
@@ -11,22 +11,22 @@
 #include <pthread.h>
 #include <stdlib.h>
 
-#include "nccl_ofi.h"
+#include "nccl_ofi.hh"
 #if HAVE_CUDA
-#include "nccl_ofi_cuda.h"
+#include "nccl_ofi_cuda.hh"
 #endif
-#include "nccl_ofi_ep_addr_list.h"
-#include "nccl_ofi_param.h"
-#include "nccl_ofi_rdma.h"
-#include "nccl_ofi_math.h"
-#include "nccl_ofi_tracepoint.h"
-#include "nccl_ofi_scheduler.h"
-#include "nccl_ofi_topo.h"
-#include "nccl_ofi_memcheck.h"
-#include "nccl_ofi_ofiutils.h"
-#include "nccl_ofi_pthread.h"
-#include "nccl_ofi_dmabuf.h"
-#include "nccl_ofi_mr.h"
+#include "nccl_ofi_ep_addr_list.hh"
+#include "nccl_ofi_param.hh"
+#include "nccl_ofi_rdma.hh"
+#include "nccl_ofi_math.hh"
+#include "nccl_ofi_tracepoint.hh"
+#include "nccl_ofi_scheduler.hh"
+#include "nccl_ofi_topo.hh"
+#include "nccl_ofi_memcheck.hh"
+#include "nccl_ofi_ofiutils.hh"
+#include "nccl_ofi_pthread.hh"
+#include "nccl_ofi_dmabuf.hh"
+#include "nccl_ofi_mr.hh"
 
 /* Message buffer size -- maximum span of simultaneous inflight messages */
 #define NCCL_OFI_RDMA_MSGBUFF_SIZE 256

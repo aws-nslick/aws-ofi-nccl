@@ -225,7 +225,7 @@ effectiveStdenv.mkDerivation {
         Includes = {
           IgnoreHeader = [
             "hwloc.h"
-            "config.h"
+            "config.hh"
           ];
         };
       };

@@ -9,7 +9,7 @@
 extern "C" {
 #endif
 
-#include "config.h"
+#include "config.hh"
 
 #include <assert.h>
 #include <pthread.h>
@@ -19,8 +19,8 @@ extern "C" {
 #include <sys/uio.h>
 
 #include <rdma/fi_domain.h>
-#include "nccl_ofi_math.h"
-#include "nccl_ofi_log.h"
+#include "nccl_ofi_math.hh"
+#include "nccl_ofi_log.hh"
 
 #define NCCL_OFI_CACHE_PAGE_SIZE (4096)
 enum nccl_ofi_mr_ckey_type {

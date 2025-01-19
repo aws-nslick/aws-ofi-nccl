@@ -14,34 +14,34 @@
 # net plugin
 #
 sources = \
-	nccl_ofi_api.c \
-	nccl_ofi_compat.c \
-	nccl_ofi_net.c \
-	nccl_ofi_sendrecv.c \
-	nccl_ofi_system.c \
-	nccl_ofi_rdma.c \
-	nccl_ofi_scheduler.c \
-	nccl_ofi_topo.c \
-	nccl_ofi_mr.c \
-	nccl_ofi_msgbuff.c \
-	nccl_ofi_freelist.c \
-	nccl_ofi_deque.c \
-	nccl_ofi_idpool.c \
-	nccl_ofi_ofiutils.c \
-	nccl_ofi_pthread.c \
-	nccl_ofi_dmabuf.c \
-	nccl_ofi_ep_addr_list.c \
-	nccl_ofi_param.c \
-	tracepoint.c
+	nccl_ofi_api.cc \
+	nccl_ofi_compat.cc \
+	nccl_ofi_net.cc \
+	nccl_ofi_sendrecv.cc \
+	nccl_ofi_system.cc \
+	nccl_ofi_rdma.cc \
+	nccl_ofi_scheduler.cc \
+	nccl_ofi_topo.cc \
+	nccl_ofi_mr.cc \
+	nccl_ofi_msgbuff.cc \
+	nccl_ofi_freelist.cc \
+	nccl_ofi_deque.cc \
+	nccl_ofi_idpool.cc \
+	nccl_ofi_ofiutils.cc \
+	nccl_ofi_pthread.cc \
+	nccl_ofi_dmabuf.cc \
+	nccl_ofi_ep_addr_list.cc \
+	nccl_ofi_param.cc \
+	tracepoint.cc
 
 if WANT_PLATFORM_AWS
-sources += platform-aws.c
+sources += platform-aws.cc
 endif
 
 if ENABLE_NEURON
-  sources += nccl_ofi_interface_neuron.c
+  sources += nccl_ofi_interface_neuron.cc
 else
-  sources += nccl_ofi_interface_nvidia.c
+  sources += nccl_ofi_interface_nvidia.cc
 endif
 
 # Build an internal-only library that can be used by unit tests as
@@ -63,7 +63,7 @@ if ENABLE_NEURON
   libnccom_net_la_LDFLAGS = -module -avoid-version
 else
   noinst_LTLIBRARIES += libinternal_net_cudart_plugin.la
-  libinternal_net_cudart_plugin_la_SOURCES = nccl_ofi_cuda.c
+  libinternal_net_cudart_plugin_la_SOURCES = nccl_ofi_cuda.cc
   libinternal_net_cudart_plugin_la_CPPFLAGS = $(CUDA_CPPFLAGS)
   libinternal_net_cudart_plugin_la_CPPFLAGS += -isystem $(abs_top_srcdir)/3rd-party/nccl/$(DEVICE_INTERFACE)/include
   libinternal_net_cudart_plugin_la_CPPFLAGS += -isystem $(abs_top_srcdir)/3rd-party/uthash/include
@@ -87,11 +87,11 @@ if !ENABLE_NEURON
 
 noinst_LTLIBRARIES += libinternal_tuner_plugin.la
 tuner_sources =  \
-	tuner/nccl_ofi_regions.c \
-	tuner/nccl_ofi_tuner.c \
-	tuner/nccl_ofi_model.c \
-	nccl_ofi_param.c \
-	nccl_ofi_system.c
+	tuner/nccl_ofi_regions.cc \
+	tuner/nccl_ofi_tuner.cc \
+	tuner/nccl_ofi_model.cc \
+	nccl_ofi_param.cc \
+	nccl_ofi_system.cc
 
 libinternal_tuner_plugin_la_SOURCES = $(tuner_sources)
 libinternal_tuner_plugin_la_LDFLAGS = -avoid-version

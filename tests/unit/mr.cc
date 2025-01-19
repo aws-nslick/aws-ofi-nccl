@@ -2,12 +2,12 @@
  * Copyright (c) 2023 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#include "config.h"
+#include "config.hh"
 
 #include <stdlib.h>
 
-#include "test-common.h"
-#include "nccl_ofi_mr.h"
+#include "test-common.hh"
+#include "nccl_ofi_mr.hh"
 
 static inline bool test_lookup_impl(nccl_ofi_mr_cache_t *cache, void *addr, size_t size,
 		 void *expected_val)

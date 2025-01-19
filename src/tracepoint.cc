@@ -2,7 +2,7 @@
  * Copyright (c) 2022 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#include <config.h>
+#include <config.hh>
 #if HAVE_LIBLTTNG_UST == 1
 
 #define TRACEPOINT_CREATE_PROBES
@@ -15,6 +15,6 @@
  *
  */
 
-#include <tracing_impl/lttng.h>
+#include <tracing_impl/lttng.hh>
 
 #endif // HAVE_LIBLTTNG_UST == 1

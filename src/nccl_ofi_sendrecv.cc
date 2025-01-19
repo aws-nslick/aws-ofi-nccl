@@ -2,7 +2,7 @@
  * Copyright (c) 2023-2024 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#include "config.h"
+#include "config.hh"
 
 #include <assert.h>
 #include <inttypes.h>
@@ -15,19 +15,19 @@
 #include <nccl/net.h>
 #include <rdma/fabric.h>
 
-#include "nccl_ofi.h"
+#include "nccl_ofi.hh"
 #if HAVE_CUDA
-#include "nccl_ofi_cuda.h"
+#include "nccl_ofi_cuda.hh"
 #endif
-#include "nccl_ofi_param.h"
-#include "nccl_ofi_sendrecv.h"
-#include "nccl_ofi_freelist.h"
-#include "nccl_ofi_ofiutils.h"
-#include "nccl_ofi_tracepoint.h"
-#include "nccl_ofi_math.h"
-#include "nccl_ofi_pthread.h"
-#include "nccl_ofi_dmabuf.h"
-#include "nccl_ofi_mr.h"
+#include "nccl_ofi_param.hh"
+#include "nccl_ofi_sendrecv.hh"
+#include "nccl_ofi_freelist.hh"
+#include "nccl_ofi_ofiutils.hh"
+#include "nccl_ofi_tracepoint.hh"
+#include "nccl_ofi_math.hh"
+#include "nccl_ofi_pthread.hh"
+#include "nccl_ofi_dmabuf.hh"
+#include "nccl_ofi_mr.hh"
 
 
 static nccl_net_ofi_sendrecv_domain_t *sendrecv_endpoint_get_domain(nccl_net_ofi_sendrecv_ep_t *ep)

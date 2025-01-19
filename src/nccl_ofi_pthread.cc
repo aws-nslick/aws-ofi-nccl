@@ -3,13 +3,13 @@
  * Copyright (c) 2015-2018, NVIDIA CORPORATION. All rights reserved.
  */
 
-#include "config.h"
+#include "config.hh"
 
 #include <pthread.h>
 #include <stdlib.h>
 
-#include "nccl_ofi_param.h"
-#include "nccl_ofi_pthread.h"
+#include "nccl_ofi_param.hh"
+#include "nccl_ofi_pthread.hh"
 
 static pthread_once_t errorcheck_once = PTHREAD_ONCE_INIT;
 static pthread_mutexattr_t errorcheck_attr;

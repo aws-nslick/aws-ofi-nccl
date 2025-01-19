@@ -15,8 +15,8 @@ extern "C" {
 #include <string.h>
 #include <stdbool.h>
 
-#include "nccl_ofi_log.h"
-#include "nccl_ofi_pthread.h"
+#include "nccl_ofi_log.hh"
+#include "nccl_ofi_pthread.hh"
 
 /*
  * This is an ugly hack.  The original implementation of

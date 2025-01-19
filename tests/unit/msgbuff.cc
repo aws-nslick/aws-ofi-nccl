@@ -4,11 +4,11 @@
 
 #include <stdio.h>
 
-#include "config.h"
+#include "config.hh"
 
-#include "nccl_ofi_msgbuff.h"
+#include "nccl_ofi_msgbuff.hh"
 
-#include "test-common.h"
+#include "test-common.hh"
 
 int main(int argc, char *argv[])
 {

@@ -11,9 +11,9 @@ extern "C" {
 
 #include <rdma/fabric.h>
 
-#include "nccl_ofi.h"
-#include "nccl_ofi_freelist.h"
-#include "nccl_ofi_log.h"
+#include "nccl_ofi.hh"
+#include "nccl_ofi_freelist.hh"
+#include "nccl_ofi_log.hh"
 
 typedef enum nccl_net_ofi_sendrecv_req_state {
 	NCCL_OFI_SENDRECV_REQ_CREATED = 0,

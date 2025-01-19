@@ -6,9 +6,9 @@
 #ifndef NCCL_OFI_TRACEPOINT_H_
 #define NCCL_OFI_TRACEPOINT_H_
 
-#include "config.h"
-#include "tracing_impl/nvtx.h"
-#include "tracing_impl/lttng.h"
+#include "config.hh"
+#include "tracing_impl/nvtx.hh"
+#include "tracing_impl/lttng.hh"
 
 /***** SENDRECV PROTOCOL *****/
 #define NCCL_OFI_TRACE_SEND_SENDRECV(dev, size, comm, msg_seq_num, request, nccl_req) do { \

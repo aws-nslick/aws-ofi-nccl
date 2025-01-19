@@ -96,6 +96,8 @@ static struct ec2_platform_data test_map_1[] = {
 int main(int argc, char *argv[]) {
 	int ret = 0;
 
+	ofi_log_function = logger;
+
 	/* verify we get the answer we want on real platforms */
 	ret += check_known_platforms();
 

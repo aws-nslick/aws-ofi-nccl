@@ -1,4 +1,4 @@
-#include "config.h"
+#include "config.hh"
 
 #ifdef HAVE_GETTID
 #include <sys/types.h>
@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #endif
 
-#include "nccl_ofi.h"
+#include "nccl_ofi.hh"
 
 
 long nccl_net_ofi_gettid(void)

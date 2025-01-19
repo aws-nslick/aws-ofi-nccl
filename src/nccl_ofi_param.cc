@@ -2,7 +2,7 @@
  * Copyright (c) 2024      Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#include "config.h"
+#include "config.hh"
 
 /*
  * This is an ugly hack.  The original implementation of
@@ -22,4 +22,4 @@
  * the more terrible pieces of code I've ever written.
  */
 #define OFI_NCCL_PARAM_DEFINE 1
-#include "nccl_ofi_param.h"
+#include "nccl_ofi_param.hh"

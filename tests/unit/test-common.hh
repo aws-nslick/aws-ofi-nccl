@@ -8,8 +8,8 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-#include "nccl_ofi.h"
-#include "nccl_ofi_log.h"
+#include "nccl_ofi.hh"
+#include "nccl_ofi_log.hh"
 
 static inline void logger(ncclDebugLogLevel level, unsigned long flags, const char *filefunc,
 			  int line, const char *fmt, ...)

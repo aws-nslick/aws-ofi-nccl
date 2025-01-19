@@ -2,11 +2,11 @@
  * Copyright (c) 2023 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#include "config.h"
+#include "config.hh"
 
-#include "nccl_ofi.h"
-#include "nccl_ofi_api.h"
-#include "nccl_ofi_param.h"
+#include "nccl_ofi.hh"
+#include "nccl_ofi_api.hh"
+#include "nccl_ofi_param.hh"
 
 static ncclResult_t init_v4(ncclDebugLogger_t logFunction)
 {

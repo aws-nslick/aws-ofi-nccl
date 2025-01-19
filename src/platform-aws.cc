@@ -3,7 +3,7 @@
  * Copyright (c) 2015-2018, NVIDIA CORPORATION. All rights reserved.
  */
 
-#include "config.h"
+#include "config.hh"
 
 #include <alloca.h>
 #include <limits.h>
@@ -18,15 +18,15 @@
 #include <regex.h>
 #include <dlfcn.h>
 
-#include "nccl_ofi.h"
-#include "nccl_ofi_platform.h"
-#include "platform-aws.h"
-#include "nccl_ofi_log.h"
-#include "nccl_ofi_math.h"
-#include "nccl_ofi_rdma.h"
-#include "nccl_ofi_param.h"
-#include "nccl_ofi_pthread.h"
-#include "nccl_ofi_system.h"
+#include nccl_ofi.hh
+#include "nccl_ofi_platform.hh"
+#include "platform-aws.hh"
+#include "nccl_ofi_log.hh"
+#include "nccl_ofi_math.hh"
+#include "nccl_ofi_rdma.hh"
+#include "nccl_ofi_param.hh"
+#include "nccl_ofi_pthread.hh"
+#include "nccl_ofi_system.hh"
 
 
 /*

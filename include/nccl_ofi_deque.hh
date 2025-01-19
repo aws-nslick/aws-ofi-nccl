@@ -14,7 +14,7 @@ extern "C" {
 #include <pthread.h>
 #include <stdbool.h>
 
-#include "nccl_ofi_pthread.h"
+#include "nccl_ofi_pthread.hh"
 
 /*
  * Internal: deque element structure

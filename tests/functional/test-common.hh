@@ -5,7 +5,7 @@
 #ifndef TEST_COMMON_H_
 #define TEST_COMMON_H_
 
-#include "config.h"
+#include "config.hh"
 
 #include <dlfcn.h>
 #include <stdarg.h>
@@ -18,10 +18,10 @@
 #include <nccl/net.h>
 #include <mpi.h>
 
-#include "nccl_ofi.h"
-#include "nccl_ofi_log.h"
-#include "nccl_ofi_math.h"
-#include "nccl_ofi_param.h"
+#include "nccl_ofi.hh"
+#include "nccl_ofi_log.hh"
+#include "nccl_ofi_math.hh"
+#include "nccl_ofi_param.hh"
 
 #define STR2(v)		#v
 #define STR(v)		STR2(v)
