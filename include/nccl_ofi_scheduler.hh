@@ -16,14 +16,14 @@
  * to be send over a specific rail. This struct is part of the
  * schedule that the scheduler provides.
  */
-typedef struct nccl_net_ofi_xfer_info {
+struct nccl_net_ofi_xfer_info_t {
   /* Id of the rail */
   int rail_id;
   /* Offset of the stripe into the message */
   size_t offset;
   /* Size of the stripe in bytes */
   size_t msg_size;
-} nccl_net_ofi_xfer_info_t;
+};
 
 /*
  * @brief	Schedule of a message
@@ -31,7 +31,7 @@ typedef struct nccl_net_ofi_xfer_info {
  * A schedule is a partitioning of a message into stripes, each
  * assigned to a different rail.
  */
-typedef struct nccl_net_ofi_schedule {
+struct nccl_net_ofi_schedule_t {
   /* Number of transfer information entries set by the scheduler */
   size_t num_xfer_infos;
 
@@ -41,7 +41,7 @@ typedef struct nccl_net_ofi_schedule {
   /* Array of transfer information structs. The array has at
    * least 'num_xfer_infos' entries. */
   nccl_net_ofi_xfer_info_t rail_xfer_infos[];
-} nccl_net_ofi_schedule_t;
+};
 
 struct nccl_net_ofi_scheduler;
 typedef struct nccl_net_ofi_scheduler nccl_net_ofi_scheduler_t;
@@ -49,7 +49,7 @@ typedef struct nccl_net_ofi_scheduler nccl_net_ofi_scheduler_t;
 /*
  * @brief	Base scheduler struct
  */
-typedef struct nccl_net_ofi_scheduler {
+struct nccl_net_ofi_scheduler_t {
   /* Freelist of schedules */
   nccl_ofi_freelist_t *schedule_fl;
 
@@ -76,7 +76,7 @@ typedef struct nccl_net_ofi_scheduler {
    *		non-zero, on error
    */
   int (*fini)(nccl_net_ofi_scheduler_t *scheduler);
-} nccl_net_ofi_scheduler_t;
+};
 
 /*
  * @brief 	The threshold scheduler
@@ -84,7 +84,7 @@ typedef struct nccl_net_ofi_scheduler {
  * Messages smaller or equal to `ROUND_ROBIN_THRESHOLD' bytes are
  * assigned round-robin; larger messages are multiplexed.
  */
-typedef struct nccl_net_ofi_threshold_scheduler {
+struct nccl_net_ofi_threshold_scheduler_t {
   nccl_net_ofi_scheduler_t base;
   /* Round robin counter */
   unsigned int rr_counter;
@@ -93,7 +93,7 @@ typedef struct nccl_net_ofi_threshold_scheduler {
   /* Minimum size of the message in bytes before message is
    * multiplexed */
   size_t min_stripe_size;
-} nccl_net_ofi_threshold_scheduler_t;
+};
 
 /*
  * @brief	Release schedule by returning it back to the scheduler

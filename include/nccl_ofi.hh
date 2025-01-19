@@ -158,41 +158,42 @@ struct nccl_net_ofi_req {
 };
 
 /* Various stages of connection establishment */
-typedef enum nccl_ofi_comm_stage {
+enum nccl_ofi_comm_stage_t {
   COMM_CREATE_START = 0,
   COMM_SEND_CONN,
   COMM_RECV_CONN,
   COMM_CONN_REQ_PENDING,
   COMM_CONN_RESP_REQ_PENDING,
   COMM_CONNECTED,
-} nccl_ofi_comm_stage_t;
+};
 
-typedef struct save_comm_state {
+struct save_comm_state_t {
   nccl_net_ofi_comm_t *comm;
   nccl_net_ofi_req_t *req;
   nccl_ofi_comm_stage_t stage;
-} save_comm_state_t;
+};
 
-typedef struct nccl_ofi_connection_info {
+struct nccl_ofi_connection_info_t {
   char ep_name[MAX_EP_ADDR];
   uint64_t ep_namelen;
   uint64_t connect_to_self;
   nccl_net_ofi_req_t *req;
-} nccl_ofi_connection_info_t;
+};
+
 /* Since this is a message on the wire, check that it has the expected size */
 static_assert(sizeof(nccl_ofi_connection_info_t) == 80, "Wrong size for SENDRECV connect message");
 
-typedef struct nccl_net_ofi_conn_handle {
+struct nccl_net_ofi_conn_handle_t {
   char ep_name[MAX_EP_ADDR];
   uint32_t comm_id;
   /* Save temporary communicator state when creating send communicator */
   save_comm_state_t state;
-} nccl_net_ofi_conn_handle_t;
+};
 
 /**
  * Properties structure
  */
-typedef struct nccl_ofi_properties {
+struct nccl_ofi_properties_t {
   char *name;
   /** Path to the device in /sys */
   char *pci_path;
@@ -221,7 +222,7 @@ typedef struct nccl_ofi_properties {
   size_t max_mr_key_size;
   /** Indicator whether RMA operations of NCCL Net API are supported **/
   int rma_supported;
-} nccl_ofi_properties_t;
+};
 
 /**
  * Device Data

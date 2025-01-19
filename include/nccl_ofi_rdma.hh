@@ -50,15 +50,15 @@
  */
 #define NCCL_OFI_RDMA_SEQ_BITS (10)
 
-typedef enum nccl_net_ofi_rdma_req_state {
+enum nccl_net_ofi_rdma_req_state_t {
   NCCL_OFI_RDMA_REQ_CREATED = 0,
   NCCL_OFI_RDMA_REQ_PENDING,
   NCCL_OFI_RDMA_REQ_COMPLETED,
   NCCL_OFI_RDMA_REQ_ERROR,
   NCCL_OFI_RDMA_REQ_INVALID_STATE,
-} nccl_net_ofi_rdma_req_state_t;
+};
 
-typedef enum nccl_net_ofi_rdma_req_type {
+enum nccl_net_ofi_rdma_req_type_t {
   /* Write request */
   NCCL_OFI_RDMA_WRITE,
   /* Read request */
@@ -89,7 +89,7 @@ typedef enum nccl_net_ofi_rdma_req_type {
   NCCL_OFI_RDMA_SEND_CONN_RESP,
   /* Invalid type */
   NCCL_OFI_RDMA_INVALID_TYPE,
-} nccl_net_ofi_rdma_req_type_t;
+};
 
 enum nccl_ofi_rdma_msg_type {
   NCCL_OFI_RDMA_MSG_CONN = 0,
@@ -114,8 +114,7 @@ typedef uint16_t nccl_ofi_rdma_msg_type_t;
  * Use function `calloc_rdma_mr_handle(int num_rails, int num_control_rails)' to
  * allocate a RDMA memory registration handle with `num_rails`+`num_control_rails` rails.
  */
-typedef struct nccl_net_ofi_rdma_mr_handle {
-
+struct nccl_net_ofi_rdma_mr_handle_t {
   int num_rails;
 
   int num_control_rails;
@@ -125,12 +124,11 @@ typedef struct nccl_net_ofi_rdma_mr_handle {
 
   /* Array of size `num_control_rails' */
   struct fid_mr **control_mr;
-
-} nccl_net_ofi_rdma_mr_handle_t;
+};
 
 /* Contents of ctrl message sent from receiver to sender to advertise
    destination buffer */
-typedef struct nccl_net_ofi_rdma_ctrl_msg {
+struct nccl_net_ofi_rdma_ctrl_msg_t {
   /* Message type, must be NCCL_OFI_RDMA_MSG_CTRL */
   uint32_t type : NCCL_OFI_RDMA_CTRL_TYPE_BITS;
 
@@ -149,7 +147,8 @@ typedef struct nccl_net_ofi_rdma_ctrl_msg {
     uint32_t short_buff_mr_key[MAX_NUM_RAILS];
     uint64_t long_buff_mr_key[MAX_NUM_RAILS];
   };
-} nccl_net_ofi_rdma_ctrl_msg_t;
+};
+
 /* Since this is a message on the wire, check that it has the expected size */
 static_assert(sizeof(nccl_net_ofi_rdma_ctrl_msg_t) == 48, "Wrong size for RDMA Control message");
 static_assert(offsetof(nccl_net_ofi_rdma_ctrl_msg_t, short_buff_mr_key) + sizeof(((nccl_net_ofi_rdma_ctrl_msg_t *)0)->short_buff_mr_key) <= 32,
@@ -164,7 +163,7 @@ static inline size_t nccl_net_ofi_rdma_ctrl_msg_size(size_t num_rails, bool use_
 }
 
 /* Message from receiver to sender indicating sender can close resources */
-typedef struct nccl_net_ofi_rdma_close_msg {
+struct nccl_net_ofi_rdma_close_msg_t {
   /* Message type, must be NCCL_OFI_RDMA_MSG_CLOSE */
   uint16_t type : NCCL_OFI_RDMA_CTRL_TYPE_BITS;
 
@@ -173,7 +172,7 @@ typedef struct nccl_net_ofi_rdma_close_msg {
 
   /* Comm ID provided by the sender */
   uint32_t send_comm_id;
-} nccl_net_ofi_rdma_close_msg_t;
+};
 
 /* For LL/LL128 protocols, eager rx buffers (source of RDMA read operations)
    need to be 128B aligned */
@@ -186,7 +185,7 @@ typedef struct nccl_net_ofi_rdma_req nccl_net_ofi_rdma_req_t;
 typedef struct nccl_net_ofi_rdma_ep nccl_net_ofi_rdma_ep_t;
 typedef struct nccl_net_ofi_ep_rail nccl_net_ofi_ep_rail_t;
 
-typedef struct {
+struct rdma_req_rx_buff_data_t {
   /* Rx buffer freelist item */
   nccl_ofi_freelist_elem_t *rx_buff_fl_elem;
   /* Length of rx buffer */
@@ -204,9 +203,9 @@ typedef struct {
    * Back-pointer to associated endpoint
    */
   nccl_net_ofi_rdma_ep_t *ep;
-} rdma_req_rx_buff_data_t;
+};
 
-typedef struct {
+struct rdma_req_rma_op_data_t {
   /* Remote destination buffer address */
   uint64_t remote_buff;
   /* Remote MR key */
@@ -225,9 +224,9 @@ typedef struct {
   /* Total number of completions. Expect one completion for receiving the
    * control message and one completion for each send segment. */
   int total_num_compls;
-} rdma_req_rma_op_data_t;
+};
 
-typedef struct {
+struct rdma_req_send_data_t {
   /* True for eager messages */
   bool eager;
   /* Remote destination buffer address */
@@ -257,12 +256,12 @@ typedef struct {
   nvtxRangeId_t trace_id;
   nvtxRangeId_t seg_trace_id[MAX_NUM_RAILS];
 #endif
-} rdma_req_send_data_t;
+};
 
 /*
  * @brief	Data of request responsible for sending the control message
  */
-typedef struct {
+struct rdma_req_send_ctrl_data_t {
   /* Pointer to the allocated control buffer from freelist */
   nccl_ofi_freelist_elem_t *ctrl_fl_elem;
   /* Schedule used to transfer the control buffer. We save the
@@ -274,39 +273,39 @@ typedef struct {
 #if HAVE_NVTX_TRACING
   nvtxRangeId_t trace_id;
 #endif
-} rdma_req_send_ctrl_data_t;
+};
 
 /*
  * @brief	Data of request responsible for sending the close message
  */
-typedef struct {
+struct rdma_req_send_close_data_t {
   /* Pointer to the allocated control buffer from freelist */
   nccl_ofi_freelist_elem_t *ctrl_fl_elem;
   /* Schedule used to transfer the close buffer. We save the
    * pointer to reference it when transferring the buffer over
    * network. */
   nccl_net_ofi_schedule_t *ctrl_schedule;
-} rdma_req_send_close_data_t;
+};
 
-typedef struct {
+struct rdma_req_eager_copy_data_t {
   /* Pointer to rx buffer containing eager data */
   nccl_net_ofi_rdma_req_t *eager_rx_buff_req;
   /* Pointer to recv parent request */
   nccl_net_ofi_rdma_req_t *recv_req;
-} rdma_req_eager_copy_data_t;
+};
 
 /*
  * @brief	Data of request responsible for receiving segments
  */
-typedef struct {
+struct rdma_req_recv_segms_data_t {
   /* Pointer to recv parent request */
   nccl_net_ofi_rdma_req_t *recv_req;
-} rdma_req_recv_segms_data_t;
+};
 
 /*
  * @brief	Data of request responsible for receive operation
  */
-typedef struct {
+struct rdma_req_recv_data_t {
   /* Destination buffer */
   void *dst_buff;
   /* Destination length */
@@ -329,24 +328,24 @@ typedef struct {
 #if HAVE_NVTX_TRACING
   nvtxRangeId_t trace_id;
 #endif
-} rdma_req_recv_data_t;
+};
 
 /*
  * @brief	Data of request responsible for flush operation
  */
-typedef struct {
+struct rdma_req_flush_data_t {
   /* Buffer to read flush data from */
   void *data;
   /* MR handles for the data buffer */
   nccl_net_ofi_rdma_mr_handle_t *mr_handle;
   /* Total number of completions. Expect completions from all NIC rail */
   int total_num_compls;
-} rdma_req_flush_data_t;
+};
 
 /*
  * @brief	RDMA request
  */
-typedef struct nccl_net_ofi_rdma_req {
+struct nccl_net_ofi_rdma_req_t {
   nccl_net_ofi_req_t base;
 
   /* Associated Comm object */
@@ -402,18 +401,17 @@ typedef struct nccl_net_ofi_rdma_req {
    * error if the owner of the request has to deallocate the
    * request by its own. */
   int (*free)(nccl_net_ofi_rdma_req_t *req, bool dec_inflight_reqs);
-
-} nccl_net_ofi_rdma_req_t;
+};
 
 /*
  * Rdma endpoint name
  *
  * Length of the name is limited to `MAX_EP_ADDR`.
  */
-typedef struct nccl_ofi_rdma_ep_name {
+struct nccl_ofi_rdma_ep_name_t {
   char ep_name[MAX_EP_ADDR];
   size_t ep_name_len;
-} nccl_ofi_rdma_ep_name_t;
+};
 
 /*
  * @brief	Message storing rail endpoint addresses for connection establishment
@@ -421,7 +419,7 @@ typedef struct nccl_ofi_rdma_ep_name {
  * Connect message is send from sender to receiver side to provide
  * connection information.
  */
-typedef struct nccl_ofi_rdma_connection_info {
+struct nccl_ofi_rdma_connection_info_t {
   /* Message type
    * either NCCL_OFI_RDMA_MSG_CONN or NCCL_OFI_RDMA_MSG_CONN_RESP
    */
@@ -445,7 +443,8 @@ typedef struct nccl_ofi_rdma_connection_info {
    * the number of entries that are in use. */
   nccl_ofi_rdma_ep_name_t control_ep_names[MAX_NUM_RAILS];
   nccl_ofi_rdma_ep_name_t ep_names[MAX_NUM_RAILS];
-} nccl_ofi_rdma_connection_info_t;
+};
+
 /* Since this is a message on the wire, check that it has the expected size */
 static_assert(sizeof(nccl_ofi_rdma_connection_info_t) == 528, "Wrong size for RDMA connect message");
 
@@ -455,14 +454,14 @@ static_assert(sizeof(nccl_ofi_rdma_connection_info_t) == 528, "Wrong size for RD
  * Communicator rail encapsulates data of a communicator for a
  * specific rail.
  */
-typedef struct nccl_net_ofi_rdma_send_comm_rail {
+struct nccl_net_ofi_rdma_send_comm_rail_t {
   /* Fabric address of remote endpoint */
   fi_addr_t remote_addr;
 
   /* Pointer to libfabric endpoint of corresponding rdma
    * endpoint rail */
   struct fid_ep *local_ep;
-} nccl_net_ofi_rdma_send_comm_rail_t;
+};
 
 /*
  * @brief	RDMA send communicator
@@ -470,7 +469,7 @@ typedef struct nccl_net_ofi_rdma_send_comm_rail {
  * Use function `calloc_rdma_send_comm(int num_rails, int num_control_rails)' to
  * allocate a RDMA send communicator with `num_rails'+`num_control_rails' rails.
  */
-typedef struct nccl_net_ofi_rdma_send_comm {
+struct nccl_net_ofi_rdma_send_comm_t {
   /* This base send communicator must be the first member of this
    * struct. This allows casting between pointers of this struct
    * and its base struct. */
@@ -531,8 +530,7 @@ typedef struct nccl_net_ofi_rdma_send_comm {
   nccl_net_ofi_rdma_send_comm_rail_t *rails;
   /* Array of `num_control_rails` communicator rails */
   nccl_net_ofi_rdma_send_comm_rail_t *control_rails;
-
-} nccl_net_ofi_rdma_send_comm_t;
+};
 
 /*
  * @brief	Receive communicator rail
@@ -540,7 +538,7 @@ typedef struct nccl_net_ofi_rdma_send_comm {
  * Communicator rail encapsulates data of a communicator for a
  * specific rail.
  */
-typedef struct nccl_net_ofi_rdma_recv_comm_rail {
+struct nccl_net_ofi_rdma_recv_comm_rail_t {
   /* Fabric address of remote endpoint */
   fi_addr_t remote_addr;
 
@@ -550,15 +548,15 @@ typedef struct nccl_net_ofi_rdma_recv_comm_rail {
 
   /* Libfabric address of local endpoint used for flushing */
   fi_addr_t local_addr;
-} nccl_net_ofi_rdma_recv_comm_rail_t;
+};
 
 /* Metadata about dummy flush buffer */
-typedef struct nccl_net_ofi_rdma_flush_buffer {
+struct nccl_net_ofi_rdma_flush_buffer_t {
   void *host_buffer;
   size_t size;
   /* Memory registration handle of the local buffer */
   nccl_net_ofi_rdma_mr_handle_t *mr_handle;
-} nccl_net_ofi_rdma_flush_buffer_t;
+};
 
 /*
  * @brief	RDMA receive communicator
@@ -566,7 +564,7 @@ typedef struct nccl_net_ofi_rdma_flush_buffer {
  * Use function `calloc_rdma_recv_comm(int num_rails, int num_control_rails)' to
  * allocate a RDMA receive communicator with `num_rails'+`num_control_rails' rails.
  */
-typedef struct nccl_net_ofi_rdma_recv_comm {
+struct nccl_net_ofi_rdma_recv_comm_t {
   /* This base receive communicator must be the first member of
    * this struct. This allows casting between pointers of this
    * struct and its base struct. */
@@ -614,9 +612,9 @@ typedef struct nccl_net_ofi_rdma_recv_comm {
   nccl_net_ofi_rdma_recv_comm_rail_t *rails;
   /* Array of `num_control_rails` communicator rails */
   nccl_net_ofi_rdma_recv_comm_rail_t *control_rails;
-} nccl_net_ofi_rdma_recv_comm_t;
+};
 
-typedef struct nccl_net_ofi_rdma_listen_comm {
+struct nccl_net_ofi_rdma_listen_comm_t {
   /* This base listen communicator must be the first member of
    * this struct. This allows casting between pointers of this
    * struct and its base struct. */
@@ -637,7 +635,7 @@ typedef struct nccl_net_ofi_rdma_listen_comm {
   /* Message struct send connect message and receive connect
    * response message */
   nccl_ofi_rdma_connection_info_t conn_msg;
-} nccl_net_ofi_rdma_listen_comm_t;
+};
 
 /*
  * @brief	Endpoint rail
@@ -738,13 +736,13 @@ struct nccl_net_ofi_rdma_ep {
  * Deivice rail encapsulates data of an endpoint for a
  * specific rail.
  */
-typedef struct nccl_net_ofi_rdma_device_rail {
+struct nccl_net_ofi_rdma_device_rail_t {
   /* NIC info */
   struct fi_info *info;
 
   /* Fabric handle */
   struct fid_fabric *fabric;
-} nccl_net_ofi_rdma_device_rail_t;
+};
 
 /*
  * @brief	RDMA Device
@@ -759,7 +757,7 @@ typedef struct nccl_net_ofi_rdma_device_rail {
  * locks and the lifetime of resources is maintained with a reference
  * counter.
  */
-typedef struct nccl_net_ofi_rdma_device {
+struct nccl_net_ofi_rdma_device_t {
   /* This base device interface struct provides access to the
    * rdma endpoint's functions such as
    * rdma_get_properties(), rdma_get_ep(), and
@@ -797,16 +795,16 @@ typedef struct nccl_net_ofi_rdma_device {
 #if HAVE_NVTX_TRACING
   nvtxDomainHandle_t nvtx_domain[MAX_NUM_RAILS];
 #endif
-} nccl_net_ofi_rdma_device_t;
+};
 
-typedef struct nccl_net_ofi_rdma_domain_rail {
+struct nccl_net_ofi_rdma_domain_rail_t {
   /* Access domain handles */
   struct fid_domain *domain;
 
   struct fid_cq *cq;
-} nccl_net_ofi_rdma_domain_rail_t;
+};
 
-typedef struct nccl_net_ofi_rdma_domain {
+struct nccl_net_ofi_rdma_domain_t {
   nccl_net_ofi_domain_t base;
 
   int num_rails;
@@ -814,7 +812,7 @@ typedef struct nccl_net_ofi_rdma_domain {
 
   /* List of endpoints and set of addresses they have connections to */
   nccl_ofi_ep_addr_list_t *ep_addr_list;
-} nccl_net_ofi_rdma_domain_t;
+};
 
 struct nccl_net_ofi_rdma_plugin {
   nccl_net_ofi_plugin_t base;

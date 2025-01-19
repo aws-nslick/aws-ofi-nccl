@@ -1,0 +1,13 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/ast-grep/ast-grep/main/schemas/rule.json
+
+id: anonymous-struct-type-alias
+message: Anonymous struct type alias
+severity: error
+language: Cpp
+rule:
+  pattern:
+    context: typedef struct { $$$BODY } $NAME;
+fix: |
+  struct $NAME {
+    $$$BODY
+  };

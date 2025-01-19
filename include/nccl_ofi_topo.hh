@@ -23,7 +23,7 @@
  * libfabric NIC info lists (aka groups) are stored in the topology
  * nodes of the group leaders (first NIC info of the list).
  */
-typedef struct nccl_ofi_topo_data {
+struct nccl_ofi_topo_data_t {
   /* Libfabric NIC info list */
   struct fi_info *info_list;
 
@@ -52,34 +52,34 @@ typedef struct nccl_ofi_topo_data {
 
   /* Backward pointer to corresponding topology node */
   hwloc_obj_t node;
-} nccl_ofi_topo_data_t;
+};
 
 /*
  * @brief	Vector of nccl_ofi_topo_data_t structs
  */
-typedef struct nccl_ofi_topo_data_vec {
+struct nccl_ofi_topo_data_vec_t {
   /* Array of user data structs. NULL if size is zero. */
   nccl_ofi_topo_data_t *data;
 
   /* Size of vector */
   size_t size;
-} nccl_ofi_topo_data_vec_t;
+};
 
 /*
  * @brief	nccl_ofi_topo_data_vec_t forward iterator
  */
-typedef struct nccl_ofi_topo_data_iterator {
+struct nccl_ofi_topo_data_iterator_t {
   /* Current position of the iterator */
   nccl_ofi_topo_data_t *begin;
 
   /* End of iterator */
   nccl_ofi_topo_data_t *end;
-} nccl_ofi_topo_data_iterator_t;
+};
 
 /*
  * @brief	NCCL OFI topology containing hardware topology and topology node user data
  */
-typedef struct nccl_ofi_topo {
+struct nccl_ofi_topo_t {
   /* Hardware topology. Each topology node stores a pointer to a
    * different object of vector 'data_vec'. */
   hwloc_topology_t topo;
@@ -93,7 +93,7 @@ typedef struct nccl_ofi_topo {
    * one-to-one relationship between each topology node of
    * 'topo' and user data objects of this vector. */
   nccl_ofi_topo_data_vec_t *data_vec;
-} nccl_ofi_topo_t;
+};
 
 /*
  * @brief	Set topology user data iterator to the first element of NCCL OFI

@@ -1,0 +1,13 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/ast-grep/ast-grep/main/schemas/rule.json
+
+id: redundant-enum-type-alias
+message: redundant enum type alias
+severity: error
+language: Cpp
+rule:
+  pattern:
+    context: typedef enum $NAME { $$$BODY } $ALIAS;
+fix: |
+  enum $ALIAS {
+    $$$BODY
+  };

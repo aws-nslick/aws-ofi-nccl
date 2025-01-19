@@ -39,17 +39,17 @@ ncclResult_t region_destroy_internal(nccl_ofi_tuner_context_t *ctx);
  */
 #define TUNER_MAX_SIZE 100.0 * 1024 * 1024 * 1024
 
-typedef struct nccl_ofi_tuner_point {
+struct nccl_ofi_tuner_point_t {
   double x;
   double y;
-} nccl_ofi_tuner_point_t;
+};
 
-typedef struct nccl_ofi_tuner_region {
+struct nccl_ofi_tuner_region_t {
   int algorithm;
   int protocol;
   size_t num_vertices;
   nccl_ofi_tuner_point_t vertices[TUNER_MAX_NUM_VERTICES];
-} nccl_ofi_tuner_region_t;
+};
 
 nccl_ofi_tuner_point_t extend_region(nccl_ofi_tuner_point_t a, nccl_ofi_tuner_point_t b, nccl_ofi_tuner_point_t z);
 

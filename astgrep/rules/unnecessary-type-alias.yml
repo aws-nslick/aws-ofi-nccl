@@ -1,0 +1,13 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/ast-grep/ast-grep/main/schemas/rule.json
+
+id: unnecessary-type-alias
+message: Unecessasry type alias
+severity: error
+language: Cpp
+rule:
+  pattern:
+    context: typedef struct $INVISIBLE_NAME { $$$BODY } $ALIAS;
+fix: |
+  struct $ALIAS {
+    $$$BODY
+  };

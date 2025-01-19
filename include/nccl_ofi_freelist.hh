@@ -14,11 +14,11 @@
 /*
  * Freelist element structure
  */
-typedef struct nccl_ofi_freelist_elem {
+struct nccl_ofi_freelist_elem_t {
   void *ptr;
   void *mr_handle;
   struct nccl_ofi_freelist_elem *next;
-} nccl_ofi_freelist_elem_t;
+};
 
 /*
  * Internal: tracking data for blocks of allocated memory

@@ -2,7 +2,7 @@
 
 #include "tuner/nccl_ofi_tuner_common.hh"
 
-typedef struct nccl_ofi_tuner_model_params {
+struct nccl_ofi_tuner_model_params_t {
   float net_lat;      /* 2 nodes, 8B RDMA w/imm lat */
   float internode_bw; /* per rail */
   float intranode_bw;
@@ -12,19 +12,19 @@ typedef struct nccl_ofi_tuner_model_params {
    * The values are directly taken from NCCL (hwLat[])). Values in µsecs.
    */
   float nccl_nvlink_lat[NCCL_NUM_ALGORITHMS][NCCL_NUM_PROTOCOLS];
-} nccl_ofi_tuner_model_params_t;
+};
 
-typedef struct nccl_ofi_tuner_model_dims {
+struct nccl_ofi_tuner_model_dims_t {
   /* communicator size */
   size_t num_ranks;
   size_t num_nodes;
-} nccl_ofi_tuner_model_dims_t;
+};
 
-typedef struct nccl_ofi_tuner_model_context {
+struct nccl_ofi_tuner_model_context_t {
   enum nccl_ofi_tuner_platform platform;
   nccl_ofi_tuner_model_dims_t dims;
   nccl_ofi_tuner_model_params_t *model_params;
-} nccl_ofi_tuner_model_context_t;
+};
 
 /**
  * check if "Model" base tuner supports the given platform, nRanks and nNodes.

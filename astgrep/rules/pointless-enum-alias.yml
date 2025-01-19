@@ -1,0 +1,13 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/ast-grep/ast-grep/main/schemas/rule.json
+
+id: pointless-enum-type-alias
+message: pointless enum type alias
+severity: error
+language: Cpp
+rule:
+  pattern:
+    context: typedef enum { $$$BODY } $ALIAS;
+fix: |
+  enum $ALIAS {
+    $$$BODY
+  };
