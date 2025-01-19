@@ -23,12 +23,7 @@ final: prev: {
         rev = "v1.22.0amzn4.0";
         hash = "sha256-Y79fwGJQI+AHqWBmydILFGMLTfFdqC6gr59Xnb24Llc=";
       };
-      patches = [
-        (final.fetchpatch {
-          url = "https://patch-diff.githubusercontent.com/raw/ofiwg/libfabric/pull/10365.patch";
-          hash = "sha256-X+kVzPo/MurzIHhPsZ0dUWykXMWwSSDug7zvdMmpBcQ=";
-        })
-      ];
+      patches = [ ];
       version = "1.22.0-4.0";
       buildInputs = (pprev.buildInputs or [ ]) ++ [
         final.rdma-core

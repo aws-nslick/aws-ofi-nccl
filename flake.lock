@@ -2,28 +2,18 @@
   "nodes": {
     "cuda-packages": {
       "inputs": {
-        "flake-parts": [
-          "flake-parts"
-        ],
-        "git-hooks-nix": [
-          "git-hooks-nix"
-        ],
-        "nixpkgs": [
-          "nixpkgs"
-        ],
-        "nixpkgs-24_11": [
-          "nixpkgs-stable"
-        ],
-        "treefmt-nix": [
-          "treefmt-nix"
-        ]
+        "flake-parts": ["flake-parts"],
+        "git-hooks-nix": "git-hooks-nix",
+        "nixpkgs": ["nixpkgs"],
+        "nixpkgs-24_11": ["nixpkgs-stable"],
+        "treefmt-nix": "treefmt-nix"
       },
       "locked": {
-        "lastModified": 1737240871,
-        "narHash": "sha256-fjIpPiNNKq1ccDNovcn45J+12ibYlOqU4By5bGTITPs=",
+        "lastModified": 1737257131,
+        "narHash": "sha256-xU+ywGN/I9hhWSIxhO2z/mNbJowxo76HKDtU353/lbA=",
         "owner": "ConnorBaker",
         "repo": "cuda-packages",
-        "rev": "c5a29dc673b104e7e5d2fcb92a504492c47d1bba",
+        "rev": "87cb387ecfba3f46b76e604b896d64417fdf9e8b",
         "type": "github"
       },
       "original": {
@@ -50,9 +40,7 @@
     },
     "flake-parts": {
       "inputs": {
-        "nixpkgs-lib": [
-          "lib-aggregate"
-        ]
+        "nixpkgs-lib": ["lib-aggregate"]
       },
       "locked": {
         "lastModified": 1736143030,
@@ -89,29 +77,25 @@
       "inputs": {
         "flake-compat": "flake-compat",
         "gitignore": "gitignore",
-        "nixpkgs": [
-          "nixpkgs"
-        ]
+        "nixpkgs": ["cuda-packages", "nixpkgs"]
       },
       "locked": {
-        "lastModified": 1737043064,
-        "narHash": "sha256-I/OuxGwXwRi5gnFPsyCvVR+IfFstA+QXEpHu1hvsgD8=",
-        "rev": "94ee657f6032d913fe0ef49adaa743804635b0bb",
-        "revCount": 958,
-        "type": "tarball",
-        "url": "https://api.flakehub.com/f/pinned/cachix/git-hooks.nix/0.1.958%2Brev-94ee657f6032d913fe0ef49adaa743804635b0bb/0194702f-75b1-754d-8dc8-f488cd25c02b/source.tar.gz"
+        "lastModified": 1735882644,
+        "narHash": "sha256-3FZAG+pGt3OElQjesCAWeMkQ7C/nB1oTHLRQ8ceP110=",
+        "owner": "cachix",
+        "repo": "git-hooks.nix",
+        "rev": "a5a961387e75ae44cc20f0a57ae463da5e959656",
+        "type": "github"
       },
       "original": {
-        "type": "tarball",
-        "url": "https://flakehub.com/f/cachix/git-hooks.nix/0.1.958.tar.gz"
+        "owner": "cachix",
+        "repo": "git-hooks.nix",
+        "type": "github"
       }
     },
     "gitignore": {
       "inputs": {
-        "nixpkgs": [
-          "git-hooks-nix",
-          "nixpkgs"
-        ]
+        "nixpkgs": ["cuda-packages", "git-hooks-nix", "nixpkgs"]
       },
       "locked": {
         "lastModified": 1709087332,
@@ -193,11 +177,9 @@
       "inputs": {
         "cuda-packages": "cuda-packages",
         "flake-parts": "flake-parts",
-        "git-hooks-nix": "git-hooks-nix",
         "lib-aggregate": "lib-aggregate",
         "nixpkgs": "nixpkgs",
-        "nixpkgs-stable": "nixpkgs-stable",
-        "treefmt-nix": "treefmt-nix"
+        "nixpkgs-stable": "nixpkgs-stable"
       }
     },
     "systems": {
@@ -217,16 +199,14 @@
     },
     "treefmt-nix": {
       "inputs": {
-        "nixpkgs": [
-          "nixpkgs"
-        ]
+        "nixpkgs": ["cuda-packages", "nixpkgs"]
       },
       "locked": {
-        "lastModified": 1737103437,
-        "narHash": "sha256-uPNWcYbhY2fjY3HOfRCR5jsfzdzemhfxLSxwjXYXqNc=",
+        "lastModified": 1736154270,
+        "narHash": "sha256-p2r8xhQZ3TYIEKBoiEhllKWQqWNJNoT9v64Vmg4q8Zw=",
         "owner": "numtide",
         "repo": "treefmt-nix",
-        "rev": "d1ed3b385f8130e392870cfb1dbfaff8a63a1899",
+        "rev": "13c913f5deb3a5c08bb810efd89dc8cb24dd968b",
         "type": "github"
       },
       "original": {

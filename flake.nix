@@ -6,33 +6,48 @@
   description = "aws-ofi-nccl development/build flake.";
 
   outputs =
-    { self, flake-parts, ... }@inputs:
-    let
-      inherit (inputs.lib-aggregate) lib;
-      systems = [
-        "x86_64-linux"
-        "aarch64-linux"
-      ];
-    in
+    inputs@{ flake-parts, ... }:
     flake-parts.lib.mkFlake { inherit inputs; } (
       { withSystem, flake-parts-lib, ... }:
+      let
+        inherit (flake-parts-lib) importApply;
+        flakeModules.shell = importApply ./nix/modules/devshell { inherit withSystem; };
+      in
+      #flakeModules.default = importApply ./flake-module.nix { inherit withSystem; };
+
+      # outputs =
+      #   { self, flake-parts, ... }@inputs:
+      #   let
+      #     inherit (inputs.lib-aggregate) lib;
+      #     systems = [
+      #       "x86_64-linux"
+      #       "aarch64-linux"
+      #     ];
+      #   in
+      #   flake-parts.lib.mkFlake { inherit inputs; } (
+      #     { withSystem, flake-parts-lib, ... }:
       {
-        inherit systems;
+        systems = [
+          "aarch64-linux"
+          "x86_64-linux"
+          "aarch64-darwin"
+        ];
         imports = [
-          inputs.git-hooks-nix.flakeModule
-          #inputs.git-hooks-nix.inputs.treefmt-nix.flakeModule
+          flake-parts.flakeModules.flakeModules
+          flake-parts.flakeModules.partitions
           flake-parts.flakeModules.easyOverlay
         ];
-        flake = {
+        partitionedAttrs.checks = "dev";
+        partitionedAttrs.devShells = "dev";
+        partitions.dev.extraInputsFlake = ./nix/dev;
+        partitions.dev.module = ./nix/dev/module.nix;
 
-        };
-        debug = true;
         perSystem =
           {
             system,
             config,
-            final,
             pkgs,
+            lib,
             ...
           }:
           {
@@ -54,25 +69,14 @@
                   "8.9"
                   "9.0"
                   "9.0a"
-                  "10.0"
                 ];
                 allowBroken = true;
                 allowUnfree = true;
               };
             };
-            pre-commit.settings = import ./nix/checks.nix { inherit lib; };
-            devShells.default = import ./nix/shell.nix {
-              inherit
-                pkgs
-                config
-                system
-                inputs
-                self
-                ;
-            };
+
             overlayAttrs = {
               cudaPackagesExtensions = (import ./nix/cudaPackagesExtensions { inherit lib config pkgs; });
-
               inherit (config.packages)
                 libfabric
                 openmpi
@@ -81,13 +85,15 @@
             packages = rec {
               aws-ofi-nccl = (
                 pkgs.callPackage ./nix/pkgs/aws-ofi-nccl {
-                  inherit inputs self;
+                  inherit inputs;
                 }
               );
+              default = aws-ofi-nccl;
+
               ubuntu-test-runners = pkgs.callPackage ./nix/ubuntuTestRunners.nix {
                 nccl-tests = pkgs.pkgsCuda.sm_90.cudaPackages.nccl-tests-aws;
               };
-              default = aws-ofi-nccl;
+
               inherit (pkgs)
                 libfabric
                 openmpi
@@ -103,19 +109,14 @@
 
     lib-aggregate.url = "github:nix-community/lib-aggregate";
     flake-parts.url = "https://flakehub.com/f/hercules-ci/flake-parts/0.1.350.tar.gz";
+    flake-parts.inputs.nixpkgs-lib.follows = "lib-aggregate";
 
     cuda-packages.url = "github:ConnorBaker/cuda-packages";
-    treefmt-nix.url = "github:numtide/treefmt-nix";
-    git-hooks-nix.url = "https://flakehub.com/f/cachix/git-hooks.nix/0.1.958.tar.gz";
-
-    flake-parts.inputs.nixpkgs-lib.follows = "lib-aggregate";
-    treefmt-nix.inputs.nixpkgs.follows = "nixpkgs";
-    git-hooks-nix.inputs.nixpkgs.follows = "nixpkgs";
     cuda-packages.inputs.nixpkgs.follows = "nixpkgs";
     cuda-packages.inputs.nixpkgs-24_11.follows = "nixpkgs-stable";
     cuda-packages.inputs.flake-parts.follows = "flake-parts";
-    cuda-packages.inputs.git-hooks-nix.follows = "git-hooks-nix";
-    cuda-packages.inputs.treefmt-nix.follows = "treefmt-nix";
+    #cuda-packages.inputs.git-hooks-nix.follows = "git-hooks-nix";
+    #cuda-packages.inputs.treefmt-nix.follows = "treefmt-nix";
   };
 
   nixConfig = {

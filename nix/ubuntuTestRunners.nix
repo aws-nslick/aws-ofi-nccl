@@ -1,10 +1,7 @@
 {
-  config,
   lib,
   symlinkJoin,
   writeShellScriptBin,
-  openmpi,
-  libfabric,
   nccl-tests,
 }:
 let
@@ -24,11 +21,6 @@ let
     "/usr/lib/x86_64-linux-gnu/libcuda.so.1"
     "/usr/lib/x86_64-linux-gnu/libnvidia-ml.so.1"
     "/usr/lib/x86_64-linux-gnu/libnvidia-ptxjitcompiler.so.1"
-  ];
-  libPathLibs = [
-    config.packages.default
-    openmpi
-    libfabric
   ];
   makeNcclTestRunner =
     collName:

@@ -1,21 +1,18 @@
 {
   lib,
   inputs,
-  self,
-  fetchFromGitHub,
+  glibc_multi,
+  uthash,
   symlinkJoin,
-  releaseTools,
+  writeTextFile,
   stdenv,
   config,
   libfabric,
   hwloc,
+  openmpi,
   pkgconf,
   pkg-config,
   gtest,
-  perl,
-  libtool,
-  autoconf,
-  automake,
   autoreconfHook,
   lttng-ust,
   valgrind,
@@ -59,6 +56,10 @@ let
       )
     );
   };
+  cleanSrc = import ./cleanSource.nix {
+    inherit lib;
+    self = builtins.getFlake ./.;
+  };
 in
 effectiveStdenv.mkDerivation {
   name = "aws-ofi-nccl";
@@ -69,10 +70,7 @@ effectiveStdenv.mkDerivation {
     (lib.optionalString enableAwsTuning "-aws")
   ];
   version = inputs.self.shortRev or inputs.self.dirtyShortRev;
-  src = import ./cleanSource.nix {
-    inherit lib;
-    inherit self;
-  };
+  src = cleanSrc;
 
   nativeBuildInputs =
     [ autoreconfHook ]
@@ -157,6 +155,182 @@ effectiveStdenv.mkDerivation {
   enableParallelBuilding = true;
   separateDebugInfo = true;
   strictDeps = true;
+
+  passthru.editorconfigFile = writeTextFile {
+    name = "editorconfig-config";
+    text = lib.generators.toINIWithGlobalSection { } {
+      globalSection = {
+        root = true;
+      };
+      sections = {
+        "*" = {
+          trim_trailing_whitespace = true;
+          charset = "utf-8";
+          end_of_line = "lf";
+          insert_final_newline = true;
+        };
+        "*.am" = {
+          indent_size = 8;
+          indent_style = "tab";
+        };
+        "*.md" = {
+          indent_size = 2;
+          indent_style = "space";
+        };
+        "*.nix" = {
+          tab_width = 4;
+          indent_size = 2;
+          indent_style = "space";
+        };
+        "*.{c|h|cc|hh|cu}" = {
+          tab_width = 8;
+          indent_size = 8;
+          indent_style = "tab";
+        };
+      };
+    };
+  };
+
+  passthru.clangdFile = writeTextFile {
+    name = "clangd-config";
+    text = lib.generators.toYAML { } {
+      CompileFlags = {
+        Add = [
+          "-Wall"
+          "-Wextra"
+          "-Wformat"
+          "-xc++"
+          "-std=c++20"
+          "-isystem${glibc_multi.dev}/include/"
+          "-isystem${hwloc.dev}/include/"
+          "-isystem${uthash}/include/"
+          "-isystem${gtest.dev}/include/"
+          "-isystem${cudaPackages.cuda_cudart.dev}/include/"
+          "-isystem${cudaPackages.cuda_nvtx.dev}/include/"
+          "-isystem${libfabric.dev}/include/"
+          "-isystem${openmpi.dev}/include/"
+          "-isystem${cleanSrc}/3rd-party/nccl/cuda/include/"
+          "-isystem${cleanSrc}/3rd-party/expected/tl/include/"
+          #"-I${config.packages.default}/nix-support/generated-headers/include/"
+          "-I${cleanSrc}/include/"
+        ];
+      };
+      Diagnostics = {
+        ClangTidy = {
+          CheckOptions = {
+            "cppcoreguidelines-avoid-magic-numbers.IgnoreTypeAliases" = true;
+            "readability-magic-numbers.IgnoreTypeAliases" = true;
+          };
+        };
+        Includes = {
+          IgnoreHeader = [
+            "hwloc.h"
+            "config.h"
+          ];
+        };
+      };
+    };
+  };
+
+  passthru.cclsFile = writeTextFile {
+    name = "ccls-config";
+    text = ''
+      clang++
+      %cpp -std=c++20
+      -isystem${glibc_multi.dev}/include/
+      -isystem${hwloc.dev}/include/
+      -isystem${uthash}/include/
+      -isystem${gtest.dev}/include/
+      -isystem${cudaPackages.cuda_cudart.dev}/include/
+      -isystem${cudaPackages.cuda_nvtx.dev}/include/
+      -isystem${libfabric.dev}/include/
+      -isystem${openmpi.dev}/include/
+      -isystem${cleanSrc}/3rd-party/nccl/cuda/include/
+      -isystem${cleanSrc}/3rd-party/expected/tl/include/
+      -I${cleanSrc}/include/
+      -I${cleanSrc}/3rd-party/nccl/cuda/include/
+    '';
+  };
+
+  passthru.clangFormatFile = writeTextFile {
+    name = "clang-format-config";
+    text = lib.generators.toYAML { } {
+      AlignConsecutiveAssignments = false;
+      AlignConsecutiveBitFields = {
+        AcrossComments = true;
+        AcrossEmptyLines = true;
+        Enabled = true;
+      };
+      AlignConsecutiveDeclarations = false;
+      AlignConsecutiveMacros = {
+        AcrossComments = true;
+        AcrossEmptyLines = true;
+        Enabled = true;
+      };
+      AlignConsecutiveShortCaseStatements = {
+        AcrossComments = true;
+        AcrossEmptyLines = true;
+        AlignCaseColons = false;
+        Enabled = true;
+      };
+      AlignOperands = "Align";
+      AlignTrailingComments = {
+        Kind = "Always";
+        OverEmptyLines = 0;
+      };
+      AllowShortCompoundRequirementOnASingleLine = true;
+      KeepEmptyLines = {
+        AtEndOfFile = false;
+        AtStartOfBlock = false;
+        AtStartOfFile = false;
+      };
+      AllowAllArgumentsOnNextLine = false;
+      AllowShortFunctionsOnASingleLine = "None";
+      AllowShortIfStatementsOnASingleLine = false;
+      AllowShortLoopsOnASingleLine = false;
+      BasedOnStyle = "Google";
+      BinPackArguments = false;
+      BinPackParameters = false;
+      BracedInitializerIndentWidth = 8;
+      BreakBeforeBraces = "Linux";
+      ColumnLimit = 130;
+      ContinuationIndentWidth = 8;
+      IncludeBlocks = "Regroup";
+      IncludeCategories = [
+        {
+          Priority = -40;
+          Regex = "^([\"]config[.]h[\"])$";
+          SortPriority = -40;
+        }
+        {
+          Priority = 5;
+          Regex = "^[<](rdma/|uthash/|nccl/|mpi|hwloc/|lttng/|valgrind/|cuda).*[.]h[>]$";
+          SortPriority = 5;
+        }
+        {
+          Priority = 10;
+          Regex = "^([\"]nccl.*[.]h[\"])$";
+          SortPriority = 10;
+        }
+      ];
+      IndentCaseLabels = false;
+      IndentWidth = 8;
+      InsertBraces = true;
+      InsertNewlineAtEOF = true;
+      LineEnding = "LF";
+      MaxEmptyLinesToKeep = 2;
+      PointerAlignment = "Right";
+      ReferenceAlignment = "Right";
+      ReflowComments = true;
+      RemoveParentheses = "MultipleParentheses";
+      SortIncludes = "CaseSensitive";
+      SpacesBeforeTrailingComments = 2;
+      TabWidth = 8;
+      BreakBinaryOperations = "RespectPrecedence";
+      AllowShortCaseExpressionOnASingleLine = true;
+      UseTab = "ForContinuationAndIndentation";
+    };
+  };
 
   outputs = [
     "dev"

@@ -1,6 +1,6 @@
-{ lib, pkgs, ... }:
+{ pkgs, ... }:
 ffinal: pprev: {
-  nccl_latest = pprev.nccl.overrideAttrs (prevAttrs: {
+  nccl_latest = pprev.nccl.overrideAttrs (_prevAttrs: {
     src = pkgs.fetchFromGitHub {
       owner = "NVIDIA";
       repo = "nccl";

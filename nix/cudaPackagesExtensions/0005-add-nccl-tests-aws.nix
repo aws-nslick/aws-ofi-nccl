@@ -1,5 +1,5 @@
 { pkgs, ... }:
-ffinal: pprev: {
+ffinal: _pprev: {
   nccl-tests-aws = pkgs.replaceDependency {
     drv = ffinal.nccl-tests;
     oldDependency = ffinal.nccl;
