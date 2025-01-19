@@ -1,0 +1,6 @@
+ruleDirs:
+  - /home/ANT.AMAZON.COM/nslick/nccl-net-ofi/astgrep/rules
+testConfigs:
+  - testDir: /home/ANT.AMAZON.COM/nslick/nccl-net-ofi/astgrep/tests
+utilDirs:
+  - /home/ANT.AMAZON.COM/nslick/nccl-net-ofi/astgrep/utils

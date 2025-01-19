@@ -1,0 +1,14 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/ast-grep/ast-grep/main/schemas/rule.json
+
+id: no-malloc-calloc
+message: Do not use legacy allocations
+severity: hint
+language: Cpp
+rule:
+  pattern:
+    context: $M($$$);
+    selector: call_expression
+constraints: # with the constraint that
+  M: {regex: "(m|c)alloc"}
+# utils: Extract repeated rule as local utility here.
+# note: Add detailed explanation for the rule.
