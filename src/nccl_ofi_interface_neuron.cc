@@ -7,6 +7,7 @@
 #include "nccl_ofi.hh"
 #include "nccl_ofi_api.hh"
 #include "nccl_ofi_param.hh"
+#include "nccl_ofi_properties.hh"
 
 static ncclResult_t init_v4(ncclDebugLogger_t logFunction) {
   /*

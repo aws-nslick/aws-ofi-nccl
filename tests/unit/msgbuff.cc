@@ -2,12 +2,11 @@
  * Copyright (c) 2023 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#include <cstdio>
+#include <cstdint>
+#include <cstdlib>
 
-#include "config.hh"
-
+#include "nccl_ofi_log.hh"
 #include "nccl_ofi_msgbuff.hh"
-
 #include "test-common.hh"
 
 int main(int argc, char *argv[]) {

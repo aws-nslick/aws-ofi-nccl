@@ -2,10 +2,9 @@
  * Copyright (c) 2023 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#include "config.hh"
-
 #include <cassert>
 #include <cerrno>
+#include <cstdlib>
 #include <pthread.h>
 
 #include "nccl_ofi_deque.hh"

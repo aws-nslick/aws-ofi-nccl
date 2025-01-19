@@ -2,12 +2,14 @@
  * Copyright (c) 2023 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#include "config.hh"
-
-#include <algorithm>
+#include <nccl/err.h>
 #include <cstdio>
+#include <cstdlib>
 
+#include "config.hh"
+#include "nccl_ofi.hh"
 #include "nccl_ofi_freelist.hh"
+#include "nccl_ofi_log.hh"
 #include "test-common.hh"
 
 void *simple_base;

@@ -3,11 +3,12 @@
  * Copyright (c) 2015-2018, NVIDIA CORPORATION. All rights reserved.
  */
 
-#include "config.hh"
-
+#include <nccl/net.h>
 #include <cstdlib>
+#include <cstring>
 #include <pthread.h>
 
+#include "nccl_ofi_log.hh"
 #include "nccl_ofi_param.hh"
 #include "nccl_ofi_pthread.hh"
 

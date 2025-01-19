@@ -2,12 +2,10 @@
  * Copyright (c) 2023 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#include "config.hh"
-
 #include <cassert>
-#include <cerrno>
 #include <cinttypes>
 #include <cstdlib>
+#include <cstring>
 
 #include "nccl_ofi_log.hh"
 #include "nccl_ofi_msgbuff.hh"

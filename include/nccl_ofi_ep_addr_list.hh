@@ -4,12 +4,37 @@
 
 #pragma once
 
-struct nccl_ofi_ep_addr_list;
-typedef struct nccl_ofi_ep_addr_list nccl_ofi_ep_addr_list_t;
+#include "nccl_ofi_endpoint.hh"
 
-/* Endpoint structure used by plugin code */
-struct nccl_net_ofi_ep;
-typedef struct nccl_net_ofi_ep nccl_net_ofi_ep_t;
+#include <uthash.h>
+#include <utlist.h>
+
+/**
+ * A Libfabric address, stored in a form hashable by uthash
+ */
+struct hashed_addr_t {
+  UT_hash_handle hh;
+  char addr[];
+};
+
+/**
+ * A linked list of pairs of (ep, HashSet<addr>).
+ */
+struct ep_pair_list_elem_t {
+  nccl_net_ofi_ep_t *ep;
+  hashed_addr_t *addr_set;
+  ep_pair_list_elem_t *prev;
+  ep_pair_list_elem_t *next;
+};
+
+/**
+ * Outer structure storing the ep list and a mutex to protect access
+ */
+struct nccl_ofi_ep_addr_list_t {
+  ep_pair_list_elem_t *ep_pair_list;
+  size_t max_addr_size;
+  pthread_mutex_t mutex;
+};
 
 /**
  * Initialize an endpoint-address-set pair list. This function allocates memory

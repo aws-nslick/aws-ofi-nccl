@@ -5,30 +5,57 @@
 #include "config.hh"
 
 #include <algorithm>
-#include <cassert>
-#include <cinttypes>
-#include <climits>
-#include <cstdint>
-#include <cstdio>
-#include <sys/mman.h>
-#include <unistd.h>
 
 #include <nccl/net.h>
 #include <rdma/fabric.h>
+#include <rdma/fi_cm.h>
+#include <rdma/fi_domain.h>
+#include <rdma/fi_endpoint.h>
+#include <rdma/fi_eq.h>
+#include <rdma/fi_errno.h>
+#include <rdma/fi_rma.h>
+#include <rdma/fi_tagged.h>
+
+#include <cassert>
+#include <cerrno>
+#include <cinttypes>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <limits>
+#include <sys/mman.h>
+#include <sys/types.h>
+#include <uthash.h>
 
 #include "nccl_ofi.hh"
+#include "nccl_ofi_comm.hh"
+#include "nccl_ofi_conn_handle.hh"
+#include "nccl_ofi_device.hh"
+#include "nccl_ofi_domain.hh"
+#include "nccl_ofi_endpoint.hh"
+#include "nccl_ofi_idpool.hh"
+#include "nccl_ofi_listen_comm.hh"
+#include "nccl_ofi_log.hh"
+#include "nccl_ofi_recv_comm.hh"
+#include "nccl_ofi_req.hh"
+#include "nccl_ofi_save_comm_state.hh"
+#include "nccl_ofi_send_comm.hh"
 #if HAVE_CUDA
 #include "nccl_ofi_cuda.hh"
 #endif
+#include "nccl_ofi_connection_info.hh"
 #include "nccl_ofi_dmabuf.hh"
 #include "nccl_ofi_freelist.hh"
-#include "nccl_ofi_math.hh"
 #include "nccl_ofi_mr.hh"
 #include "nccl_ofi_ofiutils.hh"
 #include "nccl_ofi_param.hh"
+#include "nccl_ofi_plugin.hh"
+#include "nccl_ofi_properties.hh"
 #include "nccl_ofi_pthread.hh"
 #include "nccl_ofi_sendrecv.hh"
 #include "nccl_ofi_tracepoint.hh"
+
+struct nccl_net_ofi_mr_handle_t;
 
 static nccl_net_ofi_sendrecv_domain_t *sendrecv_endpoint_get_domain(nccl_net_ofi_sendrecv_ep_t *ep) {
   return (nccl_net_ofi_sendrecv_domain_t *)ep->base.domain;
@@ -1250,7 +1277,7 @@ static int sendrecv_listen_comm_accept(nccl_net_ofi_listen_comm_t *listen_comm, 
 
   auto *l_comm = (nccl_net_ofi_sendrecv_listen_comm_t *)listen_comm;
 
-  if (l_comm->state.stage != COMM_CONN_REQ_PENDING && l_comm->accepted) {
+  if (l_comm->state.stage != nccl_ofi_comm_stage_t::COMM_CONN_REQ_PENDING && l_comm->accepted) {
     NCCL_OFI_WARN("listen_comm %p object already has an active connection (%d).", listen_comm, l_comm->accepted);
     return -EINVAL;
   }
@@ -1293,7 +1320,7 @@ static int sendrecv_listen_comm_accept(nccl_net_ofi_listen_comm_t *listen_comm, 
    */
   const nccl_ofi_comm_stage_t stage = comm_state->stage;
   switch (stage) {
-  case COMM_CREATE_START:
+  case nccl_ofi_comm_stage_t::COMM_CREATE_START:
 
     /*
      * The libfabric resources maintained by the endpoint
@@ -1314,9 +1341,9 @@ static int sendrecv_listen_comm_accept(nccl_net_ofi_listen_comm_t *listen_comm, 
       return -ENOMEM;
     }
 
-    comm_state->stage = COMM_RECV_CONN;
+    comm_state->stage = nccl_ofi_comm_stage_t::COMM_RECV_CONN;
     [[fallthrough]];
-  case COMM_RECV_CONN:
+  case nccl_ofi_comm_stage_t::COMM_RECV_CONN:
 
     /* Allocate memory for peer address for the first time ONLY */
     if (conn_info == nullptr) {
@@ -1337,10 +1364,10 @@ static int sendrecv_listen_comm_accept(nccl_net_ofi_listen_comm_t *listen_comm, 
       return ret;
     }
 
-    comm_state->stage = COMM_CONN_REQ_PENDING;
+    comm_state->stage = nccl_ofi_comm_stage_t::COMM_CONN_REQ_PENDING;
 
     [[fallthrough]];
-  case COMM_CONN_REQ_PENDING:
+  case nccl_ofi_comm_stage_t::COMM_CONN_REQ_PENDING:
 
     /* Progress NCCL OFI engine so that connection is accepted */
     ret = sendrecv_cq_process(ep->cq, device->max_tag);
@@ -1367,15 +1394,15 @@ static int sendrecv_listen_comm_accept(nccl_net_ofi_listen_comm_t *listen_comm, 
 
     /* Done processing the request so free it */
     free(req);
-    comm_state->stage = COMM_CONNECTED;
+    comm_state->stage = nccl_ofi_comm_stage_t::COMM_CONNECTED;
 
     break;
 
-  case COMM_SEND_CONN:
-  case COMM_CONN_RESP_REQ_PENDING:
-  case COMM_CONNECTED:
+  case nccl_ofi_comm_stage_t::COMM_SEND_CONN:
+  case nccl_ofi_comm_stage_t::COMM_CONN_RESP_REQ_PENDING:
+  case nccl_ofi_comm_stage_t::COMM_CONNECTED:
   default:
-    NCCL_OFI_WARN("Invalid state of receive communicator object: %d", stage);
+    NCCL_OFI_WARN("Invalid state of receive communicator object: %s", stage);
     return -EINVAL;
   }
 
@@ -1457,7 +1484,7 @@ static int sendrecv_endpoint_listen(nccl_net_ofi_ep_t *base_ep, nccl_net_ofi_con
   dev_id = device->base.dev_id;
 
   /* Zero-out the handle */
-  memset(handle, 0, sizeof(nccl_net_ofi_conn_handle_t));
+  memset(handle, 0, sizeof(struct nccl_net_ofi_conn_handle_t));
 
   /* Increase tag ID */
   if (ep->tag + 1 >= device->max_tag) {
@@ -1861,7 +1888,7 @@ static int sendrecv_endpoint_connect(nccl_net_ofi_ep_t *base_ep, nccl_net_ofi_co
    */
   const nccl_ofi_comm_stage_t stage = comm_state->stage;
   switch (stage) {
-  case COMM_CREATE_START:
+  case nccl_ofi_comm_stage_t::COMM_CREATE_START:
     /*
      * When we are building the s_comm for the first time,
      * it should *NOT* come initialized from handle.
@@ -1881,10 +1908,10 @@ static int sendrecv_endpoint_connect(nccl_net_ofi_ep_t *base_ep, nccl_net_ofi_co
       return -ENOMEM;
     }
 
-    comm_state->stage = COMM_SEND_CONN;
+    comm_state->stage = nccl_ofi_comm_stage_t::COMM_SEND_CONN;
 
     [[fallthrough]];
-  case COMM_SEND_CONN:
+  case nccl_ofi_comm_stage_t::COMM_SEND_CONN:
     /* Send "connect" message to remote EP */
     rc = sendrecv_send_comm_send_connect_message(s_comm, device, ep, req);
     if (rc == -FI_EAGAIN) {
@@ -1898,14 +1925,14 @@ static int sendrecv_endpoint_connect(nccl_net_ofi_ep_t *base_ep, nccl_net_ofi_co
       return rc;
     }
 
-    comm_state->stage = COMM_CONN_REQ_PENDING;
+    comm_state->stage = nccl_ofi_comm_stage_t::COMM_CONN_REQ_PENDING;
     [[fallthrough]];
-  case COMM_CONN_REQ_PENDING:
+  case nccl_ofi_comm_stage_t::COMM_CONN_REQ_PENDING:
     if (s_comm->conn_info->connect_to_self == 1) {
       NCCL_OFI_TRACE(NCCL_NET, "Connect to self; short circuit cleanup");
       /* short cut to avoid rendezvous
          deadlock in GDR detection */
-      comm_state->stage = COMM_CONNECTED;
+      comm_state->stage = nccl_ofi_comm_stage_t::COMM_CONNECTED;
       break;
     }
 
@@ -1926,13 +1953,13 @@ static int sendrecv_endpoint_connect(nccl_net_ofi_ep_t *base_ep, nccl_net_ofi_co
       return 0;
     }
 
-    comm_state->stage = COMM_CONNECTED;
+    comm_state->stage = nccl_ofi_comm_stage_t::COMM_CONNECTED;
 
     break;
 
-  case COMM_RECV_CONN:
-  case COMM_CONN_RESP_REQ_PENDING:
-  case COMM_CONNECTED:
+  case nccl_ofi_comm_stage_t::COMM_RECV_CONN:
+  case nccl_ofi_comm_stage_t::COMM_CONN_RESP_REQ_PENDING:
+  case nccl_ofi_comm_stage_t::COMM_CONNECTED:
   default:
     NCCL_OFI_WARN("Invalid state of send communicator object: %d", stage);
     return -EINVAL;

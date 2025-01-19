@@ -2,15 +2,10 @@
  * Copyright (c) 2024 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#include "config.hh"
-
-#include <cmath>
-
-#include <cassert>
+#include <nccl/tuner.h>
 #include <cmath>
 #include <cstdio>
 
-#include "nccl_ofi_param.hh"
 #include "tuner/nccl_ofi_tuner_region.hh"
 
 static int test_extend_region() {

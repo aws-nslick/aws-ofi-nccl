@@ -1,16 +1,17 @@
-#include "config.hh"
-
+#include <nccl/err.h>
+#include <nccl/net.h>
+#include <nccl/tuner.h>
 #include <algorithm>
 #include <cfloat>
 #include <cmath>
 #include <cstdlib>
 
 #include "nccl_ofi_log.hh"
-#include "nccl_ofi_math.hh"
 #include "nccl_ofi_param.hh"
+#include "tuner/nccl_ofi_tuner_common.hh"
 #include "tuner/nccl_ofi_tuner_model.hh"
 
-static nccl_ofi_tuner_model_params model_platform_params[NCCL_OFI_TUNER_PLATFORM_MAX] = {
+static nccl_ofi_tuner_model_params_t model_platform_params[NCCL_OFI_TUNER_PLATFORM_MAX] = {
     {
         /* P5 & P5e platform */
         .net_lat = 20.0,
@@ -47,7 +48,7 @@ static nccl_ofi_tuner_model_params model_platform_params[NCCL_OFI_TUNER_PLATFORM
     },
 };
 
-static float nccl_ofi_tuner_compute_cost(nccl_ofi_tuner_model_params *params, nccl_ofi_tuner_model_dims *dims, ncclFunc_t func, int algo, int proto,
+static float nccl_ofi_tuner_compute_cost(nccl_ofi_tuner_model_params_t *params, nccl_ofi_tuner_model_dims_t *dims, ncclFunc_t func, int algo, int proto,
                                          int pipe_ops, size_t size) {
   float cost = -1;
   float latency = 0;

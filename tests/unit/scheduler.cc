@@ -2,14 +2,12 @@
  * Copyright (c) 2023 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#include "config.hh"
+#include <cerrno>
+#include <cstdlib>
 
-#include <cstdint>
-
-#include <nccl/err.h>
-#include <nccl/net.h>
-
+#include "nccl_ofi.hh"
 #include "nccl_ofi_log.hh"
+#include "nccl_ofi_math.hh"
 #include "nccl_ofi_scheduler.hh"
 #include "test-common.hh"
 

@@ -2,11 +2,12 @@
  * Copyright (c) 2023 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#include "config.hh"
-
 #include <cstdio>
+#include <cstdlib>
 
+#include "config.hh"
 #include "nccl_ofi_deque.hh"
+#include "nccl_ofi_log.hh"
 #include "test-common.hh"
 
 #define test_get_front(deque, expected)                                                                                                                        \

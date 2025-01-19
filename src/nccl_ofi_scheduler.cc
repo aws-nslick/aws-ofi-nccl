@@ -2,13 +2,13 @@
  * Copyright (c) 2023 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#include "config.hh"
-
 #include <algorithm>
 #include <cassert>
 #include <cerrno>
-#include <pthread.h>
+#include <cstdlib>
 
+#include "nccl_ofi_freelist.hh"
+#include "nccl_ofi_log.hh"
 #include "nccl_ofi_math.hh"
 #include "nccl_ofi_pthread.hh"
 #include "nccl_ofi_scheduler.hh"

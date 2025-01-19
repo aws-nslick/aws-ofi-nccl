@@ -2,18 +2,21 @@
  * Copyright (c) 2023 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#include "config.hh"
-
 #include <algorithm>
 #include <cassert>
 #include <cerrno>
+#include <cstdint>
 #include <cstdlib>
+#include <cstring>
 #include <pthread.h>
 
+#include "config.hh"
 #include "nccl_ofi.hh"
 #include "nccl_ofi_freelist.hh"
 #include "nccl_ofi_log.hh"
 #include "nccl_ofi_math.hh"
+#include "nccl_ofi_memcheck.hh"
+#include "nccl_ofi_memcheck_nop.hh"
 
 /*
  * @brief	Returns size of buffer memory

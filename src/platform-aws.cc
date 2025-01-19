@@ -3,30 +3,36 @@
  * Copyright (c) 2015-2018, NVIDIA CORPORATION. All rights reserved.
  */
 
-#include "config.hh"
-
 #include <algorithm>
-#include <alloca.h>
 #include <array>
 #include <cinttypes>
 #include <climits>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <unistd.h>
+
+#include "config.hh"
+#include "nccl_ofi_rdma_connection_info.hh"
+#include "nccl_ofi_rdma_ctrl_msg.hh"
 #ifdef HAVE_RDMA_FI_EXT_H
 #include <rdma/fi_ext.h>
 #endif
+#include <nccl/err.h>
+#include <nccl/net.h>
+#include <rdma/fabric.h>
+#include <rdma/fi_endpoint.h>
+#include <rdma/fi_errno.h>
+#include <cerrno>
 #include <dlfcn.h>
+#include <pthread.h>
 #include <regex.h>
+#include <strings.h>
 
 #include "nccl_ofi.hh"
 #include "nccl_ofi_log.hh"
-#include "nccl_ofi_math.hh"
 #include "nccl_ofi_param.hh"
 #include "nccl_ofi_platform.hh"
 #include "nccl_ofi_pthread.hh"
-#include "nccl_ofi_rdma.hh"
 #include "nccl_ofi_system.hh"
 #include "platform-aws.hh"
 

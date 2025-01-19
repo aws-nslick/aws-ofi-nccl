@@ -10,6 +10,8 @@
 
 struct nccl_ofi_properties_t;
 
+extern "C" {
+
 ncclResult_t nccl_net_ofi_init(ncclDebugLogger_t logFunction);
 ncclResult_t nccl_net_ofi_devices(int *ndev);
 ncclResult_t nccl_net_ofi_get_properties(int dev, nccl_ofi_properties_t *ofi_properties);
@@ -38,3 +40,4 @@ ncclResult_t nccl_net_ofi_get_mr_key(void *mhandle, uint64_t *mr_key);
 ncclResult_t nccl_net_ofi_iwrite(void *sComm, void *src, size_t size, void *mhandle, uint64_t dest, uint64_t mr_key, void **req);
 ncclResult_t nccl_net_ofi_iwrite_inline(void *sComm, void *src, size_t size, uint64_t dest, uint64_t mr_key, void **req);
 ncclResult_t nccl_net_ofi_iread(void *rComm, void *dest, size_t size, void *mhandle, uint64_t src, uint64_t mr_key, void **req);
+}

@@ -2,12 +2,13 @@
  * Copyright (c) 2024 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#include "config.hh"
-#include "platform-aws.hh"
-#include "test-common.hh"
 #include <array>
 #include <cstdio>
 #include <cstring>
+
+#include "nccl_ofi_log.hh"
+#include "platform-aws.hh"
+#include "test-common.hh"
 
 /* check that we get the expected response for all our known platforms */
 static int check_value(ec2_platform_data *platform_data_list, size_t len, const char *platform_type, const char *expected_value) {

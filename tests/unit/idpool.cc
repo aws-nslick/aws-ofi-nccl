@@ -2,11 +2,13 @@
  * Copyright (c) 2024 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#include "config.hh"
-
+#include <cassert>
+#include <cstdint>
 #include <cstdio>
+#include <cstdlib>
 
 #include "nccl_ofi_idpool.hh"
+#include "nccl_ofi_log.hh"
 #include "nccl_ofi_math.hh"
 #include "test-common.hh"
 

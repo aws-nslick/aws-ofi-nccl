@@ -8,6 +8,8 @@
  */
 
 #include "config.hh"
+#include "nccl_ofi_listen_comm.hh"
+#include "nccl_ofi_send_comm.hh"
 
 #include "test-common.hh"
 

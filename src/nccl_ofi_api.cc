@@ -5,15 +5,33 @@
 
 #include "config.hh"
 
+#include <nccl/err.h>
+#include <nccl/net.h>
+
+#include <cerrno>
+#include <cstdint>
 #include <cstdlib>
+#include <cstring>
+#include <strings.h>
 
 #include "nccl_ofi.hh"
 #include "nccl_ofi_api.hh"
+#include "nccl_ofi_comm.hh"
+#include "nccl_ofi_conn_handle.hh"
+#include "nccl_ofi_device.hh"
+#include "nccl_ofi_endpoint.hh"
+#include "nccl_ofi_listen_comm.hh"
+#include "nccl_ofi_log.hh"
+#include "nccl_ofi_mr.hh"
 #include "nccl_ofi_param.hh"
+#include "nccl_ofi_plugin.hh"
+#include "nccl_ofi_recv_comm.hh"
+#include "nccl_ofi_req.hh"
+#include "nccl_ofi_save_comm_state.hh"
+#include "nccl_ofi_send_comm.hh"
 
-static_assert(sizeof(nccl_net_ofi_conn_handle_t) <= NCCL_NET_HANDLE_MAXSIZE, "Size of OFI Handle is too large");
-static_assert(offsetof(nccl_net_ofi_conn_handle_t, state) <= NCCL_NET_HANDLE_MAXSIZE_V4, "Size of OFI Handle (without state) is too large");
-static_assert(NCCL_NET_MAX_REQUESTS <= NCCL_OFI_MAX_REQUESTS, "Maximum outstanding requests for plugin is less than what NCCL requires");
+struct nccl_net_ofi_mr_handle_t;
+struct nccl_ofi_properties_t;
 
 /* nccl_net_ofi plugin */
 bool abort_on_error = false;
@@ -267,7 +285,7 @@ ncclResult_t nccl_net_ofi_connect(int dev_id, void *handle, void **sComm) {
 
   /* Retrieve and validate endpoint */
   nccl_net_ofi_ep_t *base_ep = nullptr;
-  if (ofi_handle->state.stage == COMM_CREATE_START) {
+  if (ofi_handle->state.stage == nccl_ofi_comm_stage_t::COMM_CREATE_START) {
     nccl_net_ofi_device_t *device = plugin->get_device(plugin, dev_id);
     if (device == nullptr) {
       NCCL_OFI_WARN("Error accessing device %i.", dev_id);

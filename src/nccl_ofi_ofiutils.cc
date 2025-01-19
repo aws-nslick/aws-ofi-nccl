@@ -3,23 +3,24 @@
  * Copyright (c) 2015-2018, NVIDIA CORPORATION. All rights reserved.
  */
 
-#include "config.hh"
-
-#include <cctype>
+#include <nccl/net.h>
+#include <rdma/fabric.h>
+#include <rdma/fi_domain.h>
+#include <rdma/fi_endpoint.h>
+#include <rdma/fi_eq.h>
+#include <rdma/fi_errno.h>
+#include <cassert>
+#include <cerrno>
 #include <cinttypes>
-#include <climits>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <sys/mman.h>
-#include <unistd.h>
 
+#include "config.hh"
 #include "nccl_ofi.hh"
-#include "nccl_ofi_math.hh"
+#include "nccl_ofi_log.hh"
 #include "nccl_ofi_ofiutils.hh"
 #include "nccl_ofi_param.hh"
 #include "nccl_ofi_platform.hh"
-#include "nccl_ofi_tracepoint.hh"
 
 #define EFA_PROVIDER_NAME "efa"
 #define IS_EFA_PROVIDER(NAME) (strcmp((NAME), EFA_PROVIDER_NAME) == 0)

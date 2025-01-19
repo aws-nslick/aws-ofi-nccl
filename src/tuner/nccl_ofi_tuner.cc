@@ -2,24 +2,21 @@
  * Copyright (c) 2024 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#include "config.hh"
-
-#include <cerrno>
-#include <cstdio>
+#include <nccl/err.h>
+#include <nccl/net.h>
+#include <nccl/tuner.h>
+#include <nccl/tuner_v1.h>
+#include <nccl/tuner_v2.h>
+#include <cassert>
 #include <cstdlib>
 #include <cstring>
 #include <pthread.h>
 
-#include <nccl/tuner.h>
-
 #include "nccl_ofi_log.hh"
-#include "nccl_ofi_math.hh"
 #include "nccl_ofi_param.hh"
 #include "nccl_ofi_pthread.hh"
 #include "nccl_ofi_system.hh"
-#include "internal/tuner/nccl_defaults.hh"
-
-#include "tuner/nccl_ofi_tuner.hh"
+#include "tuner/nccl_ofi_tuner_common.hh"
 #include "tuner/nccl_ofi_tuner_model.hh"
 #include "tuner/nccl_ofi_tuner_region.hh"
 

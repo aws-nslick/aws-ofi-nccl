@@ -2,13 +2,16 @@
  * Copyright (c) 2024 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#include "config.hh"
-
+#include <nccl/err.h>
+#include <nccl/net.h>
+#include <nccl/tuner.h>
+#include <cassert>
 #include <cmath>
+#include <cstdlib>
+#include <cstring>
 
-#include <cmath>
-
-#include "nccl_ofi_param.hh"
+#include "nccl_ofi_log.hh"
+#include "tuner/nccl_ofi_tuner_common.hh"
 #include "tuner/nccl_ofi_tuner_region.hh"
 
 using nccl_ofi_tuner_region_dims_t = struct nccl_ofi_tuner_region_dims {
@@ -19,7 +22,7 @@ using nccl_ofi_tuner_region_dims_t = struct nccl_ofi_tuner_region_dims {
 
 using nccl_ofi_tuner_region_context_t = struct nccl_ofi_tuner_region_context {
   nccl_ofi_tuner_platform platform;
-  nccl_ofi_tuner_region_dims dims;
+  nccl_ofi_tuner_region_dims_t dims;
   size_t num_regions[NCCL_NUM_FUNCTIONS];
   nccl_ofi_tuner_region_t *regions[NCCL_NUM_FUNCTIONS];
 };

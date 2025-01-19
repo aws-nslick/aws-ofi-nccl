@@ -3,12 +3,15 @@
  * Copyright (c) 2015-2018, NVIDIA CORPORATION. All rights reserved.
  */
 
-#include "config.hh"
-
+#include <cuda.h>
 #include <cudaTypedefs.h>
 #include <cuda_runtime_api.h>
+#include <nccl/net.h>
 #include <cerrno>
+#include <cstddef>
+#include <driver_types.h>
 
+#include "config.hh"
 #include "nccl_ofi.hh"
 #include "nccl_ofi_cuda.hh"
 #include "nccl_ofi_log.hh"

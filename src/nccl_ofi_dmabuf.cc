@@ -4,8 +4,8 @@
 
 #include "config.hh"
 
+#include <nccl/net.h>
 #include <cerrno>
-
 #include <cstdio>
 #include <sys/utsname.h>
 

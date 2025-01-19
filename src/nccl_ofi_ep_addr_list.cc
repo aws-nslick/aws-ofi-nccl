@@ -2,14 +2,18 @@
  * Copyright (c) 2024 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#include "config.hh"
-
+#include <cassert>
+#include <cerrno>
+#include <cstdlib>
+#include <cstring>
 #include <uthash.h>
 #include <utlist.h>
 
-#include "nccl_ofi.hh"
 #include "nccl_ofi_ep_addr_list.hh"
+#include "nccl_ofi_log.hh"
 #include "nccl_ofi_pthread.hh"
+
+struct nccl_net_ofi_ep_t;
 
 nccl_ofi_ep_addr_list_t *nccl_ofi_ep_addr_list_init(size_t max_addr_size) {
   auto *ret_list = (nccl_ofi_ep_addr_list_t *)calloc(1, sizeof(nccl_ofi_ep_addr_list_t));

@@ -2,10 +2,14 @@
  * Copyright (c) 2023 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#include "config.hh"
+#include <nccl/err.h>
+#include <nccl/net.h>
+#include <cstdlib>
+#include <strings.h>
 
-#include "nccl_ofi.hh"
+#include "config.hh"
 #include "nccl_ofi_api.hh"
+#include "nccl_ofi_properties.hh"
 
 static ncclResult_t getProperties_v8(int dev_id, ncclNetProperties_v8_t *props) {
   nccl_ofi_properties_t ofi_properties;

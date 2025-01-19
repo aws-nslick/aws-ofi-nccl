@@ -2,8 +2,6 @@
  * Copyright (c) 2024      Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#include "config.hh"
-
 /*
  * This is an ugly hack.  The original implementation of
  * nccl_ofi_param created inline functions to access each environment
