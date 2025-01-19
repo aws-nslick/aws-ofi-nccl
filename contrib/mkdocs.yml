@@ -1,0 +1,15 @@
+site_name: "OFI + NCCL"
+
+theme:
+  name: material
+
+plugins:
+  - search
+  - mkdoxy:
+      projects:
+        ofinccl:
+          src-dirs: .
+          full-doc: True
+          doxy-cfg:
+            FILE_PATTERNS: "*.cpp *.h*"
+            RECURSIVE: True
