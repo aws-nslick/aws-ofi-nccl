@@ -1305,7 +1305,7 @@ static int sendrecv_listen_comm_accept(nccl_net_ofi_listen_comm_t *listen_comm, 
     }
 
     comm_state->stage = COMM_RECV_CONN;
-    fallthrough;
+    [[fallthrough]];
   case COMM_RECV_CONN:
 
     /* Allocate memory for peer address for the first time ONLY */
@@ -1329,7 +1329,7 @@ static int sendrecv_listen_comm_accept(nccl_net_ofi_listen_comm_t *listen_comm, 
 
     comm_state->stage = COMM_CONN_REQ_PENDING;
 
-    fallthrough;
+    [[fallthrough]];
   case COMM_CONN_REQ_PENDING:
 
     /* Progress NCCL OFI engine so that connection is accepted */
@@ -1872,7 +1872,7 @@ static int sendrecv_endpoint_connect(nccl_net_ofi_ep_t *base_ep, nccl_net_ofi_co
 
     comm_state->stage = COMM_SEND_CONN;
 
-    fallthrough;
+    [[fallthrough]];
   case COMM_SEND_CONN:
     /* Send "connect" message to remote EP */
     rc = sendrecv_send_comm_send_connect_message(s_comm, device, ep, req);
@@ -1888,7 +1888,7 @@ static int sendrecv_endpoint_connect(nccl_net_ofi_ep_t *base_ep, nccl_net_ofi_co
     }
 
     comm_state->stage = COMM_CONN_REQ_PENDING;
-    fallthrough;
+    [[fallthrough]];
   case COMM_CONN_REQ_PENDING:
     if (s_comm->conn_info->connect_to_self == 1) {
       NCCL_OFI_TRACE(NCCL_NET, "Connect to self; short circuit cleanup");
