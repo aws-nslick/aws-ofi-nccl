@@ -29,6 +29,7 @@ noinst_HEADERS = \
 	nccl_ofi_param.hh \
 	nccl_ofi_pthread.hh \
 	nccl_ofi_rdma.hh \
+	concepts.hh \
 	nccl_ofi_sendrecv.hh \
 	nccl_ofi_scheduler.hh \
 	nccl_ofi_system.hh \
