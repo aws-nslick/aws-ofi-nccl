@@ -10,8 +10,8 @@ extern "C" {
 #endif
 
 #include <pthread.h>
-#include <stdbool.h>
-#include <stdint.h>
+
+#include <cstdint>
 
 /**
  * A "modified circular buffer" used to track in-flight (or INPROGRESS) messages.
@@ -44,63 +44,63 @@ extern "C" {
 
 /* Enumeration to keep track of different msg statuses. */
 typedef enum {
-	/** The message has been marked completed **/
-	NCCL_OFI_MSGBUFF_COMPLETED,
-	/** The message has been added to the buffer but not marked complete **/
-	NCCL_OFI_MSGBUFF_INPROGRESS,
-	/** The message has not yet been added to the buffer **/
-	NCCL_OFI_MSGBUFF_NOTSTARTED,
-	/** The index is not in the range of completed or not-started messages **/
-	NCCL_OFI_MSGBUFF_UNAVAILABLE,
+  /** The message has been marked completed **/
+  NCCL_OFI_MSGBUFF_COMPLETED,
+  /** The message has been added to the buffer but not marked complete **/
+  NCCL_OFI_MSGBUFF_INPROGRESS,
+  /** The message has not yet been added to the buffer **/
+  NCCL_OFI_MSGBUFF_NOTSTARTED,
+  /** The index is not in the range of completed or not-started messages **/
+  NCCL_OFI_MSGBUFF_UNAVAILABLE,
 } nccl_ofi_msgbuff_status_t;
 
 typedef enum {
-	/** Operation completed successfully **/
-	NCCL_OFI_MSGBUFF_SUCCESS,
-	/** The provided index was invalid; see msg_idx_status output **/
-	NCCL_OFI_MSGBUFF_INVALID_IDX,
-	/** Other error **/
-	NCCL_OFI_MSGBUFF_ERROR,
+  /** Operation completed successfully **/
+  NCCL_OFI_MSGBUFF_SUCCESS,
+  /** The provided index was invalid; see msg_idx_status output **/
+  NCCL_OFI_MSGBUFF_INVALID_IDX,
+  /** Other error **/
+  NCCL_OFI_MSGBUFF_ERROR,
 } nccl_ofi_msgbuff_result_t;
 
 /* Type of element stored in msg buffer. This is used to distinguish between
    reqs and rx buffers (when we don't have req) stored in the message buffer */
 typedef enum {
-	/* Request */
-	NCCL_OFI_MSGBUFF_REQ,
-	/* Rx buffer */
-	NCCL_OFI_MSGBUFF_BUFF
+  /* Request */
+  NCCL_OFI_MSGBUFF_REQ,
+  /* Rx buffer */
+  NCCL_OFI_MSGBUFF_BUFF
 } nccl_ofi_msgbuff_elemtype_t;
 
 /* Internal buffer storage type, used to keep status of elements currently stored in
  * buffer */
 typedef struct {
-	// Status of message: COMPLETED, INPROGRESS, or NOTSTARTED
-	nccl_ofi_msgbuff_status_t stat;
-	// Type of element
-	nccl_ofi_msgbuff_elemtype_t type;
-	void *elem;
+  // Status of message: COMPLETED, INPROGRESS, or NOTSTARTED
+  nccl_ofi_msgbuff_status_t stat;
+  // Type of element
+  nccl_ofi_msgbuff_elemtype_t type;
+  void *elem;
 } nccl_ofi_msgbuff_elem_t;
 
 typedef struct {
-	// Element storage buffer. Allocated in msgbuff_init
-	nccl_ofi_msgbuff_elem_t *buff;
-	/* Max number of INPROGRESS elements. These are the only
-	 * ones backed by the storage buffer, so this is also the
-	 * size of the storage buffer */
-	uint16_t max_inprogress;
+  // Element storage buffer. Allocated in msgbuff_init
+  nccl_ofi_msgbuff_elem_t *buff;
+  /* Max number of INPROGRESS elements. These are the only
+   * ones backed by the storage buffer, so this is also the
+   * size of the storage buffer */
+  uint16_t max_inprogress;
 
-	/* Size of the range of all possible sequence numbers,
-	 * which depends on how many bits are used for them. */
-	uint16_t field_size;
-	/* Bit mask for the sequence numbers */
-	uint16_t field_mask;
-	// Points to the not-finished message with the lowest sequence number
-	uint16_t msg_last_incomplete;
-	// Points to the message after the inserted message with highest sequence number.
-	uint16_t msg_next;
-	// Mutex for this msg buffer -- locks all non-init operations
-	pthread_mutex_t lock;
+  /* Size of the range of all possible sequence numbers,
+   * which depends on how many bits are used for them. */
+  uint16_t field_size;
+  /* Bit mask for the sequence numbers */
+  uint16_t field_mask;
+  // Points to the not-finished message with the lowest sequence number
+  uint16_t msg_last_incomplete;
+  // Points to the message after the inserted message with highest sequence number.
+  uint16_t msg_next;
+  // Mutex for this msg buffer -- locks all non-init operations
+  pthread_mutex_t lock;
 } nccl_ofi_msgbuff_t;
 
 /**
@@ -133,9 +133,8 @@ bool nccl_ofi_msgbuff_destroy(nccl_ofi_msgbuff_t *msgbuff);
  *  NCCL_OFI_MSGBUFF_INVALID_IDX, invalid index. See msg_idx_status.
  *  NCCL_OFI_MSGBUFF_ERROR, other error
  */
-nccl_ofi_msgbuff_result_t nccl_ofi_msgbuff_insert(nccl_ofi_msgbuff_t *msgbuff,
-		uint16_t msg_index, void *elem, nccl_ofi_msgbuff_elemtype_t type,
-		nccl_ofi_msgbuff_status_t *msg_idx_status);
+nccl_ofi_msgbuff_result_t nccl_ofi_msgbuff_insert(nccl_ofi_msgbuff_t *msgbuff, uint16_t msg_index, void *elem, nccl_ofi_msgbuff_elemtype_t type,
+                                                  nccl_ofi_msgbuff_status_t *msg_idx_status);
 
 /**
  * Replace an existing message element
@@ -149,9 +148,8 @@ nccl_ofi_msgbuff_result_t nccl_ofi_msgbuff_insert(nccl_ofi_msgbuff_t *msgbuff,
  *  NCCL_OFI_MSGBUFF_INVALID_IDX, invalid index. See msg_idx_status.
  *  NCCL_OFI_MSGBUFF_ERROR, other error
  */
-nccl_ofi_msgbuff_result_t nccl_ofi_msgbuff_replace(nccl_ofi_msgbuff_t *msgbuff,
-		uint16_t msg_index, void *elem, nccl_ofi_msgbuff_elemtype_t type,
-		nccl_ofi_msgbuff_status_t *msg_idx_status);
+nccl_ofi_msgbuff_result_t nccl_ofi_msgbuff_replace(nccl_ofi_msgbuff_t *msgbuff, uint16_t msg_index, void *elem, nccl_ofi_msgbuff_elemtype_t type,
+                                                   nccl_ofi_msgbuff_status_t *msg_idx_status);
 
 /**
  * Retrieve message with given index
@@ -165,9 +163,8 @@ nccl_ofi_msgbuff_result_t nccl_ofi_msgbuff_replace(nccl_ofi_msgbuff_t *msgbuff,
  *  NCCL_OFI_MSGBUFF_INVALID_IDX, invalid index. See msg_idx_status.
  *  NCCL_OFI_MSGBUFF_ERROR, other error
  */
-nccl_ofi_msgbuff_result_t nccl_ofi_msgbuff_retrieve(nccl_ofi_msgbuff_t *msgbuff,
-		uint16_t msg_index, void **elem, nccl_ofi_msgbuff_elemtype_t *type,
-		nccl_ofi_msgbuff_status_t *msg_idx_status);
+nccl_ofi_msgbuff_result_t nccl_ofi_msgbuff_retrieve(nccl_ofi_msgbuff_t *msgbuff, uint16_t msg_index, void **elem, nccl_ofi_msgbuff_elemtype_t *type,
+                                                    nccl_ofi_msgbuff_status_t *msg_idx_status);
 
 /**
  * Mark message with given index as complete
@@ -179,8 +176,7 @@ nccl_ofi_msgbuff_result_t nccl_ofi_msgbuff_retrieve(nccl_ofi_msgbuff_t *msgbuff,
  *  NCCL_OFI_MSGBUFF_INVALID_IDX, invalid index. See msg_idx_status.
  *  NCCL_OFI_MSGBUFF_ERROR, other error
  */
-nccl_ofi_msgbuff_result_t nccl_ofi_msgbuff_complete(nccl_ofi_msgbuff_t *msgbuff,
-		uint16_t msg_index, nccl_ofi_msgbuff_status_t *msg_idx_status);
+nccl_ofi_msgbuff_result_t nccl_ofi_msgbuff_complete(nccl_ofi_msgbuff_t *msgbuff, uint16_t msg_index, nccl_ofi_msgbuff_status_t *msg_idx_status);
 
 #ifdef __cplusplus
 } // End extern "C"

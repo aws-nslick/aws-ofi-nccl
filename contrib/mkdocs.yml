@@ -1,8 +1,6 @@
 site_name: "OFI + NCCL"
-
 theme:
   name: material
-
 plugins:
   - search
   - mkdoxy:

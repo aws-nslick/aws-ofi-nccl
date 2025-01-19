@@ -5,7 +5,7 @@
 # See LICENSE.txt for license information
 #
 
-# $1 -> action if is EC2 isntance
+# $1 -> action if is EC2 instance
 # $2 -> action if not EC2 instance
 AC_DEFUN([AX_CHECK_EC2_INSTANCE],[
   ec2_instance_found="no"

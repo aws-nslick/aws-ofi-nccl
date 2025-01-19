@@ -9,9 +9,9 @@
 extern "C" {
 #endif
 
-#include <assert.h>
-#include <stddef.h>
-#include <stdint.h>
+#include <cassert>
+#include <cstddef>
+#include <cstdint>
 
 /*
  * @brief	Returns the ceil of x/y.
@@ -26,7 +26,7 @@ extern "C" {
 /*
  * @brief	Min of two int values
  */
-#define  NCCL_OFI_MIN(x, y) ((x) < (y) ? (x) : (y))
+#define NCCL_OFI_MIN(x, y) ((x) < (y) ? (x) : (y))
 
 /*
  * @brief	Returns true if and only if size_t value is a power of two
@@ -39,7 +39,7 @@ extern "C" {
  * @param	a
  *		Must be a power of two
  */
-#define NCCL_OFI_IS_ALIGNED(x, a)     (((x) & ((__typeof__(x))(a) - 1)) == 0)
+#define NCCL_OFI_IS_ALIGNED(x, a) (((x) & ((__typeof__(x))(a) - 1)) == 0)
 
 /*
  * @brief	Return true if and only if pointer `p` is `a`-byte aligned

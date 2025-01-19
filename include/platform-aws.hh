@@ -10,25 +10,23 @@
 #ifndef PLATFORM_AWS_H_
 #define PLATFORM_AWS_H_
 
-#include <stdbool.h>
+#include <cstddef>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-
 struct ec2_platform_data {
-	const char* name;
-	const char* regex;
-	const char* topology;
-	int default_dup_conns;
-	float latency;
-	bool gdr_required;
-	bool net_flush_required;
-	const char *default_protocol;
-	int domain_per_thread;
+  const char *name;
+  const char *regex;
+  const char *topology;
+  int default_dup_conns;
+  float latency;
+  bool gdr_required;
+  bool net_flush_required;
+  const char *default_protocol;
+  int domain_per_thread;
 };
-
 
 /*
  * @brief        Get the platform data map
@@ -38,7 +36,6 @@ struct ec2_platform_data {
  */
 struct ec2_platform_data *platform_aws_get_platform_map(size_t *len);
 
-
 /*
  * @brief	Returns platform data for current platform type, if found
  *
@@ -47,10 +44,7 @@ struct ec2_platform_data *platform_aws_get_platform_map(size_t *len);
  * @return	NULL, if no topology found
  * 		platform data, if match found
  */
-struct ec2_platform_data *platform_aws_get_platform_entry(const char *platform_type,
-							  struct ec2_platform_data *platform_data_list,
-							  size_t platform_data_len);
-
+struct ec2_platform_data *platform_aws_get_platform_entry(const char *platform_type, struct ec2_platform_data *platform_data_list, size_t platform_data_len);
 
 #ifdef __cplusplus
 } // End extern "C"

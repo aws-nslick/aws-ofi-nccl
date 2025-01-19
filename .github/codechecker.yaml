@@ -1,4 +1,3 @@
----
 analyzer:
   - --disable=clang-diagnostic-unused-parameter
   - --ignore=.github/codechecker_skips.txt

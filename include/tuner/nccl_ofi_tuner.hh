@@ -7,8 +7,8 @@
 
 #include "config.hh"
 
-#include <linux/limits.h>
 #include <nccl/tuner.h>
+#include <linux/limits.h>
 
 /*
  * NCCL 2.19.1 supports ncclTunerPlugin_v1

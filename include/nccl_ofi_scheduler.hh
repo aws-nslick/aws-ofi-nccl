@@ -9,7 +9,7 @@
 extern "C" {
 #endif
 
-#include <stdint.h>
+#include <cstdint>
 #include <pthread.h>
 
 #include "nccl_ofi_freelist.hh"
@@ -17,17 +17,17 @@ extern "C" {
 /*
  * @brief	Transfer information for a rail.
  *
- * The transfer information descripes the stripe of a message that is
+ * The transfer information describes the stripe of a message that is
  * to be send over a specific rail. This struct is part of the
  * schedule that the scheduler provides.
  */
 typedef struct nccl_net_ofi_xfer_info {
-	/* Id of the rail */
-	int rail_id;
-	/* Offset of the stripe into the message */
-	size_t offset;
-	/* Size of the stripe in bytes */
-	size_t msg_size;
+  /* Id of the rail */
+  int rail_id;
+  /* Offset of the stripe into the message */
+  size_t offset;
+  /* Size of the stripe in bytes */
+  size_t msg_size;
 } nccl_net_ofi_xfer_info_t;
 
 /*
@@ -37,15 +37,15 @@ typedef struct nccl_net_ofi_xfer_info {
  * assigned to a different rail.
  */
 typedef struct nccl_net_ofi_schedule {
-	/* Number of transfer information entries set by the scheduler */
-	size_t num_xfer_infos;
+  /* Number of transfer information entries set by the scheduler */
+  size_t num_xfer_infos;
 
-	/* Backpointer to freelist element (for cleanup) */
-	nccl_ofi_freelist_elem_t *elem;
+  /* Backpointer to freelist element (for cleanup) */
+  nccl_ofi_freelist_elem_t *elem;
 
-	/* Array of transfer information structs. The array has at
-	 * least 'num_xfer_infos' entries. */
-	nccl_net_ofi_xfer_info_t rail_xfer_infos[];
+  /* Array of transfer information structs. The array has at
+   * least 'num_xfer_infos' entries. */
+  nccl_net_ofi_xfer_info_t rail_xfer_infos[];
 } nccl_net_ofi_schedule_t;
 
 struct nccl_net_ofi_scheduler;
@@ -55,33 +55,32 @@ typedef struct nccl_net_ofi_scheduler nccl_net_ofi_scheduler_t;
  * @brief	Base scheduler struct
  */
 typedef struct nccl_net_ofi_scheduler {
-	/* Freelist of schedules */
-	nccl_ofi_freelist_t *schedule_fl;
+  /* Freelist of schedules */
+  nccl_ofi_freelist_t *schedule_fl;
 
-	/*
-	 * @brief	Scheduler specific function pointer stored in base scheduler to create schedule for a message
-	 *
-	 * @param	scheduler
-	 *		The scheduler struct
-	 * @param	size
-	 *		Size of the message in bytes
-	 * @param	num_rails
-	 *		Number of rails. This parameter must match the number of rails
-	 *		provided to the initialization routine of the scheduler.
-	 *
-	 * @return	schedule, on success
-	 *		NULL, on others
-	 */
-	nccl_net_ofi_schedule_t *(*get_schedule)(nccl_net_ofi_scheduler_t *scheduler,
-						 size_t size, int num_rails);
+  /*
+   * @brief	Scheduler specific function pointer stored in base scheduler to create schedule for a message
+   *
+   * @param	scheduler
+   *		The scheduler struct
+   * @param	size
+   *		Size of the message in bytes
+   * @param	num_rails
+   *		Number of rails. This parameter must match the number of rails
+   *		provided to the initialization routine of the scheduler.
+   *
+   * @return	schedule, on success
+   *		NULL, on others
+   */
+  nccl_net_ofi_schedule_t *(*get_schedule)(nccl_net_ofi_scheduler_t *scheduler, size_t size, int num_rails);
 
-	/*
-	 * brief	Function pointer stored in scheduler to finalize (free) scheduler
-	 *
-	 * @return	0, on success
-	 *		non-zero, on error
-	 */
-	int (*fini)(nccl_net_ofi_scheduler_t *scheduler);
+  /*
+   * brief	Function pointer stored in scheduler to finalize (free) scheduler
+   *
+   * @return	0, on success
+   *		non-zero, on error
+   */
+  int (*fini)(nccl_net_ofi_scheduler_t *scheduler);
 } nccl_net_ofi_scheduler_t;
 
 /*
@@ -91,21 +90,20 @@ typedef struct nccl_net_ofi_scheduler {
  * assigned round-robin; larger messages are multiplexed.
  */
 typedef struct nccl_net_ofi_threshold_scheduler {
-	nccl_net_ofi_scheduler_t base;
-	/* Round robin counter */
-	unsigned int rr_counter;
-	/* Lock for round robin counter */
-	pthread_mutex_t rr_lock;
-	/* Minimum size of the message in bytes before message is
-	 * multiplexed */
-	size_t min_stripe_size;
+  nccl_net_ofi_scheduler_t base;
+  /* Round robin counter */
+  unsigned int rr_counter;
+  /* Lock for round robin counter */
+  pthread_mutex_t rr_lock;
+  /* Minimum size of the message in bytes before message is
+   * multiplexed */
+  size_t min_stripe_size;
 } nccl_net_ofi_threshold_scheduler_t;
 
 /*
  * @brief	Release schedule by returning it back to the scheduler
  */
-void nccl_net_ofi_release_schedule(nccl_net_ofi_scheduler_t *scheduler,
-				   nccl_net_ofi_schedule_t *schedule);
+void nccl_net_ofi_release_schedule(nccl_net_ofi_scheduler_t *scheduler, nccl_net_ofi_schedule_t *schedule);
 
 /*
  * brief	Initialize a threshold scheduler

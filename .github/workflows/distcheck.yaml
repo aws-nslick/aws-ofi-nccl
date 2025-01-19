@@ -29,16 +29,11 @@ on:
       - ".github/workflows/**"
 env:
   APT_PACKAGES: >-
-    build-essential
-    git
-    libhwloc-dev
-    make
-
+    build-essential git libhwloc-dev make
   # note, related to issue around actions/checkout@v4, linked below. This
   # environment variable is also now needed, as of july 2024.
   # ref: https://github.com/actions/runner/issues/2906#issuecomment-2208546951
   ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: 'true'
-
 concurrency:
   group: ${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
@@ -57,17 +52,14 @@ jobs:
         include:
           - efainstaller: latest
             platform-aws: enable
-
           - efainstaller: 1.25.0
             platform-aws: disable
-
           - container: public.ecr.aws/amazonlinux/amazonlinux:2023
             displayname: al2023
             efainstallerdir: ALINUX2023
             nvidiadistro: amzn2023
             configmanager: dnf config-manager
             cudapackages: cuda-cudart-devel-12-6 cuda-crt-12-6
-
     runs-on: ubuntu-latest
     container: ${{ matrix.container }}
     name: ${{ matrix.displayname }}/${{ matrix.sdk }}/efa@${{ matrix.efainstaller }}/build+test
@@ -82,11 +74,9 @@ jobs:
           tar -xf aws-efa-installer-*.tar.gz
           cd aws-efa-installer/RPMS/${{ matrix.efainstallerdir }}/x86_64
           find . | grep rpm$ | xargs yum -y localinstall
-
       - name: Install hwloc, utilities.
         run: |
           yum -y install hwloc-devel autoconf automake libtool gcc gcc-c++ git make
-
       - name: Install CUDA
         if: matrix.sdk == 'cuda'
         run: |
@@ -95,11 +85,9 @@ jobs:
              --save
           yum -y clean expire-cache
           yum -y install ${{ matrix.cudapackages }}
-
       - name: Call `autoreconf -ivf`
         run: |
           ./autogen.sh
-
       - name: Run Configure
         run: |
           if [ "${{ matrix.sdk }}" == "neuron" ]; then
@@ -119,19 +107,14 @@ jobs:
                         --${{ matrix.platform-aws }}-platform-aws \
                         --with-cuda=/usr/local/cuda/
           fi
-
       - name: Call `make`
         run: make V=1
-
       - name: Call `make install`
         run: make install V=1
-
       - name: Call `make distcheck`
         run: make distcheck V=1
-
       - name: Call `make check`
         run: make check V=1
-
   distcheck:
     runs-on: ubuntu-22.04
     strategy:
@@ -148,7 +131,6 @@ jobs:
         sdk:
           - cuda
           - neuron
-
         include:
           - cc-variant: latest
             cc: clang
@@ -156,11 +138,9 @@ jobs:
           - cc-variant: latest
             cc: gcc
             cc-version: 13
-
     name: u2204/${{ matrix.sdk }}/${{matrix.cc}}-${{matrix.cc-variant}}/build+test
     steps:
       - uses: actions/checkout@v4
-
       - name: Configure Compilers
         run: |
           if [ "${{ matrix.cc }}" == "clang" ]; then
@@ -189,12 +169,10 @@ jobs:
             sudo update-alternatives --install /usr/bin/cc cc /usr/bin/gcc 10
             sudo update-alternatives --install /usr/bin/c++ c++ /usr/bin/g++ 10
           fi
-
       - name: Install Base Dependencies
         run: |
           sudo apt-get update -y
           sudo apt-get install -y ${{ env.APT_PACKAGES }}
-
       - name: Install CUDA SDK
         if: matrix.sdk == 'cuda'
         run: |
@@ -204,12 +182,10 @@ jobs:
           sudo dpkg -i cuda-keyring_1.1-1_all.deb
           sudo apt-get update -y
           sudo apt-get install -y cuda-cudart-dev-12-6 cuda-crt-12-6
-
       - name: Install lttng
         if: matrix.tracing == 'lttng'
         run: |
           sudo apt-get install -y liblttng-ust-dev
-
       - name: Fetch and Install EFA Installer Dependencies
         run: |
           curl -O https://efa-installer.amazonaws.com/aws-efa-installer-latest.tar.gz
@@ -217,7 +193,6 @@ jobs:
           pushd aws-efa-installer/
               sudo ./efa_installer.sh -y --skip-kmod
           popd
-
       - name: Build Plugin
         run: |
           set -x
@@ -246,19 +221,14 @@ jobs:
                         --enable-platform-aws \
                         --with-cuda=/usr/local/cuda/
           fi
-
       - name: Call `make`
         run: make V=1
-
       - name: Call `make install`
         run: sudo make install V=1
-
       - name: Call `make distcheck`
         run: make distcheck V=1
-
       - name: Call `make check`
         run: make check V=1
-
       - name: Upload config.log
         if: failure()
         uses: actions/upload-artifact@v4
@@ -266,7 +236,6 @@ jobs:
           name: ${{ matrix.cc }}-${{ matrix.cc-variant }}-${{ matrix.sdk }}-config.log
           path: config.log
           if-no-files-found: ignore
-
   codechecker:
     runs-on: ubuntu-22.04
     needs: [distcheck]
@@ -281,12 +250,10 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.9'
-
       - name: Install Base Dependencies
         run: |
           sudo apt-get update -y
           sudo apt-get install -y ${{ env.APT_PACKAGES }}
-
       - name: Install CUDA SDK
         if: matrix.sdk == 'cuda'
         run: |
@@ -296,11 +263,9 @@ jobs:
           sudo dpkg -i cuda-keyring_1.1-1_all.deb
           sudo apt-get update -y
           sudo apt-get install -y cuda-cudart-dev-12-6 cuda-crt-12-6
-
       - name: Install cppcheck
         run: |
           sudo apt-get install -y cppcheck
-
       - name: Fetch and Install EFA Installer Dependencies
         run: |
           curl -O https://efa-installer.amazonaws.com/aws-efa-installer-latest.tar.gz
@@ -308,7 +273,6 @@ jobs:
           pushd aws-efa-installer/
               sudo ./efa_installer.sh -y --skip-kmod
           popd
-
       - name: Run Configure
         run: |
           ./autogen.sh
@@ -329,7 +293,6 @@ jobs:
                         --enable-platform-aws \
                         --with-cuda=/usr/local/cuda/
           fi
-
       - name: Run CodeChecker
         uses: whisperity/codechecker-analysis-action@v1
         id: codechecker
@@ -340,13 +303,11 @@ jobs:
           install-custom: true
           version: v6.23.1
           llvm-version: '18'
-
       - name: Save CodeChecker HTML output.
         uses: actions/upload-artifact@v4
         with:
           name: CodeChecker Bug Reports for ${{ matrix.sdk }}
           path: ${{ steps.codechecker.outputs.result-html-dir }}/*.html
-
       - name: CodeChecker Pass Or Fail?
         if: steps.codechecker.outputs.warnings-in-diff == 'true'
         shell: bash

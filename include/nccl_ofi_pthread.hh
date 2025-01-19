@@ -9,12 +9,11 @@
 extern "C" {
 #endif
 
-#include <errno.h>
+#include <cerrno>
+#include <cstring>
 #include <pthread.h>
-#include <string.h>
 
 #include "nccl_ofi_log.hh"
-
 
 /**
  * Create a mutex
@@ -29,7 +28,6 @@ extern "C" {
  */
 int nccl_net_ofi_mutex_init(pthread_mutex_t *mutex, const pthread_mutexattr_t *attr);
 
-
 /**
  * Free resources allocated for a mutex
  *
@@ -40,23 +38,18 @@ int nccl_net_ofi_mutex_init(pthread_mutex_t *mutex, const pthread_mutexattr_t *a
  */
 int nccl_net_ofi_mutex_destroy(pthread_mutex_t *mutex);
 
-
 /**
  * Lock a mutex
  *
  * Wrapper around pthread_mutex_lock() which will abort the current
  * process if an error occurs.
  */
-static inline void
-nccl_net_ofi_mutex_lock_impl(pthread_mutex_t *mutex, const char *file, size_t line)
-{
-	int ret = pthread_mutex_lock(mutex);
-	if (OFI_UNLIKELY(ret != 0)) {
-		(*ofi_log_function)(NCCL_LOG_WARN, NCCL_ALL, file, line,
-				    "NET/OFI pthread_mutex_lock failed: %s",
-				    strerror(ret));
-		abort();
-	}
+static inline void nccl_net_ofi_mutex_lock_impl(pthread_mutex_t *mutex, const char *file, size_t line) {
+  int ret = pthread_mutex_lock(mutex);
+  if (OFI_UNLIKELY(ret != 0)) {
+    (*ofi_log_function)(NCCL_LOG_WARN, NCCL_ALL, file, line, "NET/OFI pthread_mutex_lock failed: %s", strerror(ret));
+    abort();
+  }
 }
 #define nccl_net_ofi_mutex_lock(mutex) nccl_net_ofi_mutex_lock_impl(mutex, __FILE__, __LINE__);
 
@@ -69,20 +62,15 @@ nccl_net_ofi_mutex_lock_impl(pthread_mutex_t *mutex, const char *file, size_t li
  * Returns 0 if the lock is acquired, EBUSY if the lock is already
  * locked, and aborts the process otherwise.
  */
-static inline int
-nccl_net_ofi_mutex_trylock_impl(pthread_mutex_t *mutex, const char *file, size_t line)
-{
-	int ret = pthread_mutex_trylock(mutex);
-	if (OFI_UNLIKELY(ret != 0 && ret != EBUSY)) {
-		(*ofi_log_function)(NCCL_LOG_WARN, NCCL_ALL, file, line,
-				    "NET/OFI pthread_mutex_trylock failed: %s",
-				    strerror(ret));
-		abort();
-	}
-     return ret;
+static inline int nccl_net_ofi_mutex_trylock_impl(pthread_mutex_t *mutex, const char *file, size_t line) {
+  int ret = pthread_mutex_trylock(mutex);
+  if (OFI_UNLIKELY(ret != 0 && ret != EBUSY)) {
+    (*ofi_log_function)(NCCL_LOG_WARN, NCCL_ALL, file, line, "NET/OFI pthread_mutex_trylock failed: %s", strerror(ret));
+    abort();
+  }
+  return ret;
 }
 #define nccl_net_ofi_mutex_trylock(mutex) nccl_net_ofi_mutex_trylock_impl(mutex, __FILE__, __LINE__);
-
 
 /**
  * Unlock a mutex
@@ -90,19 +78,14 @@ nccl_net_ofi_mutex_trylock_impl(pthread_mutex_t *mutex, const char *file, size_t
  * Wrapper around pthread_mutex_unlock() which will abort the current
  * process if an error occurs.
  */
-static inline void
-nccl_net_ofi_mutex_unlock_impl(pthread_mutex_t *mutex, const char *file, size_t line)
-{
-	int ret = pthread_mutex_unlock(mutex);
-	if (OFI_UNLIKELY(ret != 0)) {
-		(*ofi_log_function)(NCCL_LOG_WARN, NCCL_ALL, file, line,
-				    "NET/OFI pthread_mutex_unlock failed: %s",
-				    strerror(ret));
-		abort();
-	}
+static inline void nccl_net_ofi_mutex_unlock_impl(pthread_mutex_t *mutex, const char *file, size_t line) {
+  int ret = pthread_mutex_unlock(mutex);
+  if (OFI_UNLIKELY(ret != 0)) {
+    (*ofi_log_function)(NCCL_LOG_WARN, NCCL_ALL, file, line, "NET/OFI pthread_mutex_unlock failed: %s", strerror(ret));
+    abort();
+  }
 }
 #define nccl_net_ofi_mutex_unlock(mutex) nccl_net_ofi_mutex_unlock_impl(mutex, __FILE__, __LINE__);
-
 
 #ifdef __cplusplus
 } // End extern "C"

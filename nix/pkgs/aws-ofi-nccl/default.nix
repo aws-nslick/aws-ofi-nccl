@@ -255,51 +255,11 @@ effectiveStdenv.mkDerivation {
   passthru.clangFormatFile = writeTextFile {
     name = "clang-format-config";
     text = lib.generators.toYAML { } {
-      AlignConsecutiveAssignments = false;
-      AlignConsecutiveBitFields = {
-        AcrossComments = true;
-        AcrossEmptyLines = true;
-        Enabled = true;
-      };
-      AlignConsecutiveDeclarations = false;
-      AlignConsecutiveMacros = {
-        AcrossComments = true;
-        AcrossEmptyLines = true;
-        Enabled = true;
-      };
-      AlignConsecutiveShortCaseStatements = {
-        AcrossComments = true;
-        AcrossEmptyLines = true;
-        AlignCaseColons = false;
-        Enabled = true;
-      };
-      AlignOperands = "Align";
-      AlignTrailingComments = {
-        Kind = "Always";
-        OverEmptyLines = 0;
-      };
-      AllowShortCompoundRequirementOnASingleLine = true;
-      KeepEmptyLines = {
-        AtEndOfFile = false;
-        AtStartOfBlock = false;
-        AtStartOfFile = false;
-      };
-      AllowAllArgumentsOnNextLine = false;
-      AllowShortFunctionsOnASingleLine = "None";
-      AllowShortIfStatementsOnASingleLine = false;
-      AllowShortLoopsOnASingleLine = false;
-      BasedOnStyle = "Google";
-      BinPackArguments = false;
-      BinPackParameters = false;
-      BracedInitializerIndentWidth = 8;
-      BreakBeforeBraces = "Linux";
-      ColumnLimit = 130;
-      ContinuationIndentWidth = 8;
-      IncludeBlocks = "Regroup";
+      ColumnLimit = 160;
       IncludeCategories = [
         {
           Priority = -40;
-          Regex = "^([\"]config[.]h[\"])$";
+          Regex = "^([\"]config[.]h[h]?[\"])$";
           SortPriority = -40;
         }
         {
@@ -309,26 +269,11 @@ effectiveStdenv.mkDerivation {
         }
         {
           Priority = 10;
-          Regex = "^([\"]nccl.*[.]h[\"])$";
+          Regex = "^([\"]nccl.*[.]h[h]?[\"])$";
           SortPriority = 10;
         }
       ];
-      IndentCaseLabels = false;
-      IndentWidth = 8;
-      InsertBraces = true;
-      InsertNewlineAtEOF = true;
-      LineEnding = "LF";
-      MaxEmptyLinesToKeep = 2;
-      PointerAlignment = "Right";
-      ReferenceAlignment = "Right";
-      ReflowComments = true;
-      RemoveParentheses = "MultipleParentheses";
-      SortIncludes = "CaseSensitive";
-      SpacesBeforeTrailingComments = 2;
-      TabWidth = 8;
-      BreakBinaryOperations = "RespectPrecedence";
-      AllowShortCaseExpressionOnASingleLine = true;
-      UseTab = "ForContinuationAndIndentation";
+      BasedOnStyle = "LLVM";
     };
   };
 

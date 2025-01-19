@@ -29,8 +29,7 @@ extern "C" {
  * MEMCHECK_REDZONE_SIZE defines the size of redzones prefixing each
  * entry. Redzones are required to be a multiple of 8 due to ASAN
  * shadow-map granularity */
-static_assert(MEMCHECK_REDZONE_SIZE % MEMCHECK_GRANULARITY == 0,
-	       "Size of redzone is not a multiple of ASAN shadow-map granularity");
+static_assert(MEMCHECK_REDZONE_SIZE % MEMCHECK_GRANULARITY == 0, "Size of redzone is not a multiple of ASAN shadow-map granularity");
 
 /**
  * @file
@@ -68,7 +67,7 @@ static inline void nccl_net_ofi_mem_defined(void *data, size_t size);
 static inline void nccl_net_ofi_mem_undefined(void *data, size_t size);
 
 /**
- * Mark a memory area as being invalid for read or write accesss.  Any
+ * Mark a memory area as being invalid for read or write access. Any
  * access may result in a fault.
  *
  * @param data
@@ -83,33 +82,30 @@ static inline void nccl_net_ofi_mem_noaccess(void *data, size_t size);
  * Same as nccl_net_ofi_mem_defined() except that guard is applied to
  * memory region [NCCL_OFI_ROUND_DOWN(data, MEMCHECK_GRANULARITY), data + size).
  */
-static inline void nccl_net_ofi_mem_defined_unaligned(void *data, size_t size)
-{
-	uintptr_t aligned = NCCL_OFI_ROUND_DOWN((uintptr_t)data, MEMCHECK_GRANULARITY);
-	size_t offset = (uintptr_t)data - aligned;
-	nccl_net_ofi_mem_defined((void*)((uintptr_t)data - offset), size + offset);
+static inline void nccl_net_ofi_mem_defined_unaligned(void *data, size_t size) {
+  uintptr_t aligned = NCCL_OFI_ROUND_DOWN((uintptr_t)data, MEMCHECK_GRANULARITY);
+  size_t offset = (uintptr_t)data - aligned;
+  nccl_net_ofi_mem_defined((void *)((uintptr_t)data - offset), size + offset);
 }
 
 /**
  * Same as nccl_net_ofi_mem_undefined() except that guard is applied to
  * memory region [NCCL_OFI_ROUND_DOWN(data, MEMCHECK_GRANULARITY), data + size).
  */
-static inline void nccl_net_ofi_mem_undefined_unaligned(void *data, size_t size)
-{
-	uintptr_t aligned = NCCL_OFI_ROUND_DOWN((uintptr_t)data, MEMCHECK_GRANULARITY);
-	size_t offset = (uintptr_t)data - aligned;
-	nccl_net_ofi_mem_undefined((void*)((uintptr_t)data - offset), size + offset);
+static inline void nccl_net_ofi_mem_undefined_unaligned(void *data, size_t size) {
+  uintptr_t aligned = NCCL_OFI_ROUND_DOWN((uintptr_t)data, MEMCHECK_GRANULARITY);
+  size_t offset = (uintptr_t)data - aligned;
+  nccl_net_ofi_mem_undefined((void *)((uintptr_t)data - offset), size + offset);
 }
 
 /**
  * Same as nccl_net_ofi_mem_noaccess() except that guard is applied to
  * memory region [NCCL_OFI_ROUND_DOWN(data, MEMCHECK_GRANULARITY), data + size).
  */
-static inline void nccl_net_ofi_mem_noaccess_unaligned(void *data, size_t size)
-{
-	uintptr_t aligned = NCCL_OFI_ROUND_DOWN((uintptr_t)data, MEMCHECK_GRANULARITY);
-	size_t offset = (uintptr_t)data - aligned;
-	nccl_net_ofi_mem_noaccess((void*)((uintptr_t)data - offset), size + offset);
+static inline void nccl_net_ofi_mem_noaccess_unaligned(void *data, size_t size) {
+  uintptr_t aligned = NCCL_OFI_ROUND_DOWN((uintptr_t)data, MEMCHECK_GRANULARITY);
+  size_t offset = (uintptr_t)data - aligned;
+  nccl_net_ofi_mem_noaccess((void *)((uintptr_t)data - offset), size + offset);
 }
 
 /**
@@ -138,7 +134,7 @@ static inline void nccl_net_ofi_mem_create_mempool(void *handle, void *data, siz
 static inline void nccl_net_ofi_mem_destroy_mempool(void *handle);
 
 /**
- * Indicate that an allocation has occured from a memory allocator.
+ * Indicate that an allocation has occurred from a memory allocator.
  * The memory area returned with have undefined semantics after this
  * call.
  *
@@ -153,7 +149,7 @@ static inline void nccl_net_ofi_mem_destroy_mempool(void *handle);
 static inline void nccl_net_ofi_mem_mempool_alloc(void *handle, void *data, size_t size);
 
 /**
- * Indicate that a deallocate has occured to a memory allocator.  The
+ * Indicate that a deallocate has occurred to a memory allocator.  The
  * memory area will have noaccess semantics after this call.  If
  * book-keeping structures need to be stored in this area, the
  * specific area should be first marked as undefined via

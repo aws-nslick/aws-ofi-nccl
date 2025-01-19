@@ -49,7 +49,6 @@ int nccl_net_ofi_cuda_get_num_devices(void);
  */
 int nccl_net_ofi_cuda_get_active_device_idx(void);
 
-
 /*
  * @brief	query CU_DEVICE_ATTRIBUTE_DMA_BUF_SUPPORTED
 
@@ -67,7 +66,7 @@ bool nccl_net_ofi_cuda_have_dma_buf_attr(void);
 bool nccl_net_ofi_cuda_have_gdr_support_attr(void);
 
 #ifdef __cplusplus
-}  // End extern "C"
+} // End extern "C"
 #endif
 
-#endif  // End NCCL_OFI_H_
+#endif // End NCCL_OFI_H_

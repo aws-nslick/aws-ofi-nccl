@@ -32,7 +32,7 @@ int platform_config_endpoint(struct fi_info *info, struct fid_ep *ep) __attribut
  *
  * Rail-oriented networks or traffic flows are a common performance
  * optimization for ML networks.  Generally, Libfabric providers sort
- * their provider list by BDFs, which are indicitive of physical
+ * their provider list by BDFs, which are indicative of physical
  * ordering and good enough.  However, on some platforms (especially
  * virtualized platforms), this might not actually be sufficient and
  * another sorting mechanism may be required to properly group NICs.
@@ -52,7 +52,6 @@ int platform_config_endpoint(struct fi_info *info, struct fid_ep *ep) __attribut
  * @param num_rails: number of rails
  */
 void platform_sort_rails(struct fi_info **info_list, size_t num_rails, size_t num_groups) __attribute__((weak));
-
 
 /*
  * does the platform have an opinion on domain_per_thread configuration?

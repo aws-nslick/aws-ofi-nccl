@@ -72,10 +72,10 @@ AC_HEADER_STDBOOL
 AS_IF([test "${ac_cv_header_stdbool_h}" = "no"],
       [AC_MSG_ERROR([NCCL OFI Plugin requires stdbool.h])])
 
-AC_CHECK_HEADER([limits.h], [], [AC_MSG_ERROR([NCCL OFI Plugin rquires limits.h])])
-AC_CHECK_HEADER([stdlib.h], [], [AC_MSG_ERROR([NCCL OFI Plugin rquires stdlib.h])])
-AC_CHECK_HEADER([string.h], [], [AC_MSG_ERROR([NCCL OFI Plugin rquires string.h])])
-AC_CHECK_HEADER([unistd.h], [], [AC_MSG_ERROR([NCCL OFI Plugin rquires unistd.h])])
+AC_CHECK_HEADER([limits.h], [], [AC_MSG_ERROR([NCCL OFI Plugin requires limits.h])])
+AC_CHECK_HEADER([stdlib.h], [], [AC_MSG_ERROR([NCCL OFI Plugin requires stdlib.h])])
+AC_CHECK_HEADER([string.h], [], [AC_MSG_ERROR([NCCL OFI Plugin requires string.h])])
+AC_CHECK_HEADER([unistd.h], [], [AC_MSG_ERROR([NCCL OFI Plugin requires unistd.h])])
 
 AC_CHECK_HEADERS([linux/limits.h])
 

@@ -26,4 +26,4 @@ const char *nccl_net_ofi_get_product_name(void);
 }
 #endif
 
-#endif  // End NCCL_OFI_SYSTEM_H_
+#endif // End NCCL_OFI_SYSTEM_H_
