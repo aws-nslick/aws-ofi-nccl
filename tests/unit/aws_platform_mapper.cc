@@ -2,21 +2,21 @@
  * Copyright (c) 2024 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#include "config.h"
-
+#include "config.hh"
+#include "platform-aws.hh"
+#include "test-common.hh"
+#include <array>
 #include <stdio.h>
 #include <string.h>
 
-#include "platform-aws.h"
-
 
 /* check that we get the expected response for all our known platforms */
-static int check_value(struct ec2_platform_data *platform_data_list, size_t len,
-		       const char *platform_type, const char *expected_value)
+static int check_value(struct ec2_platform_data *platform_data_list,
+		       size_t len,
+		       const char *platform_type,
+		       const char *expected_value)
 {
-	struct ec2_platform_data *entry = platform_aws_get_platform_entry(platform_type,
-									  platform_data_list,
-									  len);
+	struct ec2_platform_data *entry = platform_aws_get_platform_entry(platform_type, platform_data_list, len);
 
 	if (NULL == entry && expected_value != NULL) {
 		printf("Got NULL reply, expected %s\n", expected_value);
@@ -68,8 +68,8 @@ static int check_known_platforms(void)
 }
 
 
-static struct ec2_platform_data test_map_1[] = {
-	{
+std::array test_map_1{
+	ec2_platform_data{
 		.name = "first",
 		.regex = "^platform-x$",
 		.topology = NULL,
@@ -80,7 +80,7 @@ static struct ec2_platform_data test_map_1[] = {
 		.default_protocol = NULL,
 		.domain_per_thread = 0,
 	},
-	{
+	ec2_platform_data{
 		.name = "second",
 		.regex = "^platform.*",
 		.topology = NULL,
@@ -93,7 +93,8 @@ static struct ec2_platform_data test_map_1[] = {
 	},
 };
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
 	int ret = 0;
 
 	ofi_log_function = logger;
@@ -102,8 +103,8 @@ int main(int argc, char *argv[]) {
 	ret += check_known_platforms();
 
 	/* make sure we maintain ordering */
-	ret += check_value(test_map_1, 2, "platform-x", "first");
-	ret += check_value(test_map_1, 2, "platform-xy", "second");
+	ret += check_value(test_map_1.data(), test_map_1.size(), "platform-x", "first");
+	ret += check_value(test_map_1.data(), test_map_1.size(), "platform-xy", "second");
 
 	return ret;
 }

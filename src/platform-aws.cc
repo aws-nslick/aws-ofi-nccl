@@ -4,29 +4,28 @@
  */
 
 #include "config.hh"
-
 #include <alloca.h>
+#include <array>
+#include <inttypes.h>
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <inttypes.h>
 #ifdef HAVE_RDMA_FI_EXT_H
 #include <rdma/fi_ext.h>
 #endif
-#include <regex.h>
-#include <dlfcn.h>
-
-#include nccl_ofi.hh
-#include "nccl_ofi_platform.hh"
-#include "platform-aws.hh"
+#include "nccl_ofi.hh"
 #include "nccl_ofi_log.hh"
 #include "nccl_ofi_math.hh"
-#include "nccl_ofi_rdma.hh"
 #include "nccl_ofi_param.hh"
+#include "nccl_ofi_platform.hh"
 #include "nccl_ofi_pthread.hh"
+#include "nccl_ofi_rdma.hh"
 #include "nccl_ofi_system.hh"
+#include "platform-aws.hh"
+#include <dlfcn.h>
+#include <regex.h>
 
 
 /*
@@ -35,8 +34,8 @@
  * valid.  First match found wins, even if there is a more specific
  * match later in the array.
  */
-static struct ec2_platform_data platform_data_map[] = {
-	{
+std::array platform_data_map = {
+	ec2_platform_data{
 		.name = "p4d.24xlarge",
 		.regex = NULL,
 		.topology = "p4d-24xl-topo.xml",
@@ -47,7 +46,7 @@ static struct ec2_platform_data platform_data_map[] = {
 		.default_protocol = "SENDRECV",
 		.domain_per_thread = 0,
 	},
-	{
+	ec2_platform_data{
 		.name = "p4de.24xlarge",
 		.regex = NULL,
 		.topology = "p4de-24xl-topo.xml",
@@ -58,7 +57,7 @@ static struct ec2_platform_data platform_data_map[] = {
 		.default_protocol = "SENDRECV",
 		.domain_per_thread = 0,
 	},
-	{
+	ec2_platform_data{
 		.name = "p3dn.24xlarge",
 		.regex = NULL,
 		.topology = NULL,
@@ -69,7 +68,7 @@ static struct ec2_platform_data platform_data_map[] = {
 		.default_protocol = "SENDRECV",
 		.domain_per_thread = 0,
 	},
-	{
+	ec2_platform_data{
 		.name = "p-series",
 		/*
 		 * we only want to match P5 and later, as earlier
@@ -85,7 +84,7 @@ static struct ec2_platform_data platform_data_map[] = {
 		.default_protocol = "RDMA",
 		.domain_per_thread = 0,
 	},
-	{
+	ec2_platform_data{
 		.name = "g5.48xlarge",
 		.regex = NULL,
 		.topology = "g5.48xl-topo.xml",
@@ -96,7 +95,7 @@ static struct ec2_platform_data platform_data_map[] = {
 		.default_protocol = "SENDRECV",
 		.domain_per_thread = 0,
 	},
-	{
+	ec2_platform_data{
 		.name = "trn1",
 		.regex = "^trn1.*",
 		.topology = NULL,
@@ -107,7 +106,7 @@ static struct ec2_platform_data platform_data_map[] = {
 		.default_protocol = "SENDRECV",
 		.domain_per_thread = 1,
 	},
-	{
+	ec2_platform_data{
 		.name = "trn2",
 		.regex = "^trn2.*",
 		.topology = NULL,
@@ -123,8 +122,8 @@ static struct ec2_platform_data platform_data_map[] = {
 
 struct ec2_platform_data *platform_aws_get_platform_map(size_t *len)
 {
-	*len = sizeof(platform_data_map)/sizeof(platform_data_map[0]);
-	return platform_data_map;
+	*len = platform_data_map.size();
+	return platform_data_map.data();
 }
 
 
@@ -144,16 +143,14 @@ struct ec2_platform_data *platform_aws_get_platform_entry(const char *platform_t
 
 	for (size_t idx = 0; idx < platform_data_len; idx++) {
 		if (platform_data_list[idx].regex == NULL) {
-			if (0 == strcmp(platform_type,
-					platform_data_list[idx].name)) {
+			if (0 == strcmp(platform_type, platform_data_list[idx].name)) {
 				response = &platform_data_list[idx];
 				break;
 			}
 		} else {
 			ret = regcomp(&regex, platform_data_list[idx].regex, REG_EXTENDED);
 			if (ret != 0) {
-				NCCL_OFI_WARN("Could not compile platform_type regex for %s",
-					      platform_data_list[idx].regex);
+				NCCL_OFI_WARN("Could not compile platform_type regex for %s", platform_data_list[idx].regex);
 				goto done;
 			}
 
@@ -172,8 +169,10 @@ struct ec2_platform_data *platform_aws_get_platform_entry(const char *platform_t
 	}
 
 done:
-	NCCL_OFI_TRACE(NCCL_NET | NCCL_INIT, "Using platform block %s for instance type %s",
-		      (response == NULL) ? "none" : response->name, platform_type);
+	NCCL_OFI_TRACE(NCCL_NET | NCCL_INIT,
+		       "Using platform block %s for instance type %s",
+		       (response == NULL) ? "none" : response->name,
+		       platform_type);
 
 	return response;
 }
@@ -192,7 +191,7 @@ static struct ec2_platform_data *get_platform_data(void)
 	static bool init = false;
 	static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 	static struct ec2_platform_data *platform_data = NULL;
-	const char* platform_type = NULL;
+	const char *platform_type = NULL;
 	struct ec2_platform_data *platform_data_list;
 	size_t platform_data_len;
 
@@ -213,8 +212,7 @@ static struct ec2_platform_data *get_platform_data(void)
 		goto done;
 	}
 
-	platform_data = platform_aws_get_platform_entry(platform_type, platform_data_list,
-							platform_data_len);
+	platform_data = platform_aws_get_platform_entry(platform_type, platform_data_list, platform_data_len);
 
 done:
 	nccl_net_ofi_mutex_unlock(&mutex);
@@ -236,12 +234,12 @@ static int validate_rdma_write(struct fid_ep *ep)
 
 	ret = fi_getopt(&ep->fid, FI_OPT_ENDPOINT, FI_OPT_EFA_EMULATED_WRITE, &optval, &optlen);
 	if (ret != 0) {
-		NCCL_OFI_WARN("Couldn't get FI_OPT_EFA_EMULATED_WRITE. RC: %d, ERROR: %s",
-			      ret, fi_strerror(-ret));
+		NCCL_OFI_WARN("Couldn't get FI_OPT_EFA_EMULATED_WRITE. RC: %d, ERROR: %s", ret, fi_strerror(-ret));
 		goto exit;
 	} else if (optlen != sizeof(optval)) {
 		NCCL_OFI_WARN("Unexpected response size when checking FI_OPT_EFA_EMULATED_WRITE.  Expected %lu, got %lu",
-			      sizeof(optval), optlen);
+			      sizeof(optval),
+			      optlen);
 		ret = -EINVAL;
 		goto exit;
 	} else if (optval) {
@@ -249,8 +247,7 @@ static int validate_rdma_write(struct fid_ep *ep)
 		ret = -EINVAL;
 		goto exit;
 	}
-	NCCL_OFI_TRACE(NCCL_INIT | NCCL_NET, "Get endpoint option FI_OPT_EFA_EMULATED_WRITE. optval: %d", 
-		       optval);
+	NCCL_OFI_TRACE(NCCL_INIT | NCCL_NET, "Get endpoint option FI_OPT_EFA_EMULATED_WRITE. optval: %d", optval);
 #else
 	NCCL_OFI_WARN("FI_OPT_EFA_EMULATED_WRITE not declared when the communication protocol is RDMA write.");
 	ret = -EINVAL;
@@ -271,12 +268,13 @@ static int configure_nccl_proto(void)
 		NCCL_OFI_INFO(NCCL_INIT, "Setting NCCL_PROTO to \"simple\"");
 		ret = setenv("NCCL_PROTO", "simple", 0);
 		if (ret != 0) {
-			NCCL_OFI_WARN("Error setting NCCL_PROTO environment variable: %s",
-				      strerror(errno));
+			NCCL_OFI_WARN("Error setting NCCL_PROTO environment variable: %s", strerror(errno));
 			return -errno;
 		}
 	} else if (strcasecmp(getenv("NCCL_PROTO"), "simple") != 0) {
-		NCCL_OFI_WARN("NCCL_PROTO was set to \"LL/LL128\", but the Libfabric endpoint does not support 128 byte in-order aligned stores. This endpoint may corrupt data during communication");
+		NCCL_OFI_WARN(
+			"NCCL_PROTO was set to \"LL/LL128\", but the Libfabric endpoint does not support 128 byte in-order "
+			"aligned stores. This endpoint may corrupt data during communication");
 	}
 
 	return 0;
@@ -290,8 +288,7 @@ static int configure_nccl_proto(void)
  * Returns 0 on success (ie, have_ordering is in a sane state) or
  * -error code on unexpected failure.
  */
-static int configure_ep_inorder(struct fid_ep *ep, int optname, const char* optname_name,
-				bool *have_ordering)
+static int configure_ep_inorder(struct fid_ep *ep, int optname, const char *optname_name, bool *have_ordering)
 {
 #if HAVE_DECL_FI_OPT_EFA_WRITE_IN_ORDER_ALIGNED_128_BYTES
 	int ret = 0;
@@ -299,21 +296,22 @@ static int configure_ep_inorder(struct fid_ep *ep, int optname, const char* optn
 
 	*have_ordering = false;
 
-	ret = fi_setopt(&ep->fid, FI_OPT_ENDPOINT,
-			optname, &optval, sizeof(optval));
+	ret = fi_setopt(&ep->fid, FI_OPT_ENDPOINT, optname, &optval, sizeof(optval));
 	if (ret == -FI_EOPNOTSUPP || ret == -FI_ENOPROTOOPT) {
 		NCCL_OFI_INFO(NCCL_INIT, "Setting %s not supported.", optname_name);
 	} else if (ret != 0) {
-		NCCL_OFI_WARN("Could not set %s. RC: %d, ERROR: %s",
-			      optname_name, ret, fi_strerror(-ret));
+		NCCL_OFI_WARN("Could not set %s. RC: %d, ERROR: %s", optname_name, ret, fi_strerror(-ret));
 		return ret;
 	} else {
 		NCCL_OFI_TRACE(NCCL_INIT, "Setting %s have_ordering is true.", optname_name);
 		*have_ordering = true;
 	}
 
-	NCCL_OFI_TRACE(NCCL_INIT, "fi_setopt(%s) ordering result %s, error code %d",
-		       optname_name, have_ordering ? "yes" : "no", ret);
+	NCCL_OFI_TRACE(NCCL_INIT,
+		       "fi_setopt(%s) ordering result %s, error code %d",
+		       optname_name,
+		       have_ordering ? "yes" : "no",
+		       ret);
 #else
 	*have_ordering = false;
 #endif
@@ -370,7 +368,7 @@ static int configure_nvls_option(void)
 		nccl_get_version = (nccl_get_version_fn_t)dlsym(RTLD_DEFAULT, "ncclGetVersion");
 		if (nccl_get_version == NULL) {
 			NCCL_OFI_TRACE(NCCL_INIT | NCCL_NET,
-			    "Could not find ncclGetVersion symbol; skipping NVLS NCCL version check");
+				       "Could not find ncclGetVersion symbol; skipping NVLS NCCL version check");
 			return 0;
 		} else {
 			nccl_ret = nccl_get_version(&version);
@@ -463,10 +461,9 @@ int platform_init(const char **provider_filter)
 	 * this for Nvidia platforms.
 	 */
 	uint32_t libversion = fi_version();
-	const char * fork_safe_var_name =
-		(FI_MAJOR(libversion) > 1 || (FI_MAJOR(libversion) == 1 && FI_MINOR(libversion) >= 13))
-		? "FI_EFA_FORK_SAFE"
-		: "RDMAV_FORK_SAFE";
+	const char *fork_safe_var_name = (FI_MAJOR(libversion) > 1 || (FI_MAJOR(libversion) == 1 && FI_MINOR(libversion) >= 13))
+						 ? "FI_EFA_FORK_SAFE"
+						 : "RDMAV_FORK_SAFE";
 	if (!getenv(fork_safe_var_name)) {
 		NCCL_OFI_INFO(NCCL_INIT, "Setting %s environment variable to 1", fork_safe_var_name);
 		ret = setenv(fork_safe_var_name, "1", 1);
@@ -483,17 +480,15 @@ int platform_init(const char **provider_filter)
 		goto exit;
 	}
 
-	if ((platform_data && !platform_data->net_flush_required) &&
-	    NULL == getenv("NCCL_NET_FORCE_FLUSH")) {
-
+	if ((platform_data && !platform_data->net_flush_required) && NULL == getenv("NCCL_NET_FORCE_FLUSH")) {
 		/* Hopper GPUs do not require a network flush, but NCCL versions <2.19.1
-		* still enable flush by default on any GPU type.
-		* For GPU generations earlier than Hopper, NCCL always enables flush, while
-		* for Hopper GPUs flush is enabled or disabled depending on the value of
-		* the NCCL_NET_FORCE_FLUSH environment variable. The default value for this
-		* variable is 1 for NCCL versions <2.19.1, which forces flush when it is not
-		* needed, so it is safe to set it to 0 if it is not explicitly set.
-		*/
+		 * still enable flush by default on any GPU type.
+		 * For GPU generations earlier than Hopper, NCCL always enables flush, while
+		 * for Hopper GPUs flush is enabled or disabled depending on the value of
+		 * the NCCL_NET_FORCE_FLUSH environment variable. The default value for this
+		 * variable is 1 for NCCL versions <2.19.1, which forces flush when it is not
+		 * needed, so it is safe to set it to 0 if it is not explicitly set.
+		 */
 
 		NCCL_OFI_INFO(NCCL_INIT | NCCL_NET, "Setting NCCL_NET_FORCE_FLUSH=0 for Hopper GPUs");
 		ret = setenv("NCCL_NET_FORCE_FLUSH", "0", 0);
@@ -536,28 +531,34 @@ int platform_init(const char **provider_filter)
 #endif
 
 	/*
-	 * Update topology if platform topology is available and 
+	 * Update topology if platform topology is available and
 	 * environment variable NCCL_TOPO_FILE is not set.
 	 */
 	if (getenv("NCCL_TOPO_FILE")) {
 		NCCL_OFI_INFO(NCCL_INIT | NCCL_NET,
 			      "Running on %s platform, NCCL_TOPO_FILE environment variable is already set to %s",
-			      nccl_net_ofi_get_product_name(), getenv("NCCL_TOPO_FILE"));
+			      nccl_net_ofi_get_product_name(),
+			      getenv("NCCL_TOPO_FILE"));
 	} else if (platform_data && platform_data->topology) {
 		char topology_path[PATH_MAX];
 
-		ret = snprintf(topology_path, sizeof(topology_path), "%s/%s",
-			       XML_DIR, platform_data->topology);
+		ret = snprintf(topology_path, sizeof(topology_path), "%s/%s", XML_DIR, platform_data->topology);
 		if (ret < 0 || (size_t)ret >= sizeof(topology_path)) {
-			NCCL_OFI_WARN("Error occurred while forming the complete topology XML file path. RC: %d, Buffer Size: %d, XML dir: %s, Topology file: %s",
-				      ret, PATH_MAX, XML_DIR, platform_data->topology);
+			NCCL_OFI_WARN(
+				"Error occurred while forming the complete topology XML file path. RC: %d, Buffer Size: %d, XML "
+				"dir: %s, Topology file: %s",
+				ret,
+				PATH_MAX,
+				XML_DIR,
+				platform_data->topology);
 			ret = -ENOMEM;
 			goto exit;
 		}
 
 		NCCL_OFI_INFO(NCCL_INIT | NCCL_NET,
-				"Running on %s platform, Setting NCCL_TOPO_FILE environment variable to %s",
-				nccl_net_ofi_get_product_name(), topology_path);
+			      "Running on %s platform, Setting NCCL_TOPO_FILE environment variable to %s",
+			      nccl_net_ofi_get_product_name(),
+			      topology_path);
 
 		ret = setenv("NCCL_TOPO_FILE", topology_path, 1);
 		if (ret != 0) {
@@ -565,11 +566,11 @@ int platform_init(const char **provider_filter)
 			ret = -errno;
 			goto exit;
 		}
-
 	}
 
-	if (nic_dup_conns == 0 && platform_data)
+	if (nic_dup_conns == 0 && platform_data) {
 		nic_dup_conns = platform_data->default_dup_conns;
+	}
 
 	if (ofi_nccl_net_latency() < 0) {
 		if (platform_data && platform_data->latency >= 0.0) {
@@ -584,8 +585,7 @@ int platform_init(const char **provider_filter)
 			 */
 			net_latency = 75.0;
 		}
-		NCCL_OFI_INFO(NCCL_INIT | NCCL_NET, "Internode latency set at %.1f us",
-				net_latency);
+		NCCL_OFI_INFO(NCCL_INIT | NCCL_NET, "Internode latency set at %.1f us", net_latency);
 	}
 
 	if (select_efa && ofi_nccl_protocol() == NULL && platform_data) {
@@ -596,7 +596,8 @@ exit:
 	return ret;
 }
 
-int platform_config_endpoint(struct fi_info *info, struct fid_ep* endpoint) {
+int platform_config_endpoint(struct fi_info *info, struct fid_ep *endpoint)
+{
 	int ret = 0;
 #if HAVE_CUDA
 	const char *optname_name = "none";
@@ -631,8 +632,7 @@ int platform_config_endpoint(struct fi_info *info, struct fid_ep* endpoint) {
 	 * emulated writes are disabled.
 	 */
 
-	if (0 == strcasecmp("RDMA", nccl_ofi_selected_protocol) &&
-	    ofi_nccl_disable_native_rdma_check() == 0) {
+	if (0 == strcasecmp("RDMA", nccl_ofi_selected_protocol) && ofi_nccl_disable_native_rdma_check() == 0) {
 		ret = validate_rdma_write(endpoint);
 		if (ret != 0) {
 			goto exit;
@@ -706,8 +706,7 @@ int platform_config_endpoint(struct fi_info *info, struct fid_ep* endpoint) {
 		bool have_ordering = false;
 
 		if (optname != -1) {
-			ret = configure_ep_inorder(endpoint, optname, optname_name,
-						   &have_ordering);
+			ret = configure_ep_inorder(endpoint, optname, optname_name, &have_ordering);
 			if (ret != 0) {
 				NCCL_OFI_WARN("Unexpected failure setting inorder %d", ret);
 				goto unlock;
@@ -715,8 +714,7 @@ int platform_config_endpoint(struct fi_info *info, struct fid_ep* endpoint) {
 		}
 
 		if (need_ordering && !have_ordering) {
-			NCCL_OFI_WARN("Setting %s option failed after succeeding during initialization",
-				      optname_name);
+			NCCL_OFI_WARN("Setting %s option failed after succeeding during initialization", optname_name);
 			ret = -ENOTSUP;
 			goto unlock;
 		}
@@ -746,7 +744,7 @@ int platform_config_endpoint(struct fi_info *info, struct fid_ep* endpoint) {
 
 unlock:
 	nccl_net_ofi_mutex_unlock(&mutex);
-#endif // HAVE_CUDA
+#endif  // HAVE_CUDA
 
 exit:
 	return ret;
@@ -759,8 +757,7 @@ static int get_rail_vf_idx(struct fi_info *info)
 	int vf_idx;
 	int ret;
 
-	ret = asprintf(&node_guid_filename, "/sys/class/infiniband/%s/node_guid",
-		       info->nic->device_attr->name);
+	ret = asprintf(&node_guid_filename, "/sys/class/infiniband/%s/node_guid", info->nic->device_attr->name);
 	if (ret < 0) {
 		vf_idx = -errno;
 		goto cleanup;
@@ -830,7 +827,7 @@ void platform_sort_rails(struct fi_info **info_list, size_t num_rails, size_t nu
 		return;
 	}
 
-	info_array = (struct fi_info **)calloc(num_rails, sizeof(struct fi_info*));
+	info_array = (struct fi_info **)calloc(num_rails, sizeof(struct fi_info *));
 	if (info_array == NULL) {
 		NCCL_OFI_WARN("Did not reorder arrays due to calloc failure");
 		goto cleanup;
@@ -857,8 +854,7 @@ void platform_sort_rails(struct fi_info **info_list, size_t num_rails, size_t nu
 
 		int ret = get_rail_vf_idx(info_array[info_count]);
 		if (ret < 0) {
-			NCCL_OFI_WARN("lookup of rail for index %lu failed: %s",
-				      info_count, strerror(-ret));
+			NCCL_OFI_WARN("lookup of rail for index %lu failed: %s", info_count, strerror(-ret));
 			goto cleanup;
 		}
 		vf_array[info_count] = ret;
@@ -869,8 +865,7 @@ void platform_sort_rails(struct fi_info **info_list, size_t num_rails, size_t nu
 		info_count++;
 	}
 	if (info_count != num_rails) {
-		NCCL_OFI_WARN("Info count (%lu) and num_rails (%lu) do not match.  Aborting reorder.",
-			      info_count, num_rails);
+		NCCL_OFI_WARN("Info count (%lu) and num_rails (%lu) do not match.  Aborting reorder.", info_count, num_rails);
 		goto cleanup;
 	}
 
@@ -880,9 +875,9 @@ void platform_sort_rails(struct fi_info **info_list, size_t num_rails, size_t nu
 		goto cleanup;
 	}
 
-	for (size_t i = 0 ; i < num_rails ; i++) {
+	for (size_t i = 0; i < num_rails; i++) {
 		size_t j = num_rails;
-		for (j = 0 ; j < num_rails ; j++) {
+		for (j = 0; j < num_rails; j++) {
 			if (info_array[j] == NULL) {
 				continue;
 			}
@@ -911,7 +906,7 @@ void platform_sort_rails(struct fi_info **info_list, size_t num_rails, size_t nu
 
 cleanup:
 	if (info_array != NULL) {
-		for (size_t i = 0 ; i < num_rails ; i++) {
+		for (size_t i = 0; i < num_rails; i++) {
 			if (info_array[i] != NULL) {
 				fi_freeinfo(info_array[i]);
 			}
