@@ -2,12 +2,7 @@
  * Copyright (c) 2023-2024 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#ifndef NCCL_OFI_SENDRECV_H_
-#define NCCL_OFI_SENDRECV_H_
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#pragma once
 
 #include <rdma/fabric.h>
 
@@ -212,10 +207,4 @@ typedef struct nccl_net_ofi_sendrecv_plugin nccl_net_ofi_sendrecv_plugin_t;
 /*
  * @brief	Initialize plugin with sendrecv protocol structures
  */
-int nccl_net_ofi_sendrecv_init(const char *provider_filter, nccl_net_ofi_plugin_t **plugin_p);
-
-#ifdef __cplusplus
-} // End extern "C"
-#endif
-
-#endif // End NCCL_OFI_SENDRECV_H_
+int nccl_net_ofi_sendrecv_init(char const *provider_filter, nccl_net_ofi_plugin_t **plugin_p);

@@ -2,12 +2,7 @@
  * Copyright (c) 2018-2024 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#ifndef NCCL_OFI_PLATFORM_H_
-#define NCCL_OFI_PLATFORM_H_
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#pragma once
 
 #include <rdma/fabric.h>
 #include <rdma/fi_endpoint.h>
@@ -57,9 +52,3 @@ void platform_sort_rails(struct fi_info **info_list, size_t num_rails, size_t nu
  * does the platform have an opinion on domain_per_thread configuration?
  */
 bool platform_default_domain_per_thread(void) __attribute__((weak));
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif // End NCCL_OFI_PLATFORM_H_

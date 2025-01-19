@@ -2,12 +2,7 @@
  * Copyright 2014-2023 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  */
 
-#ifndef NCCL_OFI_MEMCHECK_VALGRIND_H
-#define NCCL_OFI_MEMCHECK_VALGRIND_H
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#pragma once
 
 #include <valgrind/memcheck.h>
 #include <valgrind/valgrind.h>
@@ -28,9 +23,3 @@ static inline void nccl_net_ofi_mem_destroy_mempool(void *handle) { VALGRIND_DES
 static inline void nccl_net_ofi_mem_mempool_alloc(void *handle, void *data, size_t size) { VALGRIND_MEMPOOL_ALLOC(handle, data, size); }
 
 static inline void nccl_net_ofi_mem_mempool_free(void *handle, void *data, size_t size) { VALGRIND_MEMPOOL_FREE(handle, data); }
-
-#ifdef __cplusplus
-} // End extern "C"
-#endif
-
-#endif // End NCCL_OFI_MEMCHECK_VALGRIND_H

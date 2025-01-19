@@ -2,12 +2,7 @@
  * Copyright (c) 2018-2024 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#ifndef NCCL_OFI_SYSTEM_H_
-#define NCCL_OFI_SYSTEM_H_
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#pragma once
 
 /*
  * @brief   Reads the product name from the DMI information.
@@ -20,10 +15,4 @@ extern "C" {
  * @return  NULL, on allocation and file system error
  *          product name, on success
  */
-const char *nccl_net_ofi_get_product_name(void);
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif // End NCCL_OFI_SYSTEM_H_
+char const *nccl_net_ofi_get_product_name(void);

@@ -1,18 +1,11 @@
 /*
  * Copyright (c) 2018-2023 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
-
-#ifndef NCCL_OFI_FREELIST_H
-#define NCCL_OFI_FREELIST_H
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#pragma once
 
 #include <cassert>
-#include <pthread.h>
-
 #include <cstdlib>
+#include <pthread.h>
 
 #include "nccl_ofi_log.hh"
 #include "nccl_ofi_memcheck.hh"
@@ -222,9 +215,3 @@ static inline void nccl_ofi_freelist_entry_free(nccl_ofi_freelist_t *freelist, n
 
   nccl_net_ofi_mutex_unlock(&freelist->lock);
 }
-
-#ifdef __cplusplus
-} // End extern "C"
-#endif
-
-#endif // End NCCL_OFI_FREELIST_H

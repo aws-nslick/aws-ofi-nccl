@@ -2,18 +2,12 @@
  * Copyright (c) 2020-2023 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#ifndef NCCL_OFI_PARAM_H_
-#define NCCL_OFI_PARAM_H_
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <cassert>
 #include <cerrno>
 #include <pthread.h>
 
 #include <cstring>
+#pragma once
 
 #include "nccl_ofi_log.hh"
 #include "nccl_ofi_pthread.hh"
@@ -370,9 +364,3 @@ OFI_NCCL_PARAM_INT(tuner_net_comp_overhead, "TUNER_NET_COMP_OVERHEAD", 3);
  * support TCs, unless the prioritization over-reacts on the given network.
  */
 OFI_NCCL_PARAM_INT(use_low_lat_tc, "USE_LOW_LATENCY_TC", 1);
-
-#ifdef __cplusplus
-} // End extern "C"
-#endif
-
-#endif // End NCCL_OFI_PARAM_H_

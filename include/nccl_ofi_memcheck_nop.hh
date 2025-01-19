@@ -2,12 +2,7 @@
  * Copyright 2014-2023 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  */
 
-#ifndef NCCL_OFI_MEMCHECK_NOP_H
-#define NCCL_OFI_MEMCHECK_NOP_H
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#pragma once
 
 /**
  * @file This module provides empty implementations of the interface
@@ -29,9 +24,3 @@ static inline void nccl_net_ofi_mem_destroy_mempool(void *handle) {}
 static inline void nccl_net_ofi_mem_mempool_alloc(void *handle, void *data, size_t size) {}
 
 static inline void nccl_net_ofi_mem_mempool_free(void *handle, void *data, size_t size) {}
-
-#ifdef __cplusplus
-} // End extern "C"
-#endif
-
-#endif // End NCCL_OFI_MEMCHECK_NOP_H

@@ -7,14 +7,9 @@
  * platforms.
  */
 
-#ifndef PLATFORM_AWS_H_
-#define PLATFORM_AWS_H_
+#pragma once
 
 #include <cstddef>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 struct ec2_platform_data {
   const char *name;
@@ -45,9 +40,3 @@ struct ec2_platform_data *platform_aws_get_platform_map(size_t *len);
  * 		platform data, if match found
  */
 struct ec2_platform_data *platform_aws_get_platform_entry(const char *platform_type, struct ec2_platform_data *platform_data_list, size_t platform_data_len);
-
-#ifdef __cplusplus
-} // End extern "C"
-#endif
-
-#endif // End NCCL_OFI_H_

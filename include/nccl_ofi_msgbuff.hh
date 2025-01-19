@@ -2,16 +2,10 @@
  * Copyright (c) 2023 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#ifndef NCCL_OFI_MSGBUFF_H_
-#define NCCL_OFI_MSGBUFF_H_
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#include <pthread.h>
+#pragma once
 
 #include <cstdint>
+#include <pthread.h>
 
 /**
  * A "modified circular buffer" used to track in-flight (or INPROGRESS) messages.
@@ -177,9 +171,3 @@ nccl_ofi_msgbuff_result_t nccl_ofi_msgbuff_retrieve(nccl_ofi_msgbuff_t *msgbuff,
  *  NCCL_OFI_MSGBUFF_ERROR, other error
  */
 nccl_ofi_msgbuff_result_t nccl_ofi_msgbuff_complete(nccl_ofi_msgbuff_t *msgbuff, uint16_t msg_index, nccl_ofi_msgbuff_status_t *msg_idx_status);
-
-#ifdef __cplusplus
-} // End extern "C"
-#endif
-
-#endif // End NCCL_OFI_MSGBUFF_H_

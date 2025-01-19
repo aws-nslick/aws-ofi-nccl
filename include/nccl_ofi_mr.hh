@@ -2,12 +2,7 @@
  * Copyright (c) 2024 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#ifndef NCCL_OFI_MR_H_
-#define NCCL_OFI_MR_H_
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#pragma once
 
 #include "config.hh"
 
@@ -215,9 +210,3 @@ int nccl_ofi_mr_cache_insert_entry(nccl_ofi_mr_cache_t *cache, nccl_ofi_mr_ckey_
  *	   -ENOENT, if no matching entry was found
  */
 int nccl_ofi_mr_cache_del_entry(nccl_ofi_mr_cache_t *cache, void *handle);
-
-#ifdef __cplusplus
-} // End extern "C"
-#endif
-
-#endif // End NCCL_OFI_MR_H_

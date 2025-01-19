@@ -3,12 +3,9 @@
  * Copyright (c) 2015-2018, NVIDIA CORPORATION. All rights reserved.
  */
 
-#ifndef NCCL_OFI_CUDA_H_
-#define NCCL_OFI_CUDA_H_
+#pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include <stdbool.h>
 
 int nccl_net_ofi_cuda_init(void);
 
@@ -64,9 +61,3 @@ bool nccl_net_ofi_cuda_have_dma_buf_attr(void);
  *		    false otherwise
  */
 bool nccl_net_ofi_cuda_have_gdr_support_attr(void);
-
-#ifdef __cplusplus
-} // End extern "C"
-#endif
-
-#endif // End NCCL_OFI_H_

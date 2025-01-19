@@ -2,8 +2,7 @@
  * Copyright (c) 2024 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#ifndef NCCL_DEFAULTS_H_
-#define NCCL_DEFAULTS_H_
+#pragma once
 
 /* This file will ideally be dropped in the future, where these parameters would
  * be provided by the tuner when called. For now, these constants are needed to
@@ -68,5 +67,3 @@
  * @brief Buffer size for NCCL_PROTO_SIMPLE protocol.
  */
 #define NCCL_OFI_TUNER_NCCL_BUFFSIZE (1 << 22)
-
-#endif // NCCL_DEFAULTS_H_

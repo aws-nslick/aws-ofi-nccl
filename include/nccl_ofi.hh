@@ -2,12 +2,7 @@
  * Copyright (c) 2018-2024 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#ifndef NCCL_OFI_H_
-#define NCCL_OFI_H_
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#pragma once
 
 #include <nccl/net.h>
 #include <rdma/fabric.h>
@@ -118,7 +113,7 @@ extern bool virt_addr_mr;
  * Valid values are SENDRECV and RDMA; default is SENDRECV (set by the
  * param OFI_NCCL_PROTOCOL)
  */
-extern const char *nccl_ofi_selected_protocol;
+extern char const *nccl_ofi_selected_protocol;
 
 /* Internode network latency reported to NCCL. */
 extern float net_latency;
@@ -697,9 +692,3 @@ int get_inject_rma_size_opt(struct fid_ep *ofi_ep, size_t *max_write_inline_size
  * return       thread id of the current thread (always succeeds)
  */
 long nccl_net_ofi_gettid(void);
-
-#ifdef __cplusplus
-} // End extern "C"
-#endif
-
-#endif // End NCCL_OFI_H_

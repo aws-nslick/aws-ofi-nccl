@@ -2,12 +2,7 @@
  * Copyright (c) 2018-2024 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#ifndef NCCL_OFI_PTHREAD_H
-#define NCCL_OFI_PTHREAD_H
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#pragma once
 
 #include <cerrno>
 #include <cstring>
@@ -86,9 +81,3 @@ static inline void nccl_net_ofi_mutex_unlock_impl(pthread_mutex_t *mutex, const 
   }
 }
 #define nccl_net_ofi_mutex_unlock(mutex) nccl_net_ofi_mutex_unlock_impl(mutex, __FILE__, __LINE__);
-
-#ifdef __cplusplus
-} // End extern "C"
-#endif
-
-#endif // End NCCL_OFI_PTHREAD_H

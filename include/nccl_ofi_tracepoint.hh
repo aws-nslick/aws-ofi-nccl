@@ -2,12 +2,15 @@
  * Copyright (c) 2024 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#ifndef NCCL_OFI_TRACEPOINT_H_
-#define NCCL_OFI_TRACEPOINT_H_
+#pragma once
 
 #include "config.hh"
-#include "tracing_impl/lttng.hh"
+#ifdef HAVE_NVTX_TRACING
 #include "tracing_impl/nvtx.hh"
+#endif
+#ifdef HAVE_LIBLTTNG_UST
+#include "tracing_impl/lttng.hh"
+#endif
 
 /***** SENDRECV PROTOCOL *****/
 #define NCCL_OFI_TRACE_SEND_SENDRECV(dev, size, comm, msg_seq_num, request, nccl_req)                                                                          \
@@ -142,5 +145,3 @@
     lttng_ust_tracepoint(nccl_ofi_plugin, Pending_queue_remove, request);                                                                                      \
     NCCL_OFI_TRACE_PENDING_REMOVE_NVTX(request);                                                                                                               \
   } while (0)
-
-#endif /* NCCL_OFI_TRACEPOINT_H_ */

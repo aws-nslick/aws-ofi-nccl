@@ -19,14 +19,11 @@ AM_SILENT_RULES([yes])
 AH_TOP([/*
  * Copyright (c) 2018-2024 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
-
-#ifndef NCCL_OFI_CONFIG_H
-#define NCCL_OFI_CONFIG_H
+#pragma once
 
 ])
 AH_BOTTOM([
 #include "nccl_ofi_config_bottom.hh"
-#endif /* NCCL_OFI_CONFIG_H */
 ])
 
 dnl AX_CHECK_ENABLE_DEBUG must be called before AC_PROG_CC or

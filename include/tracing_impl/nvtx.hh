@@ -2,8 +2,9 @@
  * Copyright (c) 2022-2024 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#ifndef NVTX_H
-#define NVTX_H
+#pragma once
+
+#include "config.hh"
 
 #if HAVE_NVTX_TRACING
 #include <nvtx3/nvToolsExt.h>
@@ -239,5 +240,3 @@ static inline void nvtx_end(nvtxRangeId_t id) { nvtxRangeEnd(id); }
 #define NCCL_OFI_TRACE_PENDING_REMOVE_NVTX(...)
 
 #endif
-
-#endif /* NVTX_H */

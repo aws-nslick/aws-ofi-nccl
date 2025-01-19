@@ -2,12 +2,7 @@
  * Copyright (c) 2024 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#ifndef NCCL_OFI_IDPOOL_H_
-#define NCCL_OFI_IDPOOL_H_
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#pragma once
 
 #include <cstdint>
 #include <pthread.h>
@@ -91,9 +86,3 @@ int nccl_ofi_idpool_fini(nccl_ofi_idpool_t *idpool);
  *               other than 0.
  */
 static inline bool nccl_ofi_idpool_active(nccl_ofi_idpool_t *idpool) { return (idpool->size != 0); }
-
-#ifdef __cplusplus
-} // End extern "C"
-#endif
-
-#endif // End NCCL_OFI_IDPOOL_H_

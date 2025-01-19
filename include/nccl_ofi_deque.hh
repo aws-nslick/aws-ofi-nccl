@@ -2,12 +2,7 @@
  * Copyright (c) 2023 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#ifndef NCCL_OFI_DEQUE_H
-#define NCCL_OFI_DEQUE_H
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#pragma once
 
 #include <cassert>
 #include <pthread.h>
@@ -238,9 +233,3 @@ static inline nccl_ofi_deque_elem_t *nccl_ofi_deque_get_next(nccl_ofi_deque_t *d
 #define NCCL_OFI_DEQUE_FOREACH(deque)                                                                                                                          \
   for (nccl_ofi_deque_elem_t *next = NULL, *elem = nccl_ofi_deque_get_front(deque); ((elem) != NULL && (next = nccl_ofi_deque_get_next((deque), (elem)), 1));  \
        (elem) = next)
-
-#ifdef __cplusplus
-} // End extern "C"
-#endif
-
-#endif // End NCCL_OFI_DEQUE_H
