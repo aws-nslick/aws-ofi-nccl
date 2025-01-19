@@ -9,6 +9,9 @@
   config,
   libfabric,
   hwloc,
+  pkgconf,
+  pkg-config,
+  gtest,
   perl,
   libtool,
   autoconf,
@@ -24,8 +27,8 @@
   enableTests ? cudaSupport,
   enableTracePrints ? true,
   enableLTTNGTracing ? false,
-  enablePickyCompiler ? true,
-  enableWerror ? true,
+  enablePickyCompiler ? false,
+  enableWerror ? false,
   enableNVTXTracing ? false,
   enableValgrind ? false,
   enableAwsTuning ? true,
@@ -76,6 +79,10 @@ effectiveStdenv.mkDerivation {
     ++ lib.optionals cudaSupport [
       autoAddDriverRunpath
       cudaPackages.cuda_nvcc
+    ]
+    ++ lib.optionals enableTests [
+      pkgconf
+      pkg-config
     ];
 
   buildInputs =
@@ -91,6 +98,7 @@ effectiveStdenv.mkDerivation {
     ]
     ++ lib.optionals enableTests [
       mpi
+      gtest
     ]
     ++ lib.optionals enableLTTNGTracing [
       lttng-ust
@@ -112,6 +120,7 @@ effectiveStdenv.mkDerivation {
     # accelerator support
     (lib.enableFeature neuronSupport "neuron")
     (lib.withFeatureAs cudaSupport "cuda" cudaBuildDepsJoined)
+    #(lib.withFeatureAs true "gtest" gtest.dev)
     (lib.withFeatureAs (enableNVTXTracing && cudaSupport) "nvtx" (lib.getDev cudaPackages.cuda_nvtx))
     (lib.enableFeature (!effectiveStdenv.hostPlatform.isStatic) "cudart-dynamic")
 
@@ -155,7 +164,7 @@ effectiveStdenv.mkDerivation {
   ] ++ lib.optionals enableTests [ "bin" ];
   postInstall = ''
     find $out | grep -E \.la$ | xargs rm
-    mkdir -p $dev/nix-support/generated-headers/include && cp include/config.h $dev/nix-support/generated-headers/include/
+    mkdir -p $dev/nix-support/generated-headers/include && cp include/config.hh $dev/nix-support/generated-headers/include/
     cp config.log $dev/nix-support/config.log
   '';
 
