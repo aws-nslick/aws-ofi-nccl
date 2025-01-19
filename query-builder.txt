@@ -1,0 +1,22 @@
+
+set traversal     IgnoreUnlessSpelledInSource
+set bind-root     false
+set print-matcher false
+set output     dump
+
+
+match functionDecl(hasDescendant(callExpr(callee(functionDecl(anyOf(hasName("malloc"), hasName("calloc"))))))).bind("allocating-function")
+print "func" llvm::StringRef
+
+#callExpr(
+#  callee(functionDecl(
+#    hasName("hasDefaultArg")
+#    )),
+#  argumentCountIs(1)
+#  ).bind("add_prefix")
+
+
+#match fieldDecl(hasName("base")).bind("base_field")
+
+
+#match functionDecl(isExpansionInMainFile(), matchesName(".*_init")).bind("init_function")
