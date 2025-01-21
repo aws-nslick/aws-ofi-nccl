@@ -12,7 +12,7 @@
 #include <rdma/fi_errno.h>
 #include <rdma/fi_rma.h>
 #include <rdma/fi_tagged.h>
-#include <uthash/uthash.h>
+#include <uthash.h>
 
 #include "nccl_ofi_idpool.hh"
 #include "nccl_ofi_log.hh"

@@ -50,7 +50,7 @@ noinst_LTLIBRARIES = libinternal_net_plugin.la
 libinternal_net_plugin_la_SOURCES = $(sources)
 libinternal_net_plugin_la_CPPFLAGS = -I$(abs_top_srcdir)/include
 libinternal_net_plugin_la_CPPFLAGS += -isystem $(abs_top_srcdir)/3rd-party/nccl/$(DEVICE_INTERFACE)/include
-libinternal_net_plugin_la_CPPFLAGS += -isystem $(abs_top_srcdir)/3rd-party/uthash/include
+libinternal_net_plugin_la_CPPFLAGS += -isystem $(abs_top_srcdir)/3rd-party/uthash/include/uthash
 libinternal_net_plugin_la_CPPFLAGS += -isystem $(abs_top_srcdir)/3rd-party/expected/include
 libinternal_net_plugin_la_CPPFLAGS += -DXML_DIR=\"${pkgdatadir}/xml\"
 
@@ -66,7 +66,7 @@ else
   libinternal_net_cudart_plugin_la_SOURCES = nccl_ofi_cuda.cc
   libinternal_net_cudart_plugin_la_CPPFLAGS = $(CUDA_CPPFLAGS)
   libinternal_net_cudart_plugin_la_CPPFLAGS += -isystem $(abs_top_srcdir)/3rd-party/nccl/$(DEVICE_INTERFACE)/include
-  libinternal_net_cudart_plugin_la_CPPFLAGS += -isystem $(abs_top_srcdir)/3rd-party/uthash/include
+  libinternal_net_cudart_plugin_la_CPPFLAGS += -isystem $(abs_top_srcdir)/3rd-party/uthash/include/uthash
   libinternal_net_cudart_plugin_la_CPPFLAGS += -isystem $(abs_top_srcdir)/3rd-party/expected/include
   libinternal_net_cudart_plugin_la_CPPFLAGS += -I$(abs_top_srcdir)/include
   libinternal_net_cudart_plugin_la_LDFLAGS = -whole-archive -static -avoid-version $(CUDA_LDFLAGS)
@@ -97,14 +97,14 @@ tuner_sources =  \
 libinternal_tuner_plugin_la_SOURCES = $(tuner_sources)
 libinternal_tuner_plugin_la_LDFLAGS = -avoid-version
 libinternal_tuner_plugin_la_CPPFLAGS = -isystem $(abs_top_srcdir)/3rd-party/nccl/$(DEVICE_INTERFACE)/include
-libinternal_tuner_plugin_la_CPPFLAGS += -isystem $(abs_top_srcdir)/3rd-party/uthash/include
+libinternal_tuner_plugin_la_CPPFLAGS += -isystem $(abs_top_srcdir)/3rd-party/uthash/include/uthash
 libinternal_tuner_plugin_la_CPPFLAGS += -isystem $(abs_top_srcdir)/3rd-party/expected/include
 libinternal_tuner_plugin_la_CPPFLAGS += -I$(top_srcdir)/include
 
 # NCCL tuner plugin
 lib_LTLIBRARIES += libnccl-ofi-tuner.la
 libnccl_ofi_tuner_la_SOURCES = $(tuner_sources)
-libnccl_ofi_tuner_la_CPPFLAGS = -isystem $(abs_top_srcdir)/3rd-party/nccl/$(DEVICE_INTERFACE)/include -isystem $(abs_top_srcdir)/3rd-party/uthash/include -isystem$(abs_top_srcdir)/3rd-party/expected/include -I$(top_srcdir)/include
+libnccl_ofi_tuner_la_CPPFLAGS = -isystem $(abs_top_srcdir)/3rd-party/nccl/$(DEVICE_INTERFACE)/include -isystem $(abs_top_srcdir)/3rd-party/uthash/include/uthash -isystem$(abs_top_srcdir)/3rd-party/expected/include -I$(top_srcdir)/include
 libnccl_ofi_tuner_la_LDFLAGS = -module -avoid-version
 
 endif

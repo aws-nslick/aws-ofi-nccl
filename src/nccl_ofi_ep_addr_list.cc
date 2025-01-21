@@ -4,8 +4,8 @@
 
 #include "config.hh"
 
-#include <uthash/uthash.h>
-#include <uthash/utlist.h>
+#include <uthash.h>
+#include <utlist.h>
 
 #include "nccl_ofi.hh"
 #include "nccl_ofi_ep_addr_list.hh"
