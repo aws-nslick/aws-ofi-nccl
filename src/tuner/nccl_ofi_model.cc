@@ -1,5 +1,6 @@
 #include "config.hh"
 
+#include <algorithm>
 #include <cfloat>
 #include <cmath>
 #include <cstdlib>

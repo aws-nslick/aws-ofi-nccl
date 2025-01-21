@@ -4,6 +4,7 @@
 
 #include "config.hh"
 
+#include <algorithm>
 #include <cassert>
 #include <cerrno>
 #include <cstdlib>
@@ -22,7 +23,7 @@
  */
 static inline size_t freelist_buffer_mem_size_full_pages(size_t entry_size, size_t entry_count) {
   size_t buffer_mem_size = (entry_size * entry_count);
-  return NCCL_OFI_ROUND_UP(buffer_mem_size, system_page_size);
+  return aon::detail::math::round_up(buffer_mem_size, system_page_size);
 }
 
 /*
@@ -54,11 +55,11 @@ static int freelist_init_internal(size_t entry_size, size_t initial_entry_count,
     return -ENOMEM;
   }
 
-  assert(NCCL_OFI_IS_POWER_OF_TWO(entry_alignment));
+  assert(aon::detail::math::is_power_of_two(entry_alignment));
 
-  freelist->memcheck_redzone_size = NCCL_OFI_ROUND_UP(MEMCHECK_REDZONE_SIZE, entry_alignment);
+  freelist->memcheck_redzone_size = aon::detail::math::round_up(std::size_t{MEMCHECK_REDZONE_SIZE}, entry_alignment);
 
-  freelist->entry_size = NCCL_OFI_ROUND_UP(entry_size, std::max(entry_alignment, std::max(8, MEMCHECK_GRANULARITY)));
+  freelist->entry_size = aon::detail::math::round_up(entry_size, std::max(entry_alignment, std::max(8ul, MEMCHECK_GRANULARITY)));
   freelist->entry_size += freelist->memcheck_redzone_size;
 
   /* Use initial_entry_count and increase_entry_count as lower
@@ -202,7 +203,7 @@ int nccl_ofi_freelist_add(nccl_ofi_freelist_t *freelist, size_t num_entries) {
 
   /* Mark unused memory after block structure as noaccess */
   b_end = (char *)((uintptr_t)buffer + block_mem_size);
-  b_end_aligned = (char *)NCCL_OFI_ROUND_DOWN((uintptr_t)b_end, (uintptr_t)MEMCHECK_GRANULARITY);
+  b_end_aligned = (char *)aon::detail::math::round_down((uintptr_t)b_end, (uintptr_t)MEMCHECK_GRANULARITY);
   nccl_net_ofi_mem_noaccess(b_end_aligned, block_mem_size - (b_end_aligned - buffer));
   nccl_net_ofi_mem_undefined(b_end_aligned, b_end - b_end_aligned);
 

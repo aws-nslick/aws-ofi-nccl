@@ -38,7 +38,7 @@ int nccl_ofi_idpool_init(nccl_ofi_idpool_t *idpool, size_t size) {
   }
 
   /* Scale pool size to number of 64-bit uints (rounded up) */
-  size_t num_long_elements = NCCL_OFI_ROUND_UP(size, sizeof(uint64_t) * 8) / (sizeof(uint64_t) * 8);
+  size_t num_long_elements = aon::detail::math::round_up(size, sizeof(uint64_t) * 8) / (sizeof(uint64_t) * 8);
 
   /* Allocate memory for the pool */
   idpool->ids = (uint64_t *)malloc(sizeof(uint64_t) * num_long_elements);
@@ -97,7 +97,7 @@ int nccl_ofi_idpool_allocate_id(nccl_ofi_idpool_t *idpool) {
   }
 
   /* Scale pool size to number of 64-bit uints (rounded up) */
-  size_t num_long_elements = NCCL_OFI_ROUND_UP(idpool->size, sizeof(uint64_t) * 8) / (sizeof(uint64_t) * 8);
+  size_t num_long_elements = aon::detail::math::round_up(idpool->size, sizeof(uint64_t) * 8) / (sizeof(uint64_t) * 8);
 
   nccl_net_ofi_mutex_lock(&idpool->lock);
 

@@ -17,7 +17,7 @@
 #include "nccl_ofi_log.hh"
 #include "nccl_ofi_math.hh"
 
-#define NCCL_OFI_CACHE_PAGE_SIZE (4096)
+#define NCCL_OFI_CACHE_PAGE_SIZE (4096ul)
 enum nccl_ofi_mr_ckey_type {
   NCCL_OFI_MR_CKEY_INVALID = 0,
   NCCL_OFI_MR_CKEY_IOVEC,
@@ -97,8 +97,8 @@ static inline uintptr_t nccl_ofi_mr_ckey_len(nccl_ofi_mr_ckey_ref ckey) {
 }
 
 static inline void nccl_ofi_mr_ckey_round(size_t *len, void **base_addr, const char *type) {
-  uintptr_t page_base = NCCL_OFI_ROUND_DOWN((uintptr_t)*base_addr, mr_cache_alignment);
-  size_t aligned_size = NCCL_OFI_ROUND_UP(((uintptr_t)*base_addr + *len), mr_cache_alignment) - page_base;
+  uintptr_t page_base = aon::detail::math::round_down((uintptr_t)*base_addr, mr_cache_alignment);
+  size_t aligned_size = aon::detail::math::round_up(((uintptr_t)*base_addr + *len), mr_cache_alignment) - page_base;
   NCCL_OFI_TRACE_WHEN(((uintptr_t)*base_addr != page_base || aligned_size != *len), NCCL_NET, "Going to register mr %s %p size %ld as %p size %ld", type,
                       *base_addr, *len, (void *)page_base, aligned_size);
   *base_addr = (void *)page_base;

@@ -5,6 +5,7 @@
 #include "config.hh"
 
 #include <rdma/fabric.h>
+#include <algorithm>
 #include <cassert>
 #include <cerrno>
 #include <hwloc.h>

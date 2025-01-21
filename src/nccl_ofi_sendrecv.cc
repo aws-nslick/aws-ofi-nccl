@@ -4,6 +4,7 @@
 
 #include "config.hh"
 
+#include <algorithm>
 #include <cassert>
 #include <cinttypes>
 #include <climits>
@@ -65,7 +66,7 @@ static inline int sendrecv_get_properties(nccl_net_ofi_device_t *base_dev, nccl_
   if (ret == 0) {
     /* make sure max_communicators can safely be copied
     into an int */
-    props->max_communicators = std::min(device->max_tag, INT_MAX);
+    props->max_communicators = std::min(device->max_tag, static_cast<decltype(device->max_tag)>(std::numeric_limits<int>::max()));
   }
 
   props->rma_supported = 0;
@@ -613,8 +614,8 @@ exit:
 static int sendrecv_mr_buffers_internal_register(struct fid_domain *domain, struct fid_ep *ep, nccl_ofi_idpool_t *key_pool, int dev_id, void *data, size_t size,
                                                  int type, struct fid_mr **mr_handle) {
   assert(system_page_size > 0);
-  assert(NCCL_OFI_IS_PTR_ALIGNED(data, system_page_size));
-  assert(NCCL_OFI_IS_ALIGNED(size, system_page_size));
+  assert(aon::detail::math::is_ptr_aligned(data, system_page_size));
+  assert(aon::detail::math::is_aligned(size, system_page_size));
 
   nccl_ofi_mr_ckey_t cache_key = nccl_ofi_mr_ckey_mk_vec(data, size);
   return sendrecv_mr_buffers_register(domain, ep, key_pool, dev_id, &cache_key, type, mr_handle);

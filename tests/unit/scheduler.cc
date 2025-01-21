@@ -103,8 +103,8 @@ static inline int test_multiplexer(nccl_net_ofi_scheduler_t *scheduler, int num_
 static inline int test_threshold_scheduler() {
   size_t min_stripe_size = 4096;
   size_t align = 128;
-  int num_rails = 4;
-  int num_stripes = 0;
+  std::size_t num_rails = 4;
+  std::size_t num_stripes = 0;
   int ret = 0;
 
   nccl_net_ofi_scheduler_t *scheduler;
@@ -148,7 +148,7 @@ static inline int test_threshold_scheduler() {
   size_t stripe_size[6];
   size_t remaining_stripe_size[6];
   for (int iter = 0; iter < 6; iter++) {
-    stripe_size[iter] = NCCL_OFI_DIV_CEIL(NCCL_OFI_DIV_CEIL(msg_sizes_2[iter], num_stripes), align) * align;
+    stripe_size[iter] = aon::detail::math::div_ceil(aon::detail::math::div_ceil(msg_sizes_2[iter], num_stripes), align) * align;
     remaining_stripe_size[iter] = msg_sizes_2[iter] - stripe_size[iter];
   }
 
@@ -173,7 +173,7 @@ static inline int test_threshold_scheduler() {
   size_t msg_sizes_3[6] = {(2 * min_stripe_size) + 1,         (2 * min_stripe_size) + align - 1, (2 * min_stripe_size) + align,
                            (2 * min_stripe_size) + align + 1, (3 * min_stripe_size) - 1,         (3 * min_stripe_size)};
   for (int iter = 0; iter < 6; iter++) {
-    stripe_size[iter] = NCCL_OFI_DIV_CEIL(NCCL_OFI_DIV_CEIL(msg_sizes_3[iter], num_stripes), align) * align;
+    stripe_size[iter] = aon::detail::math::div_ceil(aon::detail::math::div_ceil(msg_sizes_3[iter], num_stripes), align) * align;
     remaining_stripe_size[iter] = msg_sizes_3[iter] - (2 * stripe_size[iter]) / 2;
   }
   /* For each message ensure that three rails are used. Also ensure that the rail-id triplets
@@ -198,7 +198,7 @@ static inline int test_threshold_scheduler() {
   size_t msg_sizes_4[6] = {(3 * min_stripe_size) + 1,         (3 * min_stripe_size) + align - 1, (3 * min_stripe_size) + align,
                            (3 * min_stripe_size) + align + 1, (4 * min_stripe_size) - 1,         (4 * min_stripe_size)};
   for (int iter = 0; iter < 6; iter++) {
-    stripe_size[iter] = NCCL_OFI_DIV_CEIL(NCCL_OFI_DIV_CEIL(msg_sizes_4[iter], num_stripes), align) * align;
+    stripe_size[iter] = aon::detail::math::div_ceil(aon::detail::math::div_ceil(msg_sizes_4[iter], num_stripes), align) * align;
     remaining_stripe_size[iter] = msg_sizes_4[iter] - (3 * stripe_size[iter]);
   }
   /* For each message ensure that all four rails are used. */

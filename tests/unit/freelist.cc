@@ -4,6 +4,7 @@
 
 #include "config.hh"
 
+#include <algorithm>
 #include <cstdio>
 
 #include "nccl_ofi_freelist.hh"

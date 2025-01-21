@@ -11,6 +11,8 @@
 
 #include "test-common.hh"
 
+#include <algorithm>
+
 #define PROC_NAME_IDX(i) (i * MPI_MAX_PROCESSOR_NAME)
 
 int main(int argc, char *argv[]) {

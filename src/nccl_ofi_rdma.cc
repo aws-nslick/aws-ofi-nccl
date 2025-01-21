@@ -2094,7 +2094,7 @@ static inline nccl_net_ofi_rdma_req_t *alloc_rx_buff_req(nccl_net_ofi_rdma_ep_t 
     req->free(req, false);
     return NULL;
   }
-  assert(NCCL_OFI_IS_PTR_ALIGNED(rx_buff_fl_elem->ptr, EAGER_RX_BUFFER_ALIGNMENT));
+  assert(aon::detail::math::is_ptr_aligned(rx_buff_fl_elem->ptr, EAGER_RX_BUFFER_ALIGNMENT));
 
   rx_buff_data->rx_buff_fl_elem = rx_buff_fl_elem;
   rx_buff_data->buff_len = ep->rx_buff_size;
@@ -2826,8 +2826,8 @@ exit:
  */
 static int reg_internal_mr_ep(nccl_net_ofi_rdma_ep_t *ep, void *data, size_t size, int type, nccl_net_ofi_rdma_mr_handle_t **mhandle) {
   assert(system_page_size > 0);
-  assert(NCCL_OFI_IS_PTR_ALIGNED(data, system_page_size));
-  assert(NCCL_OFI_IS_ALIGNED(size, system_page_size));
+  assert(aon::detail::math::is_ptr_aligned(data, system_page_size));
+  assert(aon::detail::math::is_aligned(size, system_page_size));
 
   const nccl_ofi_mr_ckey_t ckey = nccl_ofi_mr_ckey_mk_vec(data, size);
   return reg_mr_ep(ep, &ckey, type, NULL, mhandle);
@@ -5634,16 +5634,16 @@ static inline int init_rx_buffers(nccl_net_ofi_rdma_ep_t *ep) {
    */
   for (int rail_id = 0; rail_id < ep->num_control_rails; ++rail_id) {
     rail = rdma_endpoint_get_control_rail(ep, rail_id);
-    rail->min_rx_buff_posted = NCCL_OFI_DIV_CEIL(ofi_nccl_rdma_min_posted_bounce_buffers(), ep->num_control_rails);
-    rail->max_rx_buff_posted = NCCL_OFI_DIV_CEIL(ofi_nccl_rdma_max_posted_bounce_buffers(), ep->num_control_rails);
+    rail->min_rx_buff_posted = aon::detail::math::div_ceil(ofi_nccl_rdma_min_posted_bounce_buffers(), long(ep->num_control_rails));
+    rail->max_rx_buff_posted = aon::detail::math::div_ceil(ofi_nccl_rdma_max_posted_bounce_buffers(), long(ep->num_control_rails));
     rail->num_rx_buff_posted = 0;
     nccl_net_ofi_mutex_init(&rail->rx_buff_mutex, NULL);
   }
 
   for (int rail_id = 0; rail_id < ep->num_rails; ++rail_id) {
     rail = rdma_endpoint_get_rail(ep, rail_id);
-    rail->min_rx_buff_posted = NCCL_OFI_DIV_CEIL(ofi_nccl_rdma_min_posted_bounce_buffers(), ep->num_rails);
-    rail->max_rx_buff_posted = NCCL_OFI_DIV_CEIL(ofi_nccl_rdma_max_posted_bounce_buffers(), ep->num_rails);
+    rail->min_rx_buff_posted = aon::detail::math::div_ceil(ofi_nccl_rdma_min_posted_bounce_buffers(), long(ep->num_rails));
+    rail->max_rx_buff_posted = aon::detail::math::div_ceil(ofi_nccl_rdma_max_posted_bounce_buffers(), long(ep->num_rails));
     rail->num_rx_buff_posted = 0;
     nccl_net_ofi_mutex_init(&rail->rx_buff_mutex, NULL);
   }

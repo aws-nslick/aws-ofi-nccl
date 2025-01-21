@@ -4,6 +4,7 @@
 
 #include "config.hh"
 
+#include <algorithm>
 #include <cassert>
 #include <cerrno>
 #include <pthread.h>
@@ -36,14 +37,14 @@ static inline size_t sizeof_schedule(int num_rails) { return sizeof(nccl_net_ofi
  * @return	Returns the adjusted number of stripes.
  *
  */
-static int get_num_stripes(nccl_net_ofi_threshold_scheduler_t *scheduler_p, size_t size, int num_rails) {
+static size_t get_num_stripes(nccl_net_ofi_threshold_scheduler_t *scheduler_p, size_t size, size_t num_rails) {
   /* Number of stripes is atleast 1 for zero-sized messages and at most equal to num of rails */
-  int num_stripes = (int)std::max(1, std::min(NCCL_OFI_DIV_CEIL(size, scheduler_p->min_stripe_size), (unsigned)num_rails));
+  auto num_stripes = std::max(1ul, std::min(aon::detail::math::div_ceil(size, scheduler_p->min_stripe_size), num_rails));
 
   /* Start the loop from num_stripes and skip 1, as num_rails % 1 is always true.
    * This avoids the overhead of the mod operation in latency-sensitive cases.
    */
-  for (int i = num_stripes; i > 1; i--) {
+  for (auto i = num_stripes; i > 1; i--) {
     if ((num_rails % i) == 0) {
       num_stripes = i;
       break;
@@ -64,7 +65,7 @@ static int get_num_stripes(nccl_net_ofi_threshold_scheduler_t *scheduler_p, size
 static inline int set_schedule_by_threshold(nccl_net_ofi_threshold_scheduler_t *scheduler, size_t size, int num_rails, size_t align,
                                             nccl_net_ofi_schedule_t *schedule) {
   int ret = 0;
-  int num_stripes = 0;
+  size_t num_stripes = 0;
 
   assert(num_rails > 0);
 
@@ -89,7 +90,7 @@ static inline int set_schedule_by_threshold(nccl_net_ofi_threshold_scheduler_t *
 
   /* Calculate max stripe size as a multiple of 128 for alignment.
    * Split message size across stripes, ensuring each stripe is within max_stripe_size and LL128 aligned */
-  size_t max_stripe_size = NCCL_OFI_DIV_CEIL(NCCL_OFI_DIV_CEIL(size, num_stripes), align) * align;
+  size_t max_stripe_size = aon::detail::math::div_ceil(aon::detail::math::div_ceil(size, num_stripes), align) * align;
 
   schedule->num_xfer_infos = num_stripes;
 

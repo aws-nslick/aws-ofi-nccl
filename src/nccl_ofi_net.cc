@@ -90,7 +90,7 @@ size_t mr_cache_alignment = 0;
  */
 int nccl_net_ofi_alloc_mr_buffer(size_t size, void **ptr) {
   assert(system_page_size > 0);
-  assert(NCCL_OFI_IS_ALIGNED(size, system_page_size));
+  assert(aon::detail::math::is_aligned(size, system_page_size));
 
   *ptr = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, -1, 0);
   if (OFI_UNLIKELY(*ptr == MAP_FAILED)) {
@@ -98,7 +98,8 @@ int nccl_net_ofi_alloc_mr_buffer(size_t size, void **ptr) {
     *ptr = NULL;
     return -errno;
   }
-  assert(NCCL_OFI_IS_PTR_ALIGNED(*ptr, system_page_size));
+
+  assert(aon::detail::math::is_ptr_aligned(*ptr, system_page_size));
   return 0;
 }
 
@@ -114,8 +115,8 @@ int nccl_net_ofi_alloc_mr_buffer(size_t size, void **ptr) {
 int nccl_net_ofi_dealloc_mr_buffer(void *ptr, size_t size) {
   int ret = 0;
 
-  assert(NCCL_OFI_IS_PTR_ALIGNED(ptr, system_page_size));
-  assert(NCCL_OFI_IS_ALIGNED(size, system_page_size));
+  assert(aon::detail::math::is_ptr_aligned(ptr, system_page_size));
+  assert(aon::detail::math::is_aligned(size, system_page_size));
 
   ret = munmap(ptr, size);
   if (OFI_UNLIKELY(ret != 0)) {
@@ -146,7 +147,7 @@ int nccl_net_ofi_create_plugin(nccl_net_ofi_plugin_t **plugin_p) {
     goto exit;
   }
   system_page_size = (size_t)system_page_size_sysconf;
-  assert(NCCL_OFI_IS_POWER_OF_TWO(system_page_size));
+  assert(aon::detail::math::is_power_of_two(system_page_size));
   assert(system_page_size > 0);
   /*
    * System page size isn't reflective of the GDR mappings. We're not trying to map a
