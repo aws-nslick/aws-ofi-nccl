@@ -6,8 +6,8 @@
 #include <cstdlib>
 
 #include "config.hh"
-#include "nccl_ofi_deque.hh"
 #include "nccl_ofi_log.hh"
+#include "aon/detail/types/deque.hh"
 #include "test-common.hh"
 
 #define test_get_front(deque, expected)                                                                                                                        \

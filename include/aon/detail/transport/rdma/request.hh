@@ -1,19 +1,19 @@
 #pragma once
 
 #include "nccl_ofi.hh"
-#include "nccl_ofi_comm.hh"
-#include "nccl_ofi_deque.hh"
-#include "nccl_ofi_rdma_constants.hh"
-#include "nccl_ofi_rdma_eager_copy_data.hh"
-#include "nccl_ofi_rdma_flush_data.hh"
-#include "nccl_ofi_rdma_op_data.hh"
-#include "nccl_ofi_rdma_recv_data.hh"
-#include "nccl_ofi_rdma_recv_segms_data.hh"
-#include "nccl_ofi_rdma_req_rx_buff_data.hh"
-#include "nccl_ofi_rdma_send_close_data.hh"
-#include "nccl_ofi_rdma_send_control_data.hh"
-#include "nccl_ofi_rdma_send_data.hh"
-#include "nccl_ofi_req.hh"
+#include "aon/detail/transport/base/communicator.hh"
+#include "aon/detail/transport/base/request.hh"
+#include "aon/detail/transport/rdma/constants.hh"
+#include "aon/detail/transport/rdma/reqs/eager_copy.hh"
+#include "aon/detail/transport/rdma/reqs/flush.hh"
+#include "aon/detail/transport/rdma/reqs/op.hh"
+#include "aon/detail/transport/rdma/reqs/recv.hh"
+#include "aon/detail/transport/rdma/reqs/recv_segms.hh"
+#include "aon/detail/transport/rdma/reqs/req_rx_buff.hh"
+#include "aon/detail/transport/rdma/reqs/send.hh"
+#include "aon/detail/transport/rdma/reqs/send_close.hh"
+#include "aon/detail/transport/rdma/reqs/send_control.hh"
+#include "aon/detail/types/deque.hh"
 
 // #include "nccl_ofi.hh" // for MAX_NUM_RAILS
 // struct nccl_ofi_freelist_elem_t;

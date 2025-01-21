@@ -1,7 +1,7 @@
 #pragma once
 
-#include "nccl_ofi_rdma_constants.hh"
-#include "nccl_ofi_rdma_endpoint_name.hh"
+#include "aon/detail/transport/rdma/constants.hh"
+#include "aon/detail/transport/rdma/endpoint_name.hh"
 #include <cstdint>
 
 /*

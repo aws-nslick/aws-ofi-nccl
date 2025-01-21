@@ -8,7 +8,7 @@
 #include <cstdlib>
 
 #include "nccl_ofi_log.hh"
-#include "nccl_ofi_mr.hh"
+#include "aon/detail/transport/common/mr/cache.hh"
 #include "test-common.hh"
 
 static bool test_lookup_impl(nccl_ofi_mr_cache_t *cache, void *addr, size_t size, void *expected_val) {

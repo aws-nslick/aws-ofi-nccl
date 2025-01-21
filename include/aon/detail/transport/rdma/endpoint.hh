@@ -1,9 +1,9 @@
 #pragma once
 
-#include "nccl_ofi_deque.hh"
-#include "nccl_ofi_endpoint.hh"
-#include "nccl_ofi_endpoint_rail.hh"
-#include "nccl_ofi_freelist.hh"
+#include "aon/detail/transport/base/endpoint.hh"
+#include "aon/detail/transport/common/endpoint_rail.hh"
+#include "aon/detail/types/deque.hh"
+#include "aon/detail/types/freelist.hh"
 
 /*
  * @brief	RDMA Endpoint

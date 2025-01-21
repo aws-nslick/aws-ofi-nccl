@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <pthread.h>
 
-#include "nccl_ofi_plugin.hh"
+#include "aon/detail/transport/base/plugin.hh"
 
 struct nccl_net_ofi_ep_t;
 struct nccl_net_ofi_domain_t;

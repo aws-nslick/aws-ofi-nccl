@@ -1,7 +1,7 @@
 #pragma once
 
-#include "nccl_ofi_comm.hh"
-#include "nccl_ofi_mr.hh"
+#include "aon/detail/transport/base/communicator.hh"
+#include "aon/detail/transport/common/mr/cache.hh"
 
 struct nccl_net_ofi_mr_handle_t;
 struct nccl_net_ofi_req_t;

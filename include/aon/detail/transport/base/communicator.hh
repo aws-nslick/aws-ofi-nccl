@@ -1,6 +1,6 @@
 #pragma once
 
-#include "nccl_ofi_endpoint.hh"
+#include "aon/detail/transport/base/endpoint.hh"
 
 enum nccl_net_ofi_comm_type_t {
   NCCL_NET_OFI_BASE_COMM,

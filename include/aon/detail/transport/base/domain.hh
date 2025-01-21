@@ -1,6 +1,6 @@
 #pragma once
 
-#include "nccl_ofi_idpool.hh"
+#include "aon/detail/types/idpool.hh"
 #include <pthread.h>
 #include <thread>
 #include <uthash.h>

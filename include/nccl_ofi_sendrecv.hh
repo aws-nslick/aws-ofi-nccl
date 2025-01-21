@@ -7,17 +7,17 @@
 #include <rdma/fabric.h>
 
 #include "nccl_ofi.hh"
-#include "nccl_ofi_connection_info.hh"
-#include "nccl_ofi_device.hh"
-#include "nccl_ofi_domain.hh"
-#include "nccl_ofi_endpoint.hh"
-#include "nccl_ofi_freelist.hh"
-#include "nccl_ofi_listen_comm.hh"
-#include "nccl_ofi_plugin.hh"
-#include "nccl_ofi_recv_comm.hh"
-#include "nccl_ofi_req.hh"
-#include "nccl_ofi_save_comm_state.hh"
-#include "nccl_ofi_send_comm.hh"
+#include "aon/detail/transport/base/connection_info.hh"
+#include "aon/detail/transport/base/device.hh"
+#include "aon/detail/transport/base/domain.hh"
+#include "aon/detail/transport/base/endpoint.hh"
+#include "aon/detail/transport/base/listen_communicator.hh"
+#include "aon/detail/transport/base/plugin.hh"
+#include "aon/detail/transport/base/recv_communicator.hh"
+#include "aon/detail/transport/base/request.hh"
+#include "aon/detail/transport/base/save_comm_state.hh"
+#include "aon/detail/transport/base/send_communicator.hh"
+#include "aon/detail/types/freelist.hh"
 
 enum nccl_net_ofi_sendrecv_req_state_t {
   NCCL_OFI_SENDRECV_REQ_CREATED = 0,

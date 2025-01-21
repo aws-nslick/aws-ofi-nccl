@@ -6,10 +6,10 @@
 
 #include "config.hh"
 #ifdef HAVE_NVTX_TRACING
-#include "tracing_impl/nvtx.hh"
+#include "aon/detail/util/tracepoint/nvtx.hh"
 #endif
 #ifdef HAVE_LIBLTTNG_UST
-#include "tracing_impl/lttng.hh"
+#include "aon/detail/util/tracepoint/lttng.hh"
 #endif
 
 /***** SENDRECV PROTOCOL *****/

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "config.hh"
-#include "nccl_ofi_freelist.hh"
+#include "aon/detail/types/freelist.hh"
 
 struct nccl_net_ofi_schedule_t;
 struct nccl_net_ofi_rdma_req_t;

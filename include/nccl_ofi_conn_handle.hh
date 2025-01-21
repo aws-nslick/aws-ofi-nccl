@@ -5,7 +5,7 @@
 #include <nccl/net.h>
 
 #include "nccl_ofi.hh"
-#include "nccl_ofi_save_comm_state.hh"
+#include "aon/detail/transport/base/save_comm_state.hh"
 
 struct nccl_net_ofi_conn_handle_t {
   char ep_name[MAX_EP_ADDR];

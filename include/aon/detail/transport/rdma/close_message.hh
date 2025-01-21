@@ -1,6 +1,6 @@
 #pragma once
 
-#include "nccl_ofi_rdma_constants.hh"
+#include "aon/detail/transport/rdma/constants.hh"
 #include <cstdint>
 
 /* Message from receiver to sender indicating sender can close resources */

@@ -12,11 +12,11 @@
 
 #include "config.hh"
 #include "nccl_ofi.hh"
-#include "nccl_ofi_freelist.hh"
 #include "nccl_ofi_log.hh"
 #include "nccl_ofi_math.hh"
-#include "nccl_ofi_memcheck.hh"
-#include "nccl_ofi_memcheck_nop.hh"
+#include "aon/detail/types/freelist.hh"
+#include "aon/detail/util/memcheck.hh"
+#include "aon/detail/util/memcheck/nop.hh"
 
 /*
  * @brief	Returns size of buffer memory

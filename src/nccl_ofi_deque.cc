@@ -7,8 +7,8 @@
 #include <cstdlib>
 #include <pthread.h>
 
-#include "nccl_ofi_deque.hh"
 #include "nccl_ofi_log.hh"
+#include "aon/detail/types/deque.hh"
 
 int nccl_ofi_deque_init(nccl_ofi_deque_t **deque_p) {
   auto *deque = (nccl_ofi_deque_t *)malloc(sizeof(nccl_ofi_deque_t));

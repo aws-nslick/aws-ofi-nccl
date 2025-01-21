@@ -1,6 +1,6 @@
 #pragma once
 
-#include "nccl_ofi_comm.hh"
+#include "aon/detail/transport/base/communicator.hh"
 
 struct nccl_net_ofi_recv_comm_t;
 

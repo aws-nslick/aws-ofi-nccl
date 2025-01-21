@@ -1,7 +1,7 @@
 #pragma once
 
-#include "nccl_ofi_domain.hh"
-#include "nccl_ofi_ep_addr_list.hh"
+#include "aon/detail/transport/base/domain.hh"
+#include "aon/detail/transport/common/endpoint_address_list.hh"
 
 struct nccl_net_ofi_rdma_domain_t {
   nccl_net_ofi_domain_t base;

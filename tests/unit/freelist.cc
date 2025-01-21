@@ -8,8 +8,8 @@
 
 #include "config.hh"
 #include "nccl_ofi.hh"
-#include "nccl_ofi_freelist.hh"
 #include "nccl_ofi_log.hh"
+#include "aon/detail/types/freelist.hh"
 #include "test-common.hh"
 
 void *simple_base;

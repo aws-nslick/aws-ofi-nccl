@@ -7,9 +7,9 @@
 #include <cstdio>
 #include <cstdlib>
 
-#include "nccl_ofi_idpool.hh"
 #include "nccl_ofi_log.hh"
 #include "nccl_ofi_math.hh"
+#include "aon/detail/types/idpool.hh"
 #include "test-common.hh"
 
 int main(int argc, char *argv[]) {

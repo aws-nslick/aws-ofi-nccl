@@ -8,8 +8,8 @@
  */
 
 #include "config.hh"
-#include "nccl_ofi_listen_comm.hh"
-#include "nccl_ofi_send_comm.hh"
+#include "aon/detail/transport/base/listen_communicator.hh"
+#include "aon/detail/transport/base/send_communicator.hh"
 
 #include "test-common.hh"
 

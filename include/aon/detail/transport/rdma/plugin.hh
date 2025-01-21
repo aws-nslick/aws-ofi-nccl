@@ -1,7 +1,7 @@
 #pragma once
 
-#include "nccl_ofi_plugin.hh"
 #include "nccl_ofi_topo.hh"
+#include "aon/detail/transport/base/plugin.hh"
 
 struct nccl_net_ofi_rdma_plugin_t {
   nccl_net_ofi_plugin_t base;

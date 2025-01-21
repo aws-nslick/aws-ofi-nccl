@@ -15,6 +15,6 @@
  *
  */
 
-#include <tracing_impl/lttng.hh>
+#include <aon/detail/util/tracepoint/lttng.hh>
 
 #endif // HAVE_LIBLTTNG_UST == 1

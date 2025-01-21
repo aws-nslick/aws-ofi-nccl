@@ -1,9 +1,9 @@
 #pragma once
 
-#include "nccl_ofi_listen_comm.hh"
-#include "nccl_ofi_rdma_connection_info.hh"
-#include "nccl_ofi_rdma_recv_comm.hh"
-#include "nccl_ofi_save_comm_state.hh"
+#include "aon/detail/transport/base/listen_communicator.hh"
+#include "aon/detail/transport/base/save_comm_state.hh"
+#include "aon/detail/transport/rdma/connection_info.hh"
+#include "aon/detail/transport/rdma/recv_communicator.hh"
 
 struct nccl_net_ofi_rdma_listen_comm_t {
   /* This base listen communicator must be the first member of

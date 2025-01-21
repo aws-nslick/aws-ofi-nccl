@@ -4,11 +4,11 @@
 #if HAVE_NVTX_TRACING
 #include <nvtx3/nvToolsExt.h>
 #endif
-#include "nccl_ofi_freelist.hh"
-#include "nccl_ofi_msgbuff.hh"
-#include "nccl_ofi_rdma_connection_info.hh"
-#include "nccl_ofi_rdma_req.hh"
-#include "nccl_ofi_send_comm.hh"
+#include "aon/detail/transport/base/send_communicator.hh"
+#include "aon/detail/transport/rdma/connection_info.hh"
+#include "aon/detail/transport/rdma/request.hh"
+#include "aon/detail/types/freelist.hh"
+#include "aon/detail/types/msgbuff.hh"
 
 /*
  * @brief	RDMA send communicator

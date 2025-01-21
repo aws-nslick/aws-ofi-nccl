@@ -14,10 +14,10 @@
 #include <rdma/fi_tagged.h>
 #include <uthash.h>
 
-#include "nccl_ofi_idpool.hh"
 #include "nccl_ofi_log.hh"
-#include "nccl_ofi_mr.hh"
 #include "nccl_ofi_topo.hh"
+#include "aon/detail/transport/common/mr/cache.hh"
+#include "aon/detail/types/idpool.hh"
 
 #include <thread>
 

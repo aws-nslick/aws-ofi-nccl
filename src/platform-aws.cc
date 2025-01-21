@@ -12,8 +12,8 @@
 #include <cstring>
 
 #include "config.hh"
-#include "nccl_ofi_rdma_connection_info.hh"
-#include "nccl_ofi_rdma_ctrl_msg.hh"
+#include "aon/detail/transport/rdma/connection_info.hh"
+#include "aon/detail/transport/rdma/control.hh"
 #ifdef HAVE_RDMA_FI_EXT_H
 #include <rdma/fi_ext.h>
 #endif

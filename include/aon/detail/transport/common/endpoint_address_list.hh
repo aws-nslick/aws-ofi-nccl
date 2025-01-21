@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "nccl_ofi_endpoint.hh"
+#include "aon/detail/transport/base/endpoint.hh"
 
 #include <uthash.h>
 #include <utlist.h>

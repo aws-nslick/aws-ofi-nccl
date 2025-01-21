@@ -8,8 +8,8 @@
 #include <cstring>
 
 #include "nccl_ofi_log.hh"
-#include "nccl_ofi_msgbuff.hh"
 #include "nccl_ofi_pthread.hh"
+#include "aon/detail/types/msgbuff.hh"
 
 nccl_ofi_msgbuff_t *nccl_ofi_msgbuff_init(uint16_t max_inprogress, uint16_t bit_width) {
   int ret = 0;

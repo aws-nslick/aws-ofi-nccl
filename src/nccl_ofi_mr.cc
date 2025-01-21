@@ -10,8 +10,8 @@
 #include <cstring>
 
 #include "nccl_ofi_log.hh"
-#include "nccl_ofi_mr.hh"
 #include "nccl_ofi_pthread.hh"
+#include "aon/detail/transport/common/mr/cache.hh"
 
 nccl_ofi_mr_cache_t *nccl_ofi_mr_cache_init(size_t init_num_entries, size_t mr_cache_page_size) {
   nccl_ofi_mr_cache_t *ret_cache = nullptr;

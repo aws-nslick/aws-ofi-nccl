@@ -7,11 +7,11 @@
 #include <cerrno>
 #include <cstdlib>
 
-#include "nccl_ofi_freelist.hh"
 #include "nccl_ofi_log.hh"
 #include "nccl_ofi_math.hh"
 #include "nccl_ofi_pthread.hh"
 #include "nccl_ofi_scheduler.hh"
+#include "aon/detail/types/freelist.hh"
 
 /*
  * @brief	Size of s schedule struct capable to store `num_rails' xfer info objects

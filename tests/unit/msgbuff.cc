@@ -6,7 +6,7 @@
 #include <cstdlib>
 
 #include "nccl_ofi_log.hh"
-#include "nccl_ofi_msgbuff.hh"
+#include "aon/detail/types/msgbuff.hh"
 #include "test-common.hh"
 
 int main(int argc, char *argv[]) {

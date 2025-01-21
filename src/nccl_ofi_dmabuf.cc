@@ -9,9 +9,9 @@
 #include <cstdio>
 #include <sys/utsname.h>
 
-#include "nccl_ofi_dmabuf.hh"
 #include "nccl_ofi_log.hh"
 #include "nccl_ofi_param.hh"
+#include "aon/detail/transport/common/dmabuf.hh"
 #if HAVE_CUDA
 #include "nccl_ofi_cuda.hh"
 #endif

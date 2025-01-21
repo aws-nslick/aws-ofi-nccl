@@ -8,8 +8,8 @@
 #include <pthread.h>
 
 #include "nccl_ofi_log.hh"
-#include "nccl_ofi_memcheck.hh"
 #include "nccl_ofi_pthread.hh"
+#include "aon/detail/util/memcheck.hh"
 
 /*
  * Freelist element structure

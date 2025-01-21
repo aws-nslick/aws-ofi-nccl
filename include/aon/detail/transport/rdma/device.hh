@@ -4,10 +4,10 @@
 #if HAVE_NVTX_TRACING
 #include <nvtx3/nvToolsExt.h>
 #endif
-#include "nccl_ofi_comm.hh"
-#include "nccl_ofi_device.hh"
-#include "nccl_ofi_idpool.hh"
 #include "nccl_ofi_scheduler.hh"
+#include "aon/detail/transport/base/communicator.hh"
+#include "aon/detail/transport/base/device.hh"
+#include "aon/detail/types/idpool.hh"
 
 /*
  * @brief	RDMA Device

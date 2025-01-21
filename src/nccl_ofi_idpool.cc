@@ -8,10 +8,10 @@
 #include <cstdlib>
 #include <cstring>
 
-#include "nccl_ofi_idpool.hh"
 #include "nccl_ofi_log.hh"
 #include "nccl_ofi_math.hh"
 #include "nccl_ofi_pthread.hh"
+#include "aon/detail/types/idpool.hh"
 
 /*
  * @brief	Initialize pool of IDs

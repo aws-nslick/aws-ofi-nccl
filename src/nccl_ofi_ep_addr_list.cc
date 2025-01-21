@@ -9,9 +9,9 @@
 #include <uthash.h>
 #include <utlist.h>
 
-#include "nccl_ofi_ep_addr_list.hh"
 #include "nccl_ofi_log.hh"
 #include "nccl_ofi_pthread.hh"
+#include "aon/detail/transport/common/endpoint_address_list.hh"
 
 struct nccl_net_ofi_ep_t;
 

@@ -7,7 +7,7 @@
 #include <cstdint>
 #include <pthread.h>
 
-#include "nccl_ofi_freelist.hh"
+#include "aon/detail/types/freelist.hh"
 
 /*
  * @brief	Transfer information for a rail.

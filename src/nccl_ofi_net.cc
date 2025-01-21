@@ -24,25 +24,25 @@
 
 #include "config.hh"
 #include "nccl_ofi.hh"
-#include "nccl_ofi_device.hh"
-#include "nccl_ofi_domain.hh"
-#include "nccl_ofi_endpoint.hh"
 #include "nccl_ofi_log.hh"
-#include "nccl_ofi_mr.hh"
 #include "nccl_ofi_param.hh"
-#include "nccl_ofi_plugin.hh"
 #include "nccl_ofi_properties.hh"
 #include "nccl_ofi_pthread.hh"
+#include "aon/detail/transport/base/device.hh"
+#include "aon/detail/transport/base/domain.hh"
+#include "aon/detail/transport/base/endpoint.hh"
+#include "aon/detail/transport/base/plugin.hh"
+#include "aon/detail/transport/common/mr/cache.hh"
 #if HAVE_CUDA
 #include "nccl_ofi_cuda.hh"
 #endif
-#include "nccl_ofi_dmabuf.hh"
-#include "nccl_ofi_idpool.hh"
 #include "nccl_ofi_ofiutils.hh"
 #include "nccl_ofi_platform.hh"
-#include "nccl_ofi_rdma_plugin.hh"
 #include "nccl_ofi_sendrecv.hh"
 #include "nccl_ofi_system.hh"
+#include "aon/detail/transport/common/dmabuf.hh"
+#include "aon/detail/transport/rdma/plugin.hh"
+#include "aon/detail/types/idpool.hh"
 
 /* Indicates if GPUDirect is supported by libfabric provider */
 gdr_support_level_t support_gdr = GDR_UNKNOWN;

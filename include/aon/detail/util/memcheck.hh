@@ -15,11 +15,11 @@
 #define MEMCHECK_GRANULARITY (8ul)
 
 #if ENABLE_VALGRIND
-#include "nccl_ofi_memcheck_valgrind.hh"
+#include "aon/detail/util/memcheck/valgrind.hh"
 #elif ENABLE_ASAN
-#include "nccl_ofi_memcheck_asan.hh"
+#include "aon/detail/util/memcheck/asan.hh"
 #else
-#include "nccl_ofi_memcheck_nop.hh"
+#include "aon/detail/util/memcheck/nop.hh"
 #endif
 
 /**
