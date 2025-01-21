@@ -3,6 +3,7 @@
  */
 #include "config.hh"
 
+#include <algorithm>
 #include <cassert>
 #include <cinttypes>
 #include <cstdio>
@@ -437,9 +438,10 @@ static int set_mr_req_attr(nccl_ofi_idpool_t *key_pool, int dev_id, nccl_ofi_mr_
 
     /* Get CUDA device ID */
     ret = nccl_net_ofi_get_cuda_device_for_addr((void *)nccl_ofi_mr_ckey_baseaddr(ckey), &mr_attr->device.cuda);
-    if (OFI_UNLIKELY(ret != 0)) {
+    if (ret != 0) [[unlikely]] {
       goto exit;
     }
+
     break;
 #endif
 #if HAVE_NEURON
@@ -463,10 +465,11 @@ static int set_mr_req_attr(nccl_ofi_idpool_t *key_pool, int dev_id, nccl_ofi_mr_
 
   if (nccl_ofi_idpool_active(key_pool)) {
     int key = nccl_ofi_idpool_allocate_id(key_pool);
-    if (OFI_UNLIKELY(key < 0)) {
+    if (key < 0) [[unlikely]] {
       NCCL_OFI_WARN("MR key allocation failed");
       goto exit;
     }
+
     mr_attr->requested_key = (uint64_t)key;
   }
 
@@ -479,7 +482,7 @@ static int register_rail_mr_buffer(struct fid_domain *domain, struct fid_ep *ep,
   int ret = 0;
 
   ret = fi_mr_regattr(domain, mr_attr, flags, mr_handle);
-  if (OFI_UNLIKELY(ret != 0)) {
+  if (ret != 0) [[unlikely]] {
     NCCL_OFI_WARN("Unable to register memory (type = %d) for device %d. RC: %d, Error: %s", type, dev_id, ret, fi_strerror(-ret));
     ret = -EINVAL;
     goto exit;
@@ -655,7 +658,7 @@ static inline int inc_req_completion(nccl_net_ofi_rdma_req_t *req, size_t size, 
 
   /* Set state to completed if all completions arrived but avoid
    * overriding the state in case of previs errors */
-  if (ncompls == total_ncompls && OFI_LIKELY(req->state != NCCL_OFI_RDMA_REQ_ERROR)) {
+  if (ncompls == total_ncompls && (req->state != NCCL_OFI_RDMA_REQ_ERROR)) [[likely]] {
     req->state = NCCL_OFI_RDMA_REQ_COMPLETED;
 
     /* Trace this completion */
@@ -848,7 +851,7 @@ static inline int update_send_data_from_remote(nccl_net_ofi_rdma_send_comm_t *s_
   nccl_net_ofi_mutex_unlock(&req->req_lock);
 
   send_data->schedule = scheduler->get_schedule(scheduler, send_data->buff_len, device->num_rails);
-  if (OFI_UNLIKELY(send_data->schedule == NULL)) {
+  if (send_data->schedule == NULL) [[unlikely]] {
     return -EINVAL;
   }
 
@@ -892,7 +895,7 @@ static inline int repost_rx_buff(nccl_net_ofi_rdma_ep_t *ep, nccl_net_ofi_rdma_r
     NCCL_OFI_TRACE_PENDING_INSERT(rx_buff_req);
 
     return ret;
-  } else if (OFI_UNLIKELY(ret != 0)) {
+  } else if (ret != 0) [[unlikely]] {
     return ret;
   }
 
@@ -935,7 +938,7 @@ static inline int handle_ctrl_recv(nccl_net_ofi_rdma_send_comm_t *s_comm, uint16
     return decrease_rx_buff_cnt(ep, get_rx_buff_data(rx_buff_req)->rail);
   }
 
-  if (OFI_UNLIKELY(mb_res != NCCL_OFI_MSGBUFF_INVALID_IDX || stat != NCCL_OFI_MSGBUFF_INPROGRESS)) {
+  if (mb_res != NCCL_OFI_MSGBUFF_INVALID_IDX || stat != NCCL_OFI_MSGBUFF_INPROGRESS) [[unlikely]] {
     NCCL_OFI_WARN("Unexpected message insert result (%d) (ctrl recv)", (int)mb_res);
     return -EINVAL;
   }
@@ -944,7 +947,7 @@ static inline int handle_ctrl_recv(nccl_net_ofi_rdma_send_comm_t *s_comm, uint16
   void *elem;
   nccl_ofi_msgbuff_elemtype_t type;
   mb_res = nccl_ofi_msgbuff_retrieve(s_comm->msgbuff, msg_seq_num, &elem, &type, &stat);
-  if (OFI_UNLIKELY(mb_res != NCCL_OFI_MSGBUFF_SUCCESS || type != NCCL_OFI_MSGBUFF_REQ)) {
+  if (mb_res != NCCL_OFI_MSGBUFF_SUCCESS || type != NCCL_OFI_MSGBUFF_REQ) [[unlikely]] {
     NCCL_OFI_WARN("Invalid message retrieval result for msg %hu", msg_seq_num);
     return -EINVAL;
   }
@@ -957,7 +960,7 @@ static inline int handle_ctrl_recv(nccl_net_ofi_rdma_send_comm_t *s_comm, uint16
 
   if (!send_data->eager) {
     ret = update_send_data_from_remote(s_comm, rx_buff_req, req);
-    if (OFI_UNLIKELY(ret != 0)) {
+    if (ret != 0) [[unlikely]] {
       NCCL_OFI_WARN("Failed to copy ctrl data");
       return ret;
     }
@@ -972,9 +975,10 @@ static inline int handle_ctrl_recv(nccl_net_ofi_rdma_send_comm_t *s_comm, uint16
         return ret;
       }
       NCCL_OFI_TRACE_PENDING_INSERT(req);
-    } else if (OFI_UNLIKELY(ret != 0)) {
+    } else if (ret != 0) [[unlikely]] {
       return ret;
     }
+
   } else {
     /* If recv buffer is smaller than send buffer, we reduce the size of the send req, even if we have
        have already eagerly sent the whole send buffer. The receive side will discard the extra data. */
@@ -1057,12 +1061,12 @@ static inline int handle_eager_recv(nccl_net_ofi_rdma_recv_comm_t *r_comm, uint1
        return success and initiate eager read when receiver calls recv(). */
     return 0;
   }
-  if (OFI_UNLIKELY(mb_res != NCCL_OFI_MSGBUFF_INVALID_IDX)) {
+  if (mb_res != NCCL_OFI_MSGBUFF_INVALID_IDX) [[unlikely]] {
     NCCL_OFI_WARN("Unexpected message insert result (%d) (eager recv)", (int)mb_res);
     return -EINVAL;
   }
 
-  if (OFI_UNLIKELY(stat != NCCL_OFI_MSGBUFF_INPROGRESS)) {
+  if (stat != NCCL_OFI_MSGBUFF_INPROGRESS) [[unlikely]] {
     NCCL_OFI_WARN("Unexpected message status (%d) (ctrl recv)", (int)stat);
     return -EINVAL;
   }
@@ -1071,10 +1075,11 @@ static inline int handle_eager_recv(nccl_net_ofi_rdma_recv_comm_t *r_comm, uint1
   void *elem;
   nccl_ofi_msgbuff_elemtype_t type;
   mb_res = nccl_ofi_msgbuff_retrieve(r_comm->msgbuff, msg_seq_num, &elem, &type, &stat);
-  if (OFI_UNLIKELY(mb_res != NCCL_OFI_MSGBUFF_SUCCESS || type != NCCL_OFI_MSGBUFF_REQ)) {
+  if (mb_res != NCCL_OFI_MSGBUFF_SUCCESS || type != NCCL_OFI_MSGBUFF_REQ) [[unlikely]] {
     NCCL_OFI_WARN("Invalid message retrieval result for msg %hu", msg_seq_num);
     return -EINVAL;
   }
+
   nccl_net_ofi_rdma_req_t *recv_req = (nccl_net_ofi_rdma_req_t *)elem;
   rdma_req_recv_data_t *recv_data = get_recv_data(recv_req);
 
@@ -1148,11 +1153,12 @@ static inline int handle_rx_buff_recv(nccl_net_ofi_rdma_device_t *device, int ra
   nccl_net_ofi_rdma_send_comm_t *s_comm = NULL;
   nccl_net_ofi_rdma_recv_comm_t *r_comm = NULL;
 
-  if (OFI_UNLIKELY(rx_buff_req == NULL)) {
+  if (rx_buff_req == NULL) [[unlikely]] {
     NCCL_OFI_WARN("RECV event had NULL ctx!");
     return -EINVAL;
   }
-  if (OFI_UNLIKELY(rx_buff_req->type != NCCL_OFI_RDMA_RX_BUFF)) {
+
+  if (rx_buff_req->type != NCCL_OFI_RDMA_RX_BUFF) [[unlikely]] {
     NCCL_OFI_WARN("Invalid non-rx_buff request as ctx!");
     return -EINVAL;
   }
@@ -1182,16 +1188,17 @@ static inline int handle_rx_buff_recv(nccl_net_ofi_rdma_device_t *device, int ra
     l_comm->conn_msg = *conn_msg;
 
     ret = inc_req_completion(&l_comm->req, cq_entry->len, 1);
-    if (OFI_UNLIKELY(ret != 0)) {
+    if (ret != 0) [[unlikely]] {
       goto exit;
     }
 
     /* Attempt to re-post rx buffer */
     ret = repost_rx_buff(ep, rx_buff_req);
-    if (OFI_UNLIKELY(ret != 0)) {
+    if (ret != 0) [[unlikely]] {
       NCCL_OFI_WARN("Failed to repost rx buff");
       goto exit;
     }
+
     break;
   case NCCL_OFI_RDMA_MSG_CONN_RESP:
     /* CONN_RESP receive completion */
@@ -1208,16 +1215,17 @@ static inline int handle_rx_buff_recv(nccl_net_ofi_rdma_device_t *device, int ra
     s_comm->conn_msg = *conn_resp_msg;
 
     ret = inc_req_completion(s_comm->conn_resp_req, cq_entry->len, 1);
-    if (OFI_UNLIKELY(ret != 0)) {
+    if (ret != 0) [[unlikely]] {
       goto exit;
     }
 
     /* Attempt to re-post rx buffer */
     ret = repost_rx_buff(ep, rx_buff_req);
-    if (OFI_UNLIKELY(ret != 0)) {
+    if (ret != 0) [[unlikely]] {
       NCCL_OFI_WARN("Failed to repost rx buff");
       goto exit;
     }
+
     break;
   case NCCL_OFI_RDMA_MSG_CTRL:
     /* CTRL receive completion */
@@ -1229,7 +1237,7 @@ static inline int handle_rx_buff_recv(nccl_net_ofi_rdma_device_t *device, int ra
     NCCL_OFI_TRACE_SEND_CTRL_RECV(s_comm->base.base.dev_id, rail_id, s_comm, ctrl_msg->msg_seq_num);
 
     ret = handle_ctrl_recv(s_comm, ctrl_msg->msg_seq_num, rx_buff_req);
-    if (OFI_UNLIKELY(ret != 0)) {
+    if (ret != 0) [[unlikely]] {
       goto exit;
     }
 
@@ -1252,9 +1260,10 @@ static inline int handle_rx_buff_recv(nccl_net_ofi_rdma_device_t *device, int ra
     NCCL_OFI_TRACE_EAGER_RECV(r_comm->base.base.dev_id, rail_id, r_comm, GET_SEQ_NUM_FROM_IMM(cq_entry->data));
 
     ret = handle_eager_recv(r_comm, GET_SEQ_NUM_FROM_IMM(cq_entry->data), rx_buff_req);
-    if (OFI_UNLIKELY(ret != 0)) {
+    if (ret != 0) [[unlikely]] {
       goto exit;
     }
+
     break;
   default:
     NCCL_OFI_WARN("Recv completion with unexpected type");
@@ -1281,16 +1290,17 @@ static inline nccl_net_ofi_rdma_req_t *get_req_from_imm_data(nccl_net_ofi_rdma_d
   nccl_ofi_msgbuff_status_t stat;
 
   nccl_ofi_msgbuff_result_t mb_res = nccl_ofi_msgbuff_retrieve(r_comm->msgbuff, msg_seq_num, &elem, &type, &stat);
-  if (OFI_UNLIKELY(mb_res != NCCL_OFI_MSGBUFF_SUCCESS)) {
+  if (mb_res != NCCL_OFI_MSGBUFF_SUCCESS) [[unlikely]] {
     /* Unexpected: we don't have a msgbuff entry corresponding to this message*/
     NCCL_OFI_WARN("Unexpected status (%d) for message %hu", (int)stat, msg_seq_num);
     return NULL;
   }
 
-  if (OFI_UNLIKELY(type != NCCL_OFI_MSGBUFF_REQ)) {
+  if (type != NCCL_OFI_MSGBUFF_REQ) [[unlikely]] {
     NCCL_OFI_WARN("Unexpected type (%d) for message %hu", (int)type, msg_seq_num);
     return NULL;
   }
+
   return (nccl_net_ofi_rdma_req_t *)elem;
 }
 
@@ -1312,7 +1322,7 @@ static inline int handle_write_comp(struct fi_cq_data_entry *cq_entry, nccl_net_
   uint64_t total_segms = GET_NUM_SEG_FROM_IMM(cq_entry->data);
 
   ret = inc_recv_seg_completion(recv_segms_req, cq_entry->len, total_segms);
-  if (OFI_UNLIKELY(ret != 0)) {
+  if (ret != 0) [[unlikely]] {
     return ret;
   }
 
@@ -1541,7 +1551,7 @@ static inline int process_completions(struct fi_cq_data_entry *cq_entry, uint64_
       ret = -EINVAL;
     }
 
-    if (OFI_UNLIKELY(ret != 0)) {
+    if (ret != 0) [[unlikely]] {
       goto exit;
     }
   }
@@ -1561,13 +1571,13 @@ static inline int process_err_completion(nccl_net_ofi_rdma_device_t *device, str
   int ret = 0;
 
   ret = fi_cq_readerr(cq, &err_entry, 0);
-  if (OFI_UNLIKELY(ret == -FI_EAGAIN)) {
+  if (ret == -FI_EAGAIN) [[unlikely]] {
     /*
      * Error not available yet.
      * fi_cq_read will keep returning -FI_EAVAIL so just bail out and try again later.
      */
     return 0;
-  } else if (OFI_UNLIKELY(ret < 0)) {
+  } else if (ret < 0) [[unlikely]] {
     NCCL_OFI_WARN("Unable to read from fi_cq_readerr. RC: %d. Error: %s", ret, fi_strerror(-ret));
     goto exit;
   }
@@ -1717,7 +1727,7 @@ static int process_pending_reqs(nccl_net_ofi_rdma_ep_t *ep) {
 
   while (true) {
     rc = nccl_ofi_deque_remove_front(pending_reqs_queue, &deque_elem);
-    if (OFI_UNLIKELY(rc != 0)) {
+    if (rc != 0) [[unlikely]] {
       NCCL_OFI_WARN("Failed to nccl_ofi_deque_remove_front: %d", rc);
       return rc;
     }
@@ -1780,9 +1790,10 @@ static int ofi_process_cq_rail(nccl_net_ofi_rdma_ep_t *ep, nccl_net_ofi_ep_rail_
     rc = fi_cq_read(rail->cq, cqe_buffers, cq_read_count);
     if (rc > 0) {
       ret = process_completions(cqe_buffers, rc, rdma_endpoint_get_device(ep), rail->rail_id);
-      if (OFI_UNLIKELY(ret != 0))
+      if (ret != 0) [[unlikely]]
         goto exit;
-    } else if (OFI_UNLIKELY(rc == -FI_EAVAIL)) {
+
+    } else if (rc == -FI_EAVAIL) [[unlikely]] {
       ret = process_err_completion(rdma_endpoint_get_device(ep), rail->cq);
       if (ret == 0) {
         /* Error entry not available yet */
@@ -1830,7 +1841,7 @@ static int ofi_process_cq(nccl_net_ofi_rdma_ep_t *ep) {
 
   /* Process any pending requests */
   ret = process_pending_reqs(ep);
-  if (OFI_UNLIKELY(ret != 0 && ret != -FI_EAGAIN)) {
+  if (ret != 0 && ret != -FI_EAGAIN) [[unlikely]] {
     NCCL_OFI_WARN("Failed call to process_pending_reqs: %d", ret);
   }
 
@@ -1862,7 +1873,7 @@ static inline int free_base_req(uint64_t *num_inflight_reqs, nccl_ofi_freelist_t
   int ret = 0;
   nccl_ofi_freelist_elem_t *elem = NULL;
 
-  if (OFI_UNLIKELY(req == NULL)) {
+  if (req == NULL) [[unlikely]] {
     ret = -EINVAL;
     NCCL_OFI_WARN("Provided null request for cleanup");
     goto exit;
@@ -1871,7 +1882,7 @@ static inline int free_base_req(uint64_t *num_inflight_reqs, nccl_ofi_freelist_t
   nccl_net_ofi_mutex_destroy(&req->req_lock);
 
   /* Update free list */
-  if (OFI_UNLIKELY(nccl_ofi_reqs_fl == NULL)) {
+  if (nccl_ofi_reqs_fl == NULL) [[unlikely]] {
     ret = -EINVAL;
     NCCL_OFI_WARN("Comm for device does not have valid free list");
     goto exit;
@@ -1885,7 +1896,7 @@ static inline int free_base_req(uint64_t *num_inflight_reqs, nccl_ofi_freelist_t
   nccl_ofi_freelist_entry_free(nccl_ofi_reqs_fl, elem);
 
   /* Reduce inflight commands */
-  if (OFI_LIKELY(dec_inflight_reqs == true) && (num_inflight_reqs != NULL))
+  if ((dec_inflight_reqs == true) && (num_inflight_reqs != NULL)) [[likely]]
     (*num_inflight_reqs)--;
 
 exit:
@@ -2246,12 +2257,13 @@ static int init_send_comm_rails(nccl_net_ofi_rdma_send_comm_t *s_comm, nccl_net_
 
     /* Insert remote EP address to AV */
     ret = fi_av_insert(ep_rail->av, (void *)remote_rdma_ep_name->ep_name, 1, &comm_rail->remote_addr, 0, NULL);
-    if (OFI_UNLIKELY(ret != 1)) {
+    if (ret != 1) [[unlikely]] {
       NCCL_OFI_WARN("Unable to insert remote address into address vector "
                     "for device %d. RC: %s",
                     dev_id, fi_strerror(-ret));
       return -EINVAL;
     }
+
     ++(s_comm->num_init_control_rails);
   }
 
@@ -2264,7 +2276,7 @@ static int init_send_comm_rails(nccl_net_ofi_rdma_send_comm_t *s_comm, nccl_net_
 
     /* Insert remote EP address to AV */
     ret = fi_av_insert(ep_rail->av, (void *)remote_rdma_ep_name->ep_name, 1, &comm_rail->remote_addr, 0, NULL);
-    if (OFI_UNLIKELY(ret != 1)) {
+    if (ret != 1) [[unlikely]] {
       NCCL_OFI_WARN("Unable to insert remote address into address vector "
                     "for device %d. RC: %s",
                     dev_id, fi_strerror(-ret));
@@ -2306,17 +2318,18 @@ static int finish_connect(nccl_net_ofi_rdma_send_comm_t *s_comm) {
 
   /* Validate endpoint */
   ep = (nccl_net_ofi_rdma_ep_t *)s_comm->base.base.ep;
-  if (OFI_UNLIKELY(ep == NULL)) {
+  if (ep == NULL) [[unlikely]] {
     NCCL_OFI_WARN("Invalid endpoint provided");
     return -EINVAL;
   }
 
   /* Retrieve and validate device */
   device = rdma_endpoint_get_device(ep);
-  if (OFI_UNLIKELY(device == NULL)) {
+  if (device == NULL) [[unlikely]] {
     NCCL_OFI_WARN("Invalid device provided");
     return -EINVAL;
   }
+
   dev_id = device->base.dev_id;
 
   if (conn_resp->num_rails != ep->num_rails) {
@@ -2330,7 +2343,7 @@ static int finish_connect(nccl_net_ofi_rdma_send_comm_t *s_comm) {
   }
 
   /* Validate received comm ID */
-  if (OFI_UNLIKELY(conn_resp->local_comm_id >= device->num_comm_ids)) {
+  if (conn_resp->local_comm_id >= device->num_comm_ids) [[unlikely]] {
     NCCL_OFI_WARN("Received an invalid communicator ID %u for device %d", conn_resp->local_comm_id, dev_id);
     return -EINVAL;
   }
@@ -2372,14 +2385,14 @@ static int test(nccl_net_ofi_req_t *base_req, int *done, int *size) {
 
   /* Process more completions unless the current request is
    * completed */
-  if (req->state != NCCL_OFI_RDMA_REQ_COMPLETED && OFI_LIKELY(req->state != NCCL_OFI_RDMA_REQ_ERROR)) {
+  if (req->state != NCCL_OFI_RDMA_REQ_COMPLETED && req->state != NCCL_OFI_RDMA_REQ_ERROR) [[likely]] {
     ret = ofi_process_cq(ep);
-    if (OFI_UNLIKELY(ret != 0))
+    if (ret != 0) [[unlikely]]
       goto exit;
   }
 
   /* Determine whether the request has finished without error and free if done */
-  if (OFI_LIKELY(req->state == NCCL_OFI_RDMA_REQ_COMPLETED)) {
+  if (req->state == NCCL_OFI_RDMA_REQ_COMPLETED) [[likely]] {
 
     size_t req_size;
     nccl_net_ofi_mutex_lock(&req->req_lock);
@@ -2408,7 +2421,7 @@ static int test(nccl_net_ofi_req_t *base_req, int *done, int *size) {
 
       nccl_ofi_msgbuff_status_t stat;
       nccl_ofi_msgbuff_result_t mb_res = nccl_ofi_msgbuff_complete(msgbuff, req->msg_seq_num, &stat);
-      if (OFI_UNLIKELY(mb_res != NCCL_OFI_MSGBUFF_SUCCESS)) {
+      if (mb_res != NCCL_OFI_MSGBUFF_SUCCESS) [[unlikely]] {
         NCCL_OFI_WARN("Invalid result of msgbuff_complete for msg %hu", req->msg_seq_num);
         ret = -EINVAL;
         goto exit;
@@ -2423,7 +2436,7 @@ static int test(nccl_net_ofi_req_t *base_req, int *done, int *size) {
 
     assert(req->free);
     req->free(req, true);
-  } else if (OFI_UNLIKELY(req->state == NCCL_OFI_RDMA_REQ_ERROR)) {
+  } else if (req->state == NCCL_OFI_RDMA_REQ_ERROR) [[unlikely]] {
     ret = -EINVAL;
     goto exit;
   }
@@ -2469,7 +2482,7 @@ static int prepare_recv_conn_req(nccl_net_ofi_rdma_listen_comm_t *l_comm) {
   req->dev_id = l_comm->base.base.dev_id;
   /* Initialize mutex for request access */
   ret = nccl_net_ofi_mutex_init(&req->req_lock, NULL);
-  if (OFI_UNLIKELY(ret != 0)) {
+  if (ret != 0) [[unlikely]] {
     NCCL_OFI_WARN("Unable to initialize mutex");
     return -ret;
   }
@@ -2496,7 +2509,7 @@ static int dereg_rails(nccl_net_ofi_rdma_mr_handle_t *handle) {
     if (!handle->control_mr[rail_id])
       continue;
     rc = fi_close(&handle->control_mr[rail_id]->fid);
-    if (OFI_UNLIKELY(rc != 0)) {
+    if (rc != 0) [[unlikely]] {
       NCCL_OFI_WARN("Unable to de-register memory on control MR. RC: %d, Error: %s", rc, fi_strerror(-rc));
       ret = rc;
     }
@@ -2508,7 +2521,7 @@ static int dereg_rails(nccl_net_ofi_rdma_mr_handle_t *handle) {
     if (!handle->mr[rail_id])
       continue;
     rc = fi_close(&handle->mr[rail_id]->fid);
-    if (OFI_UNLIKELY(rc != 0)) {
+    if (rc != 0) [[unlikely]] {
       NCCL_OFI_WARN("Unable to de-register memory. RC: %d, Error: %s", rc, fi_strerror(-rc));
       ret = rc;
     }
@@ -2542,19 +2555,19 @@ static inline void free_rdma_mr_handle(nccl_net_ofi_rdma_mr_handle_t *handle) {
 static inline nccl_net_ofi_rdma_mr_handle_t *calloc_rdma_mr_handle(int num_rails, int num_control_rails) {
   nccl_net_ofi_rdma_mr_handle_t *ret_handle = (nccl_net_ofi_rdma_mr_handle_t *)calloc(1, sizeof(nccl_net_ofi_rdma_mr_handle_t));
 
-  if (OFI_UNLIKELY(!ret_handle)) {
+  if (!ret_handle) [[unlikely]] {
     NCCL_OFI_WARN("Unable to allocate memory registration handle");
     goto error;
   }
 
   ret_handle->mr = (struct fid_mr **)calloc(num_rails, sizeof(struct fid_mr *));
-  if (OFI_UNLIKELY(!ret_handle->mr)) {
+  if (!ret_handle->mr) [[unlikely]] {
     NCCL_OFI_WARN("Unable to allocate memory registration handles array");
     goto error;
   }
 
   ret_handle->control_mr = (struct fid_mr **)calloc(num_control_rails, sizeof(struct fid_mr *));
-  if (OFI_UNLIKELY(!ret_handle->control_mr)) {
+  if (!ret_handle->control_mr) [[unlikely]] {
     NCCL_OFI_WARN("Unable to allocate memory registration control handles array");
     goto error;
   }
@@ -2583,12 +2596,12 @@ error:
 static int dereg_mr_ep(nccl_net_ofi_rdma_mr_handle_t *mr_handle, nccl_ofi_idpool_t *key_pool, nccl_ofi_mr_cache_t *mr_cache) {
   int ret = 0;
 
-  if (OFI_UNLIKELY(mr_handle == NULL)) {
+  if (mr_handle == NULL) [[unlikely]] {
     NCCL_OFI_WARN("Null MR handle provided. This is an error.");
     return -EINVAL;
   }
 
-  if (OFI_UNLIKELY(mr_handle->num_rails < 0)) {
+  if (mr_handle->num_rails < 0) [[unlikely]] {
     NCCL_OFI_WARN("Unexpected number of rails in rdma memory registration handle");
     return -EINVAL;
   }
@@ -2602,7 +2615,7 @@ static int dereg_mr_ep(nccl_net_ofi_rdma_mr_handle_t *mr_handle, nccl_ofi_idpool
     nccl_net_ofi_mutex_lock(&mr_cache->lock);
     ret = nccl_ofi_mr_cache_del_entry(mr_cache, mr_handle);
     nccl_net_ofi_mutex_unlock(&mr_cache->lock);
-    if (OFI_UNLIKELY(ret < 0)) {
+    if (ret < 0) [[unlikely]] {
       NCCL_OFI_WARN("Failed to delete MR cache entry");
     } else if (ret == 0) {
       /* Entry must not be deregistered */
@@ -2612,12 +2625,12 @@ static int dereg_mr_ep(nccl_net_ofi_rdma_mr_handle_t *mr_handle, nccl_ofi_idpool
 
   if (nccl_ofi_idpool_active(key_pool)) {
     uint64_t key = fi_mr_key(mr_handle->mr[0]);
-    if (OFI_UNLIKELY(key == FI_KEY_NOTAVAIL)) {
+    if (key == FI_KEY_NOTAVAIL) [[unlikely]] {
       ret = -ENOENT;
       NCCL_OFI_WARN("Error retrieving MR key, leaking key");
     } else {
       ret = nccl_ofi_idpool_free_id(key_pool, key);
-      if (OFI_UNLIKELY(ret != 0)) {
+      if (ret != 0) [[unlikely]] {
         NCCL_OFI_WARN("Error freeing MR key %" PRIu64 ", leaking key", key);
       }
     }
@@ -2652,7 +2665,7 @@ static inline int reg_mr_on_device(nccl_net_ofi_rdma_ep_t *ep, nccl_ofi_mr_ckey_
 
   /* Allocate rdma memory registration handle */
   ret_handle = calloc_rdma_mr_handle(num_rails, num_control_rails);
-  if (OFI_UNLIKELY(!ret_handle)) {
+  if (!ret_handle) [[unlikely]] {
     NCCL_OFI_WARN("Unable to allocate memory registration handle");
     ret = -ENOMEM;
     goto exit;
@@ -2660,7 +2673,7 @@ static inline int reg_mr_on_device(nccl_net_ofi_rdma_ep_t *ep, nccl_ofi_mr_ckey_
 
   /* Create memory registration request */
   ret = set_mr_req_attr(key_pool, dev_id, ckey, &regattr_flags, type, &mr_attr);
-  if (OFI_UNLIKELY(ret != 0)) {
+  if (ret != 0) [[unlikely]] {
     NCCL_OFI_WARN("Could not set registration request attributes, dev: %d", dev_id);
     free_rdma_mr_handle(ret_handle);
     ret_handle = NULL;
@@ -2674,7 +2687,7 @@ static inline int reg_mr_on_device(nccl_net_ofi_rdma_ep_t *ep, nccl_ofi_mr_ckey_
     ofi_domain = rdma_endpoint_get_ofi_domain(ep, rail_id);
 
     ret = register_rail_mr_buffer(ofi_domain, rail->ofi_ep, dev_id, type, &mr_attr, regattr_flags, &ret_handle->mr[rail_id]);
-    if (OFI_UNLIKELY(ret != 0)) {
+    if (ret != 0) [[unlikely]] {
       if (dereg_mr_ep(ret_handle, key_pool, NULL) != 0) {
         NCCL_OFI_WARN("Error de-registering MR");
       }
@@ -2690,7 +2703,7 @@ static inline int reg_mr_on_device(nccl_net_ofi_rdma_ep_t *ep, nccl_ofi_mr_ckey_
     ofi_domain = rdma_endpoint_get_ofi_control_domain(ep, rail_id);
 
     ret = register_rail_mr_buffer(ofi_domain, rail->ofi_ep, dev_id, type, &mr_attr, regattr_flags, &ret_handle->control_mr[rail_id]);
-    if (OFI_UNLIKELY(ret != 0)) {
+    if (ret != 0) [[unlikely]] {
       if (dereg_mr_ep(ret_handle, key_pool, NULL) != 0) {
         NCCL_OFI_WARN("Error de-registering MR");
       }
@@ -2746,13 +2759,13 @@ static int reg_mr_ep(nccl_net_ofi_rdma_ep_t *ep, nccl_ofi_mr_ckey_ref ckey, int 
   }
 
   ret = reg_mr_on_device(ep, ckey, type, &ret_handle);
-  if (OFI_UNLIKELY(ret != 0)) {
+  if (ret != 0) [[unlikely]] {
     goto exit;
   }
 
   if (mr_cache) {
     ret = nccl_ofi_mr_cache_insert_entry(mr_cache, ckey, ret_handle);
-    if (OFI_UNLIKELY(ret != 0)) {
+    if (ret != 0) [[unlikely]] {
       if (dereg_mr_ep(ret_handle, key_pool, NULL) != 0) {
         NCCL_OFI_WARN("Error de-registering MR");
       }
@@ -2896,10 +2909,11 @@ static int freelist_deregmr_host_fn(void *handle) {
   freelist_regmr_fn_handle_t *freelist_handle = (freelist_regmr_fn_handle_t *)handle;
   assert(freelist_handle);
   int ret = dereg_mr_ep(freelist_handle->mr_handle, freelist_handle->key_pool, NULL);
-  if (OFI_UNLIKELY(ret != 0)) {
+  if (ret != 0) [[unlikely]] {
     NCCL_OFI_WARN("Failed call to dereg_mr_ep");
     return -EIO;
   }
+
   free(freelist_handle);
   return 0;
 }
@@ -2923,7 +2937,7 @@ static inline nccl_net_ofi_rdma_req_t *allocate_req(nccl_ofi_freelist_t *fl) {
   assert(fl != NULL);
 
   nccl_ofi_freelist_elem_t *elem = nccl_ofi_freelist_entry_alloc(fl);
-  if (OFI_UNLIKELY(elem == NULL)) {
+  if (elem == NULL) [[unlikely]] {
     NCCL_OFI_WARN("No freelist items available");
     return NULL;
   }
@@ -2957,7 +2971,7 @@ static inline int insert_send_ctrl_req(nccl_net_ofi_rdma_recv_comm_t *r_comm, nc
   nccl_net_ofi_scheduler_t *scheduler = device->scheduler;
   nccl_net_ofi_rdma_ep_t *ep = (nccl_net_ofi_rdma_ep_t *)r_comm->base.base.ep;
   nccl_net_ofi_rdma_req_t *send_ctrl_req = allocate_req(r_comm->nccl_ofi_reqs_fl);
-  if (OFI_UNLIKELY(send_ctrl_req == NULL)) {
+  if (send_ctrl_req == NULL) [[unlikely]] {
     NCCL_OFI_WARN("Unable to get NCCL OFI send control request for device %d", dev_id);
     return -EINVAL;
   }
@@ -2974,14 +2988,15 @@ static inline int insert_send_ctrl_req(nccl_net_ofi_rdma_recv_comm_t *r_comm, nc
     size_t ctrl_msg_len = nccl_net_ofi_rdma_ctrl_msg_size(ep->num_rails, ep->use_long_rkeys);
     send_ctrl_data->ctrl_schedule = scheduler->get_schedule(scheduler, ctrl_msg_len, ep->num_control_rails);
 
-    if (OFI_UNLIKELY(!(send_ctrl_data->ctrl_schedule))) {
+    if (!(send_ctrl_data->ctrl_schedule)) [[unlikely]] {
       return -EINVAL;
-    } else if (OFI_UNLIKELY(send_ctrl_data->ctrl_schedule->num_xfer_infos != 1)) {
+    } else if (send_ctrl_data->ctrl_schedule->num_xfer_infos != 1) [[unlikely]] {
       NCCL_OFI_WARN("Invalid schedule for outgoing control message (%zu bytes). Expected one rail, but got "
                     "%zu",
                     size, send_ctrl_data->ctrl_schedule->num_xfer_infos);
       return -EINVAL;
     }
+
   } else {
     send_ctrl_data->ctrl_schedule = NULL;
   }
@@ -3049,7 +3064,7 @@ static inline int insert_recv_segms_req(nccl_net_ofi_rdma_recv_comm_t *r_comm, n
                                         size_t size, nccl_net_ofi_rdma_req_t *recv_req) {
   /* Allocate recv segms request */
   nccl_net_ofi_rdma_req_t *recv_segms_req = allocate_req(r_comm->nccl_ofi_reqs_fl);
-  if (OFI_UNLIKELY(recv_segms_req == NULL)) {
+  if (recv_segms_req == NULL) [[unlikely]] {
     NCCL_OFI_WARN("Unable to get NCCL OFI receive segments request for device %d", dev_id);
     return -ENOENT;
   }
@@ -3080,7 +3095,7 @@ static inline int allocate_rdma_recv_req(nccl_net_ofi_rdma_recv_comm_t *r_comm, 
 
   /* Allocate receive request */
   nccl_net_ofi_rdma_req_t *req = allocate_req(r_comm->nccl_ofi_reqs_fl);
-  if (OFI_UNLIKELY(req == NULL)) {
+  if (req == NULL) [[unlikely]] {
     NCCL_OFI_WARN("Unable to get NCCL OFI receive request for device %d", dev_id);
     return -EINVAL;
   }
@@ -3128,20 +3143,21 @@ static inline int insert_rdma_recv_req_into_msgbuff(nccl_net_ofi_rdma_recv_comm_
      * replace it with a request.
      */
     mb_res = nccl_ofi_msgbuff_replace(r_comm->msgbuff, req->msg_seq_num, req, NCCL_OFI_MSGBUFF_REQ, &msg_stat);
-    if (OFI_UNLIKELY(mb_res != NCCL_OFI_MSGBUFF_SUCCESS)) {
+    if (mb_res != NCCL_OFI_MSGBUFF_SUCCESS) [[unlikely]] {
       NCCL_OFI_WARN("Unexpected result of nccl_ofi_msgbuff_replace for msg %hu", req->msg_seq_num);
       return -EINVAL;
     }
+
   } else {
     /* Try inserting the new request */
     mb_res = nccl_ofi_msgbuff_insert(r_comm->msgbuff, req->msg_seq_num, req, NCCL_OFI_MSGBUFF_REQ, &msg_stat);
 
-    if (OFI_UNLIKELY((mb_res == NCCL_OFI_MSGBUFF_INVALID_IDX) && (msg_stat == NCCL_OFI_MSGBUFF_INPROGRESS))) {
+    if ((mb_res == NCCL_OFI_MSGBUFF_INVALID_IDX) && (msg_stat == NCCL_OFI_MSGBUFF_INPROGRESS)) [[unlikely]] {
       /* Unlikely: an eager message was received on another
          thread. Return NULL and let NCCL call recv again. */
       req->free(req, false);
       *ret_req = NULL;
-    } else if (OFI_UNLIKELY(mb_res != NCCL_OFI_MSGBUFF_SUCCESS)) {
+    } else if (mb_res != NCCL_OFI_MSGBUFF_SUCCESS) [[unlikely]] {
       NCCL_OFI_WARN("Unexpected result of nccl_ofi_msgbuff_insert for msg %hu", req->msg_seq_num);
       return -EINVAL;
     }
@@ -3193,7 +3209,7 @@ static int recv(nccl_net_ofi_recv_comm_t *recv_comm, int n, void **buffers, int 
     goto error;
   }
 
-  if (OFI_UNLIKELY(r_comm->num_inflight_reqs == NCCL_OFI_MAX_REQUESTS)) {
+  if (r_comm->num_inflight_reqs == NCCL_OFI_MAX_REQUESTS) [[unlikely]] {
     ret = -ENOSPC;
     NCCL_OFI_WARN("Can not support more than %d inflight requests", NCCL_OFI_MAX_REQUESTS);
     goto error;
@@ -3234,7 +3250,7 @@ static int recv(nccl_net_ofi_recv_comm_t *recv_comm, int n, void **buffers, int 
       NCCL_OFI_WARN("Duplicate request in message buffer for msg %hu", msg_seq_num);
       ret = -EINVAL;
       goto error;
-    } else if (OFI_LIKELY(type == NCCL_OFI_MSGBUFF_BUFF)) {
+    } else if (type == NCCL_OFI_MSGBUFF_BUFF) [[likely]] {
       /* This is an eager message */
       eager = true;
     } else {
@@ -3242,6 +3258,7 @@ static int recv(nccl_net_ofi_recv_comm_t *recv_comm, int n, void **buffers, int 
       ret = -EINVAL;
       goto error;
     }
+
   } else if ((mb_res == NCCL_OFI_MSGBUFF_INVALID_IDX) && (msg_stat == NCCL_OFI_MSGBUFF_NOTSTARTED)) {
     /* Allocate a new req */
   } else {
@@ -3294,7 +3311,7 @@ static int recv(nccl_net_ofi_recv_comm_t *recv_comm, int n, void **buffers, int 
   r_comm->n_ctrl_sent += 1;
   nccl_net_ofi_mutex_unlock(&r_comm->ctrl_counter_lock);
   ret = receive_progress(recv_data->send_ctrl_req, true);
-  if (OFI_UNLIKELY(ret != 0)) {
+  if (ret != 0) [[unlikely]] {
     /* TODO: Remove req from message buffer */
     goto error;
   }
@@ -3358,10 +3375,11 @@ static inline int dealloc_and_dereg_flush_buff(nccl_net_ofi_rdma_recv_comm_t *r_
     goto exit;
   }
   ret = nccl_net_ofi_dealloc_mr_buffer(r_comm->flush_buff.host_buffer, system_page_size);
-  if (OFI_UNLIKELY(ret != 0)) {
+  if (ret != 0) [[unlikely]] {
     NCCL_OFI_WARN("Unable to deallocate flush buffer (%d)", ret);
     goto exit;
   }
+
   r_comm->flush_buff.host_buffer = MAP_FAILED;
 
 exit:
@@ -3393,7 +3411,7 @@ static int alloc_and_reg_flush_buff(nccl_net_ofi_rdma_recv_comm_t *r_comm, int d
   flush_buff->size = NCCL_OFI_FLUSH_SIZE;
   assert(NCCL_OFI_FLUSH_SIZE <= system_page_size);
   ret = nccl_net_ofi_alloc_mr_buffer(system_page_size, &(flush_buff->host_buffer));
-  if (OFI_UNLIKELY(ret != 0)) {
+  if (ret != 0) [[unlikely]] {
     NCCL_OFI_WARN("Unable to allocate flush buffer (%d)", ret);
     return ret;
   }
@@ -3405,7 +3423,7 @@ static int alloc_and_reg_flush_buff(nccl_net_ofi_rdma_recv_comm_t *r_comm, int d
   if (local_mr == true) {
     /* Register flush dummy buffer for provider access */
     ret = reg_internal_mr_ep(ep, flush_buff->host_buffer, system_page_size, NCCL_PTR_HOST, &mr_handle);
-    if (OFI_UNLIKELY(ret != 0)) {
+    if (ret != 0) [[unlikely]] {
       NCCL_OFI_WARN("Could not register dummy buffer for flush, dev: %d", dev_id);
       rc = nccl_net_ofi_dealloc_mr_buffer(flush_buff->host_buffer, system_page_size);
       if (rc != 0) {
@@ -3413,6 +3431,7 @@ static int alloc_and_reg_flush_buff(nccl_net_ofi_rdma_recv_comm_t *r_comm, int d
       }
       flush_buff->host_buffer = MAP_FAILED;
     }
+
   } else {
     NCCL_OFI_TRACE(NCCL_NET, "Skip registering host buffer. local_mr: %d", local_mr);
   }
@@ -3441,7 +3460,7 @@ static int recv_comm_destroy(nccl_net_ofi_rdma_recv_comm_t *r_comm) {
 
   /* Retrieve and validate endpoint */
   nccl_net_ofi_rdma_ep_t *ep = rdma_recv_comm_get_ep(r_comm);
-  if (OFI_UNLIKELY(ep == NULL)) {
+  if (ep == NULL) [[unlikely]] {
     ret = -EINVAL;
     NCCL_OFI_WARN("Invalid endpoint provided");
     return ret;
@@ -3498,7 +3517,7 @@ static int recv_comm_destroy(nccl_net_ofi_rdma_recv_comm_t *r_comm) {
 
   /* Release communicator ID */
   ret = nccl_ofi_idpool_free_id(device->comm_idpool, r_comm->local_comm_id);
-  if (OFI_UNLIKELY(ret != 0)) {
+  if (ret != 0) [[unlikely]] {
     NCCL_OFI_WARN("Error freeing communicator ID %" PRIu32, r_comm->local_comm_id);
   }
 
@@ -3523,7 +3542,7 @@ static inline int recv_comm_insert_send_close_req(nccl_net_ofi_rdma_recv_comm_t 
   nccl_net_ofi_rdma_device_t *device = rdma_endpoint_get_device(ep);
   nccl_net_ofi_scheduler_t *scheduler = device->scheduler;
   nccl_net_ofi_rdma_req_t *send_close_req = allocate_req(r_comm->nccl_ofi_reqs_fl);
-  if (OFI_UNLIKELY(send_close_req == NULL)) {
+  if (send_close_req == NULL) [[unlikely]] {
     return -ENOMEM;
   }
 
@@ -3536,10 +3555,10 @@ static inline int recv_comm_insert_send_close_req(nccl_net_ofi_rdma_recv_comm_t 
   rdma_req_send_close_data_t *send_close_data = req_get_send_close_data(send_close_req);
 
   send_close_data->ctrl_schedule = scheduler->get_schedule(scheduler, sizeof(nccl_net_ofi_rdma_close_msg_t), device->num_rails);
-  if (OFI_UNLIKELY(!(send_close_data->ctrl_schedule))) {
+  if (!(send_close_data->ctrl_schedule)) [[unlikely]] {
     send_close_req->free(send_close_req, false);
     return -ENOMEM;
-  } else if (OFI_UNLIKELY(send_close_data->ctrl_schedule->num_xfer_infos != 1)) {
+  } else if (send_close_data->ctrl_schedule->num_xfer_infos != 1) [[unlikely]] {
     NCCL_OFI_WARN("Invalid schedule for outgoing close message (%zu bytes). Expected one rail, but got %zu", sizeof(nccl_net_ofi_rdma_close_msg_t),
                   send_close_data->ctrl_schedule->num_xfer_infos);
     send_close_req->free(send_close_req, false);
@@ -3673,7 +3692,7 @@ static int send_comm_destroy(nccl_net_ofi_rdma_send_comm_t *s_comm) {
 
   /* Release communicator ID */
   ret = nccl_ofi_idpool_free_id(device->comm_idpool, s_comm->local_comm_id);
-  if (OFI_UNLIKELY(ret != 0)) {
+  if (ret != 0) [[unlikely]] {
     NCCL_OFI_WARN("Error freeing communicator ID %" PRIu32, s_comm->local_comm_id);
     return ret;
   }
@@ -3820,10 +3839,11 @@ static int rdma_comm_alloc_flush_req(nccl_net_ofi_rdma_recv_comm_t *r_comm, void
 
   /* Allocate NCCL OFI request */
   nccl_net_ofi_rdma_req_t *req = allocate_req(r_comm->nccl_ofi_reqs_fl);
-  if (OFI_UNLIKELY(req == NULL)) {
+  if (req == NULL) [[unlikely]] {
     NCCL_OFI_WARN("Unable to get NCCL OFI request for device %d", dev_id);
     return -ENOMEM;
   }
+
   req->comm = &r_comm->base.base;
   req->dev_id = dev_id;
   req->type = NCCL_OFI_RDMA_FLUSH;
@@ -3850,7 +3870,7 @@ static int flush(nccl_net_ofi_recv_comm_t *recv_comm, int n, void **buffers, int
   ssize_t rc = 0;
   nccl_net_ofi_rdma_mr_handle_t **mr_handles = (nccl_net_ofi_rdma_mr_handle_t **)mhandles;
 
-  if (OFI_UNLIKELY(r_comm->num_inflight_reqs == NCCL_OFI_MAX_REQUESTS)) {
+  if (r_comm->num_inflight_reqs == NCCL_OFI_MAX_REQUESTS) [[unlikely]] {
     ret = -ENOSPC;
     NCCL_OFI_WARN("Can not support more than %d inflight requests", NCCL_OFI_MAX_REQUESTS);
     goto error;
@@ -3908,7 +3928,7 @@ static int flush(nccl_net_ofi_recv_comm_t *recv_comm, int n, void **buffers, int
   }
 
   ret = rdma_comm_alloc_flush_req(r_comm, buffers[flush_n], mr_handles[flush_n], &req);
-  if (OFI_UNLIKELY(ret != 0)) {
+  if (ret != 0) [[unlikely]] {
     goto error;
   }
 
@@ -3916,11 +3936,12 @@ static int flush(nccl_net_ofi_recv_comm_t *recv_comm, int n, void **buffers, int
 
   if (!network_busy) {
     rc = receive_progress(req, true);
-    if (OFI_UNLIKELY(rc != 0)) {
+    if (rc != 0) [[unlikely]] {
       NCCL_OFI_WARN("Call to receive_progress failed: %zu", rc);
       ret = rc;
       goto error;
     }
+
   } else {
     /* Add to pending reqs queue */
     ret = nccl_ofi_deque_insert_back(ep->pending_reqs_queue, &req->pending_reqs_elem);
@@ -3957,19 +3978,19 @@ exit:
  */
 static inline nccl_net_ofi_rdma_recv_comm_t *calloc_rdma_recv_comm(int num_rails, int num_control_rails) {
   nccl_net_ofi_rdma_recv_comm_t *r_comm = (nccl_net_ofi_rdma_recv_comm_t *)calloc(1, sizeof(nccl_net_ofi_rdma_recv_comm_t));
-  if (OFI_UNLIKELY(!r_comm)) {
+  if (!r_comm) [[unlikely]] {
     NCCL_OFI_WARN("Unable to allocate receive communicator");
     goto error;
   }
 
   r_comm->rails = (nccl_net_ofi_rdma_recv_comm_rail_t *)calloc(num_rails, sizeof(nccl_net_ofi_rdma_recv_comm_rail_t));
-  if (OFI_UNLIKELY(!r_comm->rails)) {
+  if (!r_comm->rails) [[unlikely]] {
     NCCL_OFI_WARN("Unable to allocate receive communicator rails array");
     goto error;
   }
 
   r_comm->control_rails = (nccl_net_ofi_rdma_recv_comm_rail_t *)calloc(num_control_rails, sizeof(nccl_net_ofi_rdma_recv_comm_rail_t));
-  if (OFI_UNLIKELY(!r_comm->control_rails)) {
+  if (!r_comm->control_rails) [[unlikely]] {
     NCCL_OFI_WARN("Unable to allocate receive communicator control rails array");
     goto error;
   }
@@ -4011,10 +4032,11 @@ static int alloc_rdma_read_req(nccl_net_ofi_rdma_recv_comm_t *r_comm, nccl_net_o
 
   /* Allocate NCCL OFI request */
   nccl_net_ofi_rdma_req_t *req = allocate_req(r_comm->nccl_ofi_reqs_fl);
-  if (OFI_UNLIKELY(req == NULL)) {
+  if (req == NULL) [[unlikely]] {
     NCCL_OFI_WARN("Unable to get NCCL OFI request for device");
     return -ENOMEM;
   }
+
   req->free = free_read_req;
 
   init_rma_op_req(req, &r_comm->base.base, buff, size, desc, remote_buff, remote_mr_key, flags, NCCL_OFI_RDMA_READ);
@@ -4038,7 +4060,7 @@ static int rma_read(nccl_net_ofi_recv_comm_t *recv_comm, void *dest, size_t size
 
   assert(r_comm != NULL);
   /* Support only NCCL_OFI_MAX_REQUESTS inflight requests. */
-  if (OFI_UNLIKELY(r_comm->num_inflight_reqs == NCCL_OFI_MAX_REQUESTS)) {
+  if (r_comm->num_inflight_reqs == NCCL_OFI_MAX_REQUESTS) [[unlikely]] {
     ret = -EINVAL;
     NCCL_OFI_WARN("Can not support more than %d inflight requests", NCCL_OFI_MAX_REQUESTS);
     goto error;
@@ -4058,7 +4080,7 @@ static int rma_read(nccl_net_ofi_recv_comm_t *recv_comm, void *dest, size_t size
   }
 
   ret = alloc_rdma_read_req(r_comm, ep, dest, size, mr_handle, src, mr_key, &req);
-  if (OFI_UNLIKELY(ret != 0)) {
+  if (ret != 0) [[unlikely]] {
     goto error;
   }
 
@@ -4159,14 +4181,15 @@ static nccl_net_ofi_rdma_recv_comm_t *prepare_recv_comm(nccl_net_ofi_rdma_domain
 
   /* Allocate recv communicator ID */
   comm_id = nccl_ofi_idpool_allocate_id(device->comm_idpool);
-  if (OFI_UNLIKELY(comm_id < 0)) {
+  if (comm_id < 0) [[unlikely]] {
     r_comm->local_comm_id = COMM_ID_INVALID;
     goto error;
   }
+
   r_comm->local_comm_id = (uint32_t)comm_id;
 
   /* Validate received comm ID */
-  if (OFI_UNLIKELY(conn_msg->local_comm_id >= device->num_comm_ids)) {
+  if (conn_msg->local_comm_id >= device->num_comm_ids) [[unlikely]] {
     NCCL_OFI_WARN("Received an invalid communicator ID %" PRIu32 " for device %d", conn_msg->local_comm_id, dev_id);
     goto error;
   }
@@ -4226,7 +4249,7 @@ static nccl_net_ofi_rdma_recv_comm_t *prepare_recv_comm(nccl_net_ofi_rdma_domain
 
     /* Insert remote EP address to AV */
     ret = fi_av_insert(rail->av, (void *)remote_ep_name->ep_name, 1, &comm_rail->remote_addr, 0, NULL);
-    if (OFI_UNLIKELY(ret != 1)) {
+    if (ret != 1) [[unlikely]] {
       NCCL_OFI_WARN("Unable to insert remote address into address vector "
                     "for device %d. RC: %s",
                     dev_id, fi_strerror(-ret));
@@ -4234,7 +4257,7 @@ static nccl_net_ofi_rdma_recv_comm_t *prepare_recv_comm(nccl_net_ofi_rdma_domain
     }
 
     ret = fi_av_insert(rail->av, (void *)rail->local_ep_name, 1, &comm_rail->local_addr, 0, NULL);
-    if (OFI_UNLIKELY(ret != 1)) {
+    if (ret != 1) [[unlikely]] {
       NCCL_OFI_WARN("Unable to insert local address into address vector "
                     "for device %d. RC: %s",
                     dev_id, fi_strerror(-ret));
@@ -4255,7 +4278,7 @@ static nccl_net_ofi_rdma_recv_comm_t *prepare_recv_comm(nccl_net_ofi_rdma_domain
 
     /* Insert remote EP address to AV */
     ret = fi_av_insert(rail->av, (void *)remote_ep_name->ep_name, 1, &comm_rail->remote_addr, 0, NULL);
-    if (OFI_UNLIKELY(ret != 1)) {
+    if (ret != 1) [[unlikely]] {
       NCCL_OFI_WARN("Unable to insert remote address into address vector "
                     "for device %d. RC: %s",
                     dev_id, fi_strerror(-ret));
@@ -4263,7 +4286,7 @@ static nccl_net_ofi_rdma_recv_comm_t *prepare_recv_comm(nccl_net_ofi_rdma_domain
     }
 
     ret = fi_av_insert(rail->av, (void *)rail->local_ep_name, 1, &comm_rail->local_addr, 0, NULL);
-    if (OFI_UNLIKELY(ret != 1)) {
+    if (ret != 1) [[unlikely]] {
       NCCL_OFI_WARN("Unable to insert local address into address vector "
                     "for device %d. RC: %s",
                     dev_id, fi_strerror(-ret));
@@ -4275,7 +4298,7 @@ static nccl_net_ofi_rdma_recv_comm_t *prepare_recv_comm(nccl_net_ofi_rdma_domain
   /* Maximum freelist entries is 4*NCCL_OFI_MAX_REQUESTS because each receive request
      can have associated reqs for send_ctrl, recv_segms, and eager_copy */
   ret = nccl_ofi_freelist_init(sizeof(nccl_net_ofi_rdma_req_t), 16, 16, 4 * NCCL_OFI_MAX_REQUESTS, &r_comm->nccl_ofi_reqs_fl);
-  if (OFI_UNLIKELY(ret != 0)) {
+  if (ret != 0) [[unlikely]] {
     NCCL_OFI_WARN("Could not allocate NCCL OFI requests free list for dev %d", dev_id);
     goto error;
   }
@@ -4286,7 +4309,7 @@ static nccl_net_ofi_rdma_recv_comm_t *prepare_recv_comm(nccl_net_ofi_rdma_domain
    */
   if (is_flush_buff_enabled()) {
     ret = alloc_and_reg_flush_buff(r_comm, dev_id);
-    if (OFI_UNLIKELY(ret != 0)) {
+    if (ret != 0) [[unlikely]] {
       goto error;
     }
   }
@@ -4524,7 +4547,7 @@ static int accept(nccl_net_ofi_listen_comm_t *listen_comm, nccl_net_ofi_recv_com
 
     /* Progress NCCL OFI engine so that connection is accepted */
     ret = ofi_process_cq(l_comm_ep);
-    if (OFI_UNLIKELY(ret != 0)) {
+    if (ret != 0) [[unlikely]] {
       goto exit;
     }
 
@@ -4555,10 +4578,11 @@ static int accept(nccl_net_ofi_listen_comm_t *listen_comm, nccl_net_ofi_recv_com
 
     /* Prepare receive communicator object for the received peer connection */
     r_comm = prepare_recv_comm(domain, l_comm_ep, conn_msg);
-    if (OFI_UNLIKELY(r_comm == NULL)) {
+    if (r_comm == NULL) [[unlikely]] {
       ret = -EINVAL;
       goto exit;
     }
+
     l_comm->r_comm = r_comm;
 
     /* prepare_recv_comm establishes the endpoint used for this r_comm,
@@ -4617,7 +4641,7 @@ static int accept(nccl_net_ofi_listen_comm_t *listen_comm, nccl_net_ofi_recv_com
 
     /* Progress our engine to get completions */
     ret = ofi_process_cq(ep);
-    if (OFI_UNLIKELY(ret != 0)) {
+    if (ret != 0) [[unlikely]] {
       goto exit;
     }
 
@@ -4691,7 +4715,7 @@ static int listen_close(nccl_net_ofi_listen_comm_t *listen_comm) {
 
   /* Release communicator ID */
   ret = nccl_ofi_idpool_free_id(rdma_endpoint_get_device((nccl_net_ofi_rdma_ep_t *)base_ep)->comm_idpool, l_comm->comm_id);
-  if (OFI_UNLIKELY(ret != 0)) {
+  if (ret != 0) [[unlikely]] {
     NCCL_OFI_WARN("Error freeing communicator ID %" PRIu32, l_comm->comm_id);
   }
 
@@ -4725,7 +4749,7 @@ static int listen(nccl_net_ofi_ep_t *base_ep, nccl_net_ofi_conn_handle_t *handle
 
   /* Build listen_comm */
   l_comm = (nccl_net_ofi_rdma_listen_comm_t *)calloc(1, sizeof(nccl_net_ofi_rdma_listen_comm_t));
-  if (OFI_UNLIKELY(l_comm == NULL)) {
+  if (l_comm == NULL) [[unlikely]] {
     NCCL_OFI_WARN("Couldn't allocate listen_comm for dev %d", dev_id);
     ret = -ENOMEM;
     goto error;
@@ -4740,11 +4764,12 @@ static int listen(nccl_net_ofi_ep_t *base_ep, nccl_net_ofi_conn_handle_t *handle
 
   /* Allocate listen communicator ID */
   comm_id = nccl_ofi_idpool_allocate_id(device->comm_idpool);
-  if (OFI_UNLIKELY(comm_id < 0)) {
+  if (comm_id < 0) [[unlikely]] {
     l_comm->comm_id = COMM_ID_INVALID;
     ret = comm_id;
     goto error;
   }
+
   l_comm->comm_id = (uint32_t)comm_id;
   handle->comm_id = l_comm->comm_id;
 
@@ -4789,10 +4814,11 @@ static int alloc_rdma_write_req(nccl_net_ofi_rdma_send_comm_t *s_comm, nccl_net_
 
   /* Allocate NCCL OFI request */
   nccl_net_ofi_rdma_req_t *req = allocate_req(s_comm->nccl_ofi_reqs_fl);
-  if (OFI_UNLIKELY(req == NULL)) {
+  if (req == NULL) [[unlikely]] {
     NCCL_OFI_WARN("Unable to get NCCL OFI request for device");
     return -ENOMEM;
   }
+
   req->free = free_write_req;
   init_rma_op_req(req, &s_comm->base.base, buff, size, desc, remote_buff, remote_mr_key, flags, NCCL_OFI_RDMA_WRITE);
 
@@ -4810,10 +4836,11 @@ static int alloc_rdma_send_req(nccl_net_ofi_rdma_send_comm_t *s_comm, uint16_t m
 
   /* Allocate NCCL OFI request */
   nccl_net_ofi_rdma_req_t *req = allocate_req(s_comm->nccl_ofi_reqs_fl);
-  if (OFI_UNLIKELY(req == NULL)) {
+  if (req == NULL) [[unlikely]] {
     NCCL_OFI_WARN("Unable to get NCCL OFI request for device");
     return -ENOMEM;
   }
+
   req->comm = &s_comm->base.base;
   req->dev_id = s_comm->base.base.dev_id;
   req->type = NCCL_OFI_RDMA_SEND;
@@ -4832,7 +4859,7 @@ static int alloc_rdma_send_req(nccl_net_ofi_rdma_send_comm_t *s_comm, uint16_t m
    */
   if (eager) {
     send_data->schedule = scheduler->get_schedule(scheduler, size, device->num_rails);
-    if (OFI_UNLIKELY(send_data->schedule == NULL)) {
+    if (send_data->schedule == NULL) [[unlikely]] {
       return -EINVAL;
     }
 
@@ -4861,19 +4888,20 @@ static int insert_rdma_send_req_into_msgbuff(nccl_net_ofi_rdma_send_comm_t *s_co
      * so replace it with a request.
      */
     mb_res = nccl_ofi_msgbuff_replace(s_comm->msgbuff, req->msg_seq_num, req, NCCL_OFI_MSGBUFF_REQ, &msg_stat);
-    if (OFI_UNLIKELY(mb_res != NCCL_OFI_MSGBUFF_SUCCESS)) {
+    if (mb_res != NCCL_OFI_MSGBUFF_SUCCESS) [[unlikely]] {
       NCCL_OFI_WARN("Unexpected result of nccl_ofi_msgbuff_replace for msg %hu", req->msg_seq_num);
       return -EINVAL;
     }
+
   } else {
     /* Try inserting the new request */
     mb_res = nccl_ofi_msgbuff_insert(s_comm->msgbuff, req->msg_seq_num, req, NCCL_OFI_MSGBUFF_REQ, &msg_stat);
-    if (OFI_UNLIKELY((mb_res == NCCL_OFI_MSGBUFF_INVALID_IDX) && (msg_stat == NCCL_OFI_MSGBUFF_INPROGRESS))) {
+    if ((mb_res == NCCL_OFI_MSGBUFF_INVALID_IDX) && (msg_stat == NCCL_OFI_MSGBUFF_INPROGRESS)) [[unlikely]] {
       /* Unlikely: a ctrl message was received on another
          thread. Return NULL and let NCCL call send again. */
       req->free(req, false);
       *ret_req = NULL;
-    } else if (OFI_UNLIKELY(mb_res != NCCL_OFI_MSGBUFF_SUCCESS)) {
+    } else if (mb_res != NCCL_OFI_MSGBUFF_SUCCESS) [[unlikely]] {
       NCCL_OFI_WARN("Unexpected result of nccl_ofi_msgbuff_insert for msg %hu", req->msg_seq_num);
       return -EINVAL;
     }
@@ -5021,7 +5049,7 @@ static int send_progress(nccl_net_ofi_rdma_req_t *req) {
 
     // Get Schedule
     nccl_net_ofi_schedule_t *schedule = send_data->schedule;
-    if (OFI_UNLIKELY(schedule == NULL)) {
+    if (schedule == NULL) [[unlikely]] {
       NCCL_OFI_WARN("Schedule for req %p is NULL", req);
       return -ENOTSUP;
       ;
@@ -5219,7 +5247,7 @@ static int post_flush_req(nccl_net_ofi_rdma_req_t *req) {
 
       /* Extract remote key */
       cuda_key = fi_mr_key(mr_handle);
-      if (OFI_UNLIKELY(cuda_key == FI_KEY_NOTAVAIL)) {
+      if (cuda_key == FI_KEY_NOTAVAIL) [[unlikely]] {
         NCCL_OFI_WARN("Memory registration may not have completed.");
         rc = -FI_ENODATA;
         goto exit;
@@ -5269,7 +5297,7 @@ static inline int check_post_rx_buff_req(nccl_net_ofi_rdma_req_t *rx_buff_req) {
       }
       NCCL_OFI_TRACE_PENDING_INSERT(rx_buff_req);
       return ret;
-    } else if (OFI_UNLIKELY(ret != 0)) {
+    } else if (ret != 0) [[unlikely]] {
       return ret;
     }
 
@@ -5311,7 +5339,7 @@ static int send(nccl_net_ofi_send_comm_t *send_comm, void *data, int size, int t
   }
 
   /* Support only NCCL_OFI_MAX_REQUESTS inflight requests. */
-  if (OFI_UNLIKELY(s_comm->num_inflight_reqs == NCCL_OFI_MAX_SEND_REQUESTS)) {
+  if (s_comm->num_inflight_reqs == NCCL_OFI_MAX_SEND_REQUESTS) [[unlikely]] {
     ret = -EINVAL;
     NCCL_OFI_WARN("Can not support more than %d inflight requests", NCCL_OFI_MAX_SEND_REQUESTS);
     goto error;
@@ -5350,7 +5378,7 @@ retry:
   /* Retrieve entry from message buffer for msg_seq_num index */
   mb_res = nccl_ofi_msgbuff_retrieve(s_comm->msgbuff, msg_seq_num, &elem, &type, &msg_stat);
   if (mb_res == NCCL_OFI_MSGBUFF_SUCCESS) {
-    if (OFI_LIKELY(type == NCCL_OFI_MSGBUFF_BUFF)) {
+    if (type == NCCL_OFI_MSGBUFF_BUFF) [[likely]] {
       /*
        * Received RDMA control message from receiver so
        * allocate request and initiate RDMA write
@@ -5366,6 +5394,7 @@ retry:
       ret = -EINVAL;
       goto error;
     }
+
   } else if ((mb_res == NCCL_OFI_MSGBUFF_INVALID_IDX) && (msg_stat == NCCL_OFI_MSGBUFF_NOTSTARTED)) {
     /*
      * We haven't encountered this message sequence number.
@@ -5381,12 +5410,12 @@ retry:
 
   /* look for control messages and then retry the message search
      to avoid unnecessary polling / queueing. */
-  if (OFI_UNLIKELY(!polled_cq && !have_ctrl)) {
+  if (!polled_cq && !have_ctrl) [[unlikely]] {
     for (int rail_id = 0; rail_id != ep->num_control_rails; ++rail_id) {
       nccl_net_ofi_ep_rail_t *rail = rdma_endpoint_get_control_rail(ep, rail_id);
 
       ret = ofi_process_cq_rail(ep, rail);
-      if (OFI_UNLIKELY(ret != 0)) {
+      if (ret != 0) [[unlikely]] {
         goto error;
       }
     }
@@ -5401,7 +5430,7 @@ retry:
   }
 
   ret = alloc_rdma_send_req(s_comm, msg_seq_num, data, size, mr_handle, eager, &req);
-  if (OFI_UNLIKELY(ret != 0)) {
+  if (ret != 0) [[unlikely]] {
     goto error;
   }
 
@@ -5412,20 +5441,20 @@ retry:
      */
     nccl_net_ofi_rdma_req_t *rx_buff_req = (nccl_net_ofi_rdma_req_t *)elem;
     ret = update_send_data_from_remote(s_comm, rx_buff_req, req);
-    if (OFI_UNLIKELY(ret != 0)) {
+    if (ret != 0) [[unlikely]] {
       NCCL_OFI_WARN("Failed to copy ctrl data");
       goto error;
     }
 
     /* Post if needed */
     ret = check_post_rx_buff_req(rx_buff_req);
-    if (OFI_UNLIKELY(ret != 0)) {
+    if (ret != 0) [[unlikely]] {
       goto error;
     }
   }
 
   ret = insert_rdma_send_req_into_msgbuff(s_comm, dev_id, have_ctrl, &req);
-  if (OFI_UNLIKELY(ret != 0 || req == NULL)) {
+  if (ret != 0 || req == NULL) [[unlikely]] {
     goto free_req;
   }
 
@@ -5448,12 +5477,13 @@ retry:
     if (ret == -FI_EAGAIN) {
       /* Add to pending reqs queue */
       ret = nccl_ofi_deque_insert_back(ep->pending_reqs_queue, &req->pending_reqs_elem);
-      if (OFI_UNLIKELY(ret != 0)) {
+      if (ret != 0) [[unlikely]] {
         NCCL_OFI_WARN("Failed to nccl_ofi_deque_insert_back: %d", ret);
         goto error;
       }
+
       NCCL_OFI_TRACE_PENDING_INSERT(req);
-    } else if (OFI_UNLIKELY(ret != 0)) {
+    } else if (ret != 0) [[unlikely]] {
       /* TODO: Remove req from message buffer */
       ret = -ENOTSUP;
       goto error;
@@ -5573,19 +5603,19 @@ static void prepare_send_connect_message(nccl_net_ofi_rdma_ep_t *ep, int dev_id,
  */
 static inline nccl_net_ofi_rdma_send_comm_t *calloc_rdma_send_comm(int num_rails, int num_control_rails) {
   nccl_net_ofi_rdma_send_comm_t *s_comm = (nccl_net_ofi_rdma_send_comm_t *)calloc(1, sizeof(nccl_net_ofi_rdma_send_comm_t));
-  if (OFI_UNLIKELY(!s_comm)) {
+  if (!s_comm) [[unlikely]] {
     NCCL_OFI_WARN("Unable to allocate send communicator");
     goto error;
   }
 
   s_comm->rails = (nccl_net_ofi_rdma_send_comm_rail_t *)calloc(num_rails, sizeof(nccl_net_ofi_rdma_send_comm_rail_t));
-  if (OFI_UNLIKELY(!s_comm->rails)) {
+  if (!s_comm->rails) [[unlikely]] {
     NCCL_OFI_WARN("Unable to allocate send communicator rails array");
     goto error;
   }
 
   s_comm->control_rails = (nccl_net_ofi_rdma_send_comm_rail_t *)calloc(num_control_rails, sizeof(nccl_net_ofi_rdma_send_comm_rail_t));
-  if (OFI_UNLIKELY(!s_comm->control_rails)) {
+  if (!s_comm->control_rails) [[unlikely]] {
     NCCL_OFI_WARN("Unable to allocate send communicator control rails array");
     goto error;
   }
@@ -5694,7 +5724,7 @@ static int get_mr_key(nccl_net_ofi_device_t *base_dev, void *mhandle, uint64_t *
   nccl_net_ofi_rdma_mr_handle_t *mr_handle = (nccl_net_ofi_rdma_mr_handle_t *)mhandle;
 
   uint64_t key = fi_mr_key(mr_handle->mr[0]);
-  if (OFI_UNLIKELY(key == FI_KEY_NOTAVAIL)) {
+  if (key == FI_KEY_NOTAVAIL) [[unlikely]] {
     ret = -ENOENT;
     NCCL_OFI_WARN("Error retrieving MR key, leaking key");
   } else {
@@ -5717,7 +5747,7 @@ static int rma_write_impl(nccl_net_ofi_send_comm_t *send_comm, void *src, size_t
   assert(s_comm != NULL);
 
   /* Support only NCCL_OFI_MAX_REQUESTS inflight requests. */
-  if (OFI_UNLIKELY(s_comm->num_inflight_reqs == NCCL_OFI_MAX_SEND_REQUESTS)) {
+  if (s_comm->num_inflight_reqs == NCCL_OFI_MAX_SEND_REQUESTS) [[unlikely]] {
     ret = -EINVAL;
     NCCL_OFI_WARN("Can not support more than %d inflight requests", NCCL_OFI_MAX_SEND_REQUESTS);
     goto error;
@@ -5737,7 +5767,7 @@ static int rma_write_impl(nccl_net_ofi_send_comm_t *send_comm, void *src, size_t
   }
 
   ret = alloc_rdma_write_req(s_comm, ep, src, size, desc, dest, mr_key, flags, &req);
-  if (OFI_UNLIKELY(ret != 0)) {
+  if (ret != 0) [[unlikely]] {
     goto error;
   }
 
@@ -5755,12 +5785,13 @@ static int rma_write_impl(nccl_net_ofi_send_comm_t *send_comm, void *src, size_t
   if (ret == -FI_EAGAIN) {
     /* Add to pending reqs queue */
     ret = nccl_ofi_deque_insert_back(ep->pending_reqs_queue, &req->pending_reqs_elem);
-    if (OFI_UNLIKELY(ret != 0)) {
+    if (ret != 0) [[unlikely]] {
       NCCL_OFI_WARN("Failed to nccl_ofi_deque_insert_back: %d", ret);
       goto error;
     }
+
     NCCL_OFI_TRACE_PENDING_INSERT(req);
-  } else if (OFI_UNLIKELY(ret != 0)) {
+  } else if (ret != 0) [[unlikely]] {
     ret = -ENOTSUP;
     goto error;
   }
@@ -5838,15 +5869,16 @@ static inline int create_send_comm(nccl_net_ofi_conn_handle_t *handle, nccl_net_
 
   /* Retrieve and validate device */
   nccl_net_ofi_rdma_device_t *device = rdma_endpoint_get_device(ep);
-  if (OFI_UNLIKELY(device == NULL)) {
+  if (device == NULL) [[unlikely]] {
     NCCL_OFI_WARN("Error accessing device");
     return -EINVAL;
   }
+
   int dev_id = device->base.dev_id;
 
   /* Allocate and initialize send_comm */
   ret_s_comm = calloc_rdma_send_comm(num_rails, num_control_rails);
-  if (OFI_UNLIKELY(ret_s_comm == NULL)) {
+  if (ret_s_comm == NULL) [[unlikely]] {
     NCCL_OFI_WARN("Couldn't allocate send comm object for dev %d", dev_id);
     return -ENOMEM;
   }
@@ -5876,20 +5908,22 @@ static inline int create_send_comm(nccl_net_ofi_conn_handle_t *handle, nccl_net_
   ret_s_comm->n_ctrl_expected = 0;
 
   /* Store communicator ID from handle in communicator */
-  if (OFI_UNLIKELY(handle->comm_id >= device->num_comm_ids)) {
+  if (handle->comm_id >= device->num_comm_ids) [[unlikely]] {
     NCCL_OFI_WARN("Received an invalid communicator ID %" PRIu32 " for device %d", handle->comm_id, dev_id);
     ret = -EINVAL;
     goto error;
   }
+
   ret_s_comm->remote_comm_id = handle->comm_id;
 
   /* Allocate send communicator ID */
   comm_id = nccl_ofi_idpool_allocate_id(device->comm_idpool);
-  if (OFI_UNLIKELY(comm_id < 0)) {
+  if (comm_id < 0) [[unlikely]] {
     ret_s_comm->local_comm_id = COMM_ID_INVALID;
     ret = comm_id;
     goto error;
   }
+
   ret_s_comm->local_comm_id = (uint32_t)comm_id;
 
   /* Add ourselves to ep's lookup array */
@@ -5901,7 +5935,7 @@ static inline int create_send_comm(nccl_net_ofi_conn_handle_t *handle, nccl_net_
 
   /* Insert remote name into AV of first rail */
   ret = fi_av_insert(first_control_rail->av, (void *)handle->ep_name, 1, &remote_addr, 0, NULL);
-  if (OFI_UNLIKELY(ret != 1)) {
+  if (ret != 1) [[unlikely]] {
     NCCL_OFI_WARN("Unable to insert remote address into address vector for device %d. RC: %d", dev_id, ret);
     ret = -EINVAL;
     goto error;
@@ -5917,7 +5951,7 @@ static inline int create_send_comm(nccl_net_ofi_conn_handle_t *handle, nccl_net_
 
   /* Allocate request free list */
   ret = nccl_ofi_freelist_init(sizeof(nccl_net_ofi_rdma_req_t), 16, 16, NCCL_OFI_MAX_SEND_REQUESTS, &ret_s_comm->nccl_ofi_reqs_fl);
-  if (OFI_UNLIKELY(ret != 0)) {
+  if (ret != 0) [[unlikely]] {
     NCCL_OFI_WARN("Could not allocate NCCL OFI request free list for dev %d rail %d", dev_id, rail_id);
     goto error;
   }
@@ -5970,7 +6004,7 @@ static inline nccl_net_ofi_rdma_req_t *prepare_send_conn_req(nccl_net_ofi_rdma_s
   nccl_net_ofi_rdma_req_t *req = NULL;
 
   req = allocate_req(s_comm->nccl_ofi_reqs_fl);
-  if (OFI_UNLIKELY(req == NULL)) {
+  if (req == NULL) [[unlikely]] {
     NCCL_OFI_WARN("Unable to get NCCL OFI request for device %d", s_comm->base.base.dev_id);
     return NULL;
   }
@@ -5995,7 +6029,7 @@ static inline nccl_net_ofi_rdma_req_t *prepare_recv_conn_resp_req(nccl_net_ofi_r
   nccl_net_ofi_rdma_req_t *req = NULL;
 
   req = allocate_req(s_comm->nccl_ofi_reqs_fl);
-  if (OFI_UNLIKELY(req == NULL)) {
+  if (req == NULL) [[unlikely]] {
     NCCL_OFI_WARN("Unable to get NCCL OFI request for device %d", s_comm->base.base.dev_id);
     return NULL;
   }
@@ -6099,25 +6133,28 @@ static int connect(nccl_net_ofi_ep_t *base_ep, nccl_net_ofi_conn_handle_t *handl
 
     /* Build send communicator with one comm rail */
     ret = create_send_comm(handle, ep, &s_comm);
-    if (OFI_UNLIKELY(ret != 0)) {
+    if (ret != 0) [[unlikely]] {
       return ret;
     }
-    if (OFI_UNLIKELY(s_comm == NULL)) {
+
+    if (s_comm == NULL) [[unlikely]] {
       return -ENOMEM;
     }
+
     comm_state->comm = &s_comm->base.base;
 
     /* Prepare connect request to be sent to peer */
     req = prepare_send_conn_req(s_comm);
-    if (OFI_UNLIKELY(req == NULL)) {
+    if (req == NULL) [[unlikely]] {
       send_comm_destroy(s_comm);
       return -ENOMEM;
     }
+
     comm_state->req = &req->base;
 
     /* Prepare request to receive connect response message */
     s_comm->conn_resp_req = prepare_recv_conn_resp_req(s_comm);
-    if (OFI_UNLIKELY(s_comm->conn_resp_req == NULL)) {
+    if (s_comm->conn_resp_req == NULL) [[unlikely]] {
       send_comm_destroy(s_comm);
       return -EINVAL;
     }
@@ -6145,7 +6182,7 @@ static int connect(nccl_net_ofi_ep_t *base_ep, nccl_net_ofi_conn_handle_t *handl
 
     /* Progress our engine to get completions */
     ret = ofi_process_cq(ep);
-    if (OFI_UNLIKELY(ret != 0)) {
+    if (ret != 0) [[unlikely]] {
       /* Send communicator cannot be closed since
        * send request of send connect message is
        * still pending */
@@ -6182,7 +6219,7 @@ static int connect(nccl_net_ofi_ep_t *base_ep, nccl_net_ofi_conn_handle_t *handl
      * connect response message has arrived, the
      * connection establishment will be finalized. */
     ret = ofi_process_cq(ep);
-    if (OFI_UNLIKELY(ret != 0)) {
+    if (ret != 0) [[unlikely]] {
       return ret;
     }
 
@@ -6196,7 +6233,7 @@ static int connect(nccl_net_ofi_ep_t *base_ep, nccl_net_ofi_conn_handle_t *handl
     }
 
     ret = finish_connect(s_comm);
-    if (OFI_UNLIKELY(ret != 0)) {
+    if (ret != 0) [[unlikely]] {
       return ret;
     }
 
@@ -6385,7 +6422,7 @@ static int nccl_net_ofi_rdma_endpoint_release(nccl_net_ofi_ep_t *base_ep) {
 
   /* Validate device */
   ep = (nccl_net_ofi_rdma_ep_t *)base_ep;
-  if (OFI_UNLIKELY(ep == NULL)) {
+  if (ep == NULL) [[unlikely]] {
     NCCL_OFI_WARN("Invalid endpoint provided");
     return -EINVAL;
   }
@@ -6399,7 +6436,7 @@ static int nccl_net_ofi_rdma_endpoint_release(nccl_net_ofi_ep_t *base_ep) {
     nccl_net_ofi_rdma_domain_t *domain = NULL;
 
     domain = rdma_endpoint_get_domain(ep);
-    if (OFI_UNLIKELY(domain == NULL)) {
+    if (domain == NULL) [[unlikely]] {
       NCCL_OFI_WARN("Invalid domain provided");
       return -EINVAL;
     }
@@ -6436,7 +6473,7 @@ static int nccl_net_ofi_rdma_endpoint_free(nccl_net_ofi_ep_t *base_ep) {
 
   /* Validate device */
   ep = (nccl_net_ofi_rdma_ep_t *)base_ep;
-  if (OFI_UNLIKELY(ep == NULL)) {
+  if (ep == NULL) [[unlikely]] {
     NCCL_OFI_WARN("Invalid endpoint provided");
     return -EINVAL;
   }
@@ -6492,7 +6529,7 @@ static int nccl_net_ofi_rdma_domain_create_endpoint(nccl_net_ofi_domain_t *base_
   nccl_net_ofi_rdma_device_t *device = NULL;
 
   domain = (nccl_net_ofi_rdma_domain_t *)base_domain;
-  if (OFI_UNLIKELY(domain == NULL)) {
+  if (domain == NULL) [[unlikely]] {
     NCCL_OFI_WARN("Invalid domain provided");
     return -EINVAL;
   }
@@ -6636,7 +6673,7 @@ static nccl_net_ofi_domain_t *nccl_net_ofi_rdma_device_create_domain(nccl_net_of
   nccl_net_ofi_rdma_device_t *device = NULL;
 
   device = (nccl_net_ofi_rdma_device_t *)base_dev;
-  if (OFI_UNLIKELY(device == NULL)) {
+  if (device == NULL) [[unlikely]] {
     NCCL_OFI_WARN("Invalid device provided");
     return NULL;
   }
@@ -6681,7 +6718,7 @@ static nccl_net_ofi_domain_t *nccl_net_ofi_rdma_device_create_domain(nccl_net_of
     nccl_net_ofi_rdma_domain_rail_t *domain_rail = rdma_domain_get_rail(domain, i);
 
     ret = fi_domain(device_rail->fabric, device_rail->info, &domain_rail->domain, NULL);
-    if (OFI_UNLIKELY(ret != 0)) {
+    if (ret != 0) [[unlikely]] {
       NCCL_OFI_WARN("Couldn't open a fabric access domain. RC: %d, ERROR: %s", ret, fi_strerror(-ret));
       goto error;
     }
@@ -6692,10 +6729,11 @@ static nccl_net_ofi_domain_t *nccl_net_ofi_rdma_device_create_domain(nccl_net_of
       struct fi_cq_attr cq_attr = {};
       cq_attr.format = FI_CQ_FORMAT_DATA;
       ret = fi_cq_open(domain_rail->domain, &cq_attr, &domain_rail->cq, NULL);
-      if (OFI_UNLIKELY(ret != 0)) {
+      if (ret != 0) [[unlikely]] {
         NCCL_OFI_WARN("Couldn't open CQ. RC: %d, ERROR: %s", ret, fi_strerror(-ret));
         goto error;
       }
+
       assert(domain_rail->cq != NULL);
     } else {
       domain_rail->cq = NULL;
@@ -6720,7 +6758,7 @@ static inline int init_device_rail_ofi_resources(nccl_net_ofi_rdma_device_t *dev
 
   /* Create fabric */
   ret = fi_fabric(rail_dev->info->fabric_attr, &rail_dev->fabric, NULL);
-  if (OFI_UNLIKELY(ret != 0)) {
+  if (ret != 0) [[unlikely]] {
     NCCL_OFI_WARN("Couldn't open a fabric provider. RC: %d, ERROR: %s", ret, fi_strerror(-ret));
     goto error;
   }
@@ -6955,14 +6993,14 @@ static nccl_net_ofi_rdma_device_t *nccl_net_ofi_rdma_device_create(nccl_net_ofi_
 
   /* Initialize device ID pool */
   device->comm_idpool = (nccl_ofi_idpool_t *)malloc(sizeof(nccl_ofi_idpool_t));
-  if (OFI_UNLIKELY(device->comm_idpool == NULL)) {
+  if (device->comm_idpool == NULL) [[unlikely]] {
     NCCL_OFI_WARN("Unable to allocate rdma endpoint ID pool");
     ret = -ENOMEM;
     goto error;
   }
 
   ret = nccl_ofi_idpool_init(device->comm_idpool, device->num_comm_ids);
-  if (OFI_UNLIKELY(ret != 0)) {
+  if (ret != 0) [[unlikely]] {
     free(device->comm_idpool);
     device->comm_idpool = NULL;
     goto error;

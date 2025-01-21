@@ -187,7 +187,7 @@ int nccl_ofi_freelist_add(nccl_ofi_freelist_t *freelist, size_t num_entries) {
      their size, as the case may be). */
   block_mem_size = freelist_buffer_mem_size_full_pages(freelist->entry_size, allocation_count);
   ret = nccl_net_ofi_alloc_mr_buffer(block_mem_size, (void **)&buffer);
-  if (OFI_UNLIKELY(ret != 0)) {
+  if (ret != 0) [[unlikely]] {
     NCCL_OFI_WARN("freelist extension allocation failed (%d)", ret);
     return ret;
   }

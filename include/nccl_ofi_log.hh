@@ -23,7 +23,7 @@ extern nccl_ofi_logger_t ofi_log_function;
 #define NCCL_OFI_TRACE(flags, fmt, ...) (*ofi_log_function)(NCCL_LOG_TRACE, flags, __PRETTY_FUNCTION__, __LINE__, "NET/OFI " fmt, ##__VA_ARGS__)
 #define NCCL_OFI_TRACE_WHEN(criteria, flags, fmt, ...)                                                                                                         \
   do {                                                                                                                                                         \
-    if (OFI_UNLIKELY(criteria)) {                                                                                                                              \
+    if (criteria) [[unlikely]] {                                                                                                                               \
       NCCL_OFI_TRACE(flags, fmt, ##__VA_ARGS__);                                                                                                               \
     }                                                                                                                                                          \
   } while (0)

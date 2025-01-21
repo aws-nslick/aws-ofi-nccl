@@ -5,6 +5,7 @@
 
 #include "config.hh"
 
+#include <algorithm>
 #include <cctype>
 #include <cinttypes>
 #include <climits>
@@ -93,7 +94,7 @@ int nccl_net_ofi_alloc_mr_buffer(size_t size, void **ptr) {
   assert(aon::detail::math::is_aligned(size, system_page_size));
 
   *ptr = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, -1, 0);
-  if (OFI_UNLIKELY(*ptr == MAP_FAILED)) {
+  if (*ptr == MAP_FAILED) [[unlikely]] {
     NCCL_OFI_WARN("Unable to map MR buffer (%d %s)", errno, strerror(errno));
     *ptr = NULL;
     return -errno;
@@ -119,10 +120,11 @@ int nccl_net_ofi_dealloc_mr_buffer(void *ptr, size_t size) {
   assert(aon::detail::math::is_aligned(size, system_page_size));
 
   ret = munmap(ptr, size);
-  if (OFI_UNLIKELY(ret != 0)) {
+  if (ret != 0) [[unlikely]] {
     NCCL_OFI_WARN("Unable to unmap MR buffer (%d %s)", errno, strerror(errno));
     ret = -errno;
   }
+
   return ret;
 }
 
@@ -141,11 +143,12 @@ int nccl_net_ofi_create_plugin(nccl_net_ofi_plugin_t **plugin_p) {
   NCCL_OFI_INFO(NCCL_INIT | NCCL_NET, "Using Libfabric version %u.%u", FI_MAJOR(fab_version), FI_MINOR(fab_version));
 
   long int system_page_size_sysconf = sysconf(_SC_PAGESIZE);
-  if (OFI_UNLIKELY(system_page_size_sysconf == -1)) {
+  if (system_page_size_sysconf == -1) [[unlikely]] {
     NCCL_OFI_WARN("Failed to get system page size (%d %s)", errno, strerror(errno));
     ret = -ENOTSUP;
     goto exit;
   }
+
   system_page_size = (size_t)system_page_size_sysconf;
   assert(aon::detail::math::is_power_of_two(system_page_size));
   assert(system_page_size > 0);

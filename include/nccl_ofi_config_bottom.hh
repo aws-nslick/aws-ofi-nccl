@@ -6,10 +6,6 @@
 
 #define NCCL_OFI_N_NVTX_DOMAIN_PER_COMM 8
 
-/* configure aborts if __buildin_expect() isn't available */
-#define OFI_LIKELY(x) __builtin_expect((x), 1)
-#define OFI_UNLIKELY(x) __builtin_expect((x), 0)
-
 #define NCCL_OFI_EXPORT_SYMBOL __attribute__((visibility("default")))
 
 #ifndef __cplusplus

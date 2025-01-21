@@ -41,7 +41,7 @@ int nccl_net_ofi_mutex_destroy(pthread_mutex_t *mutex);
  */
 static inline void nccl_net_ofi_mutex_lock_impl(pthread_mutex_t *mutex, const char *file, size_t line) {
   int ret = pthread_mutex_lock(mutex);
-  if (OFI_UNLIKELY(ret != 0)) {
+  if (ret != 0) [[unlikely]] {
     (*ofi_log_function)(NCCL_LOG_WARN, NCCL_ALL, file, line, "NET/OFI pthread_mutex_lock failed: %s", strerror(ret));
     abort();
   }
@@ -59,10 +59,11 @@ static inline void nccl_net_ofi_mutex_lock_impl(pthread_mutex_t *mutex, const ch
  */
 static inline int nccl_net_ofi_mutex_trylock_impl(pthread_mutex_t *mutex, const char *file, size_t line) {
   int ret = pthread_mutex_trylock(mutex);
-  if (OFI_UNLIKELY(ret != 0 && ret != EBUSY)) {
+  if (ret != 0 && ret != EBUSY) [[unlikely]] {
     (*ofi_log_function)(NCCL_LOG_WARN, NCCL_ALL, file, line, "NET/OFI pthread_mutex_trylock failed: %s", strerror(ret));
     abort();
   }
+
   return ret;
 }
 #define nccl_net_ofi_mutex_trylock(mutex) nccl_net_ofi_mutex_trylock_impl(mutex, __FILE__, __LINE__);
@@ -75,7 +76,7 @@ static inline int nccl_net_ofi_mutex_trylock_impl(pthread_mutex_t *mutex, const 
  */
 static inline void nccl_net_ofi_mutex_unlock_impl(pthread_mutex_t *mutex, const char *file, size_t line) {
   int ret = pthread_mutex_unlock(mutex);
-  if (OFI_UNLIKELY(ret != 0)) {
+  if (ret != 0) [[unlikely]] {
     (*ofi_log_function)(NCCL_LOG_WARN, NCCL_ALL, file, line, "NET/OFI pthread_mutex_unlock failed: %s", strerror(ret));
     abort();
   }

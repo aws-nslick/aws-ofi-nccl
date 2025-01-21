@@ -56,7 +56,7 @@ static inline int sendrecv_get_properties(nccl_net_ofi_device_t *base_dev, nccl_
   assert(plugin != NULL);
 
   /* Validate libfabric NIC info */
-  if (OFI_UNLIKELY(info == NULL)) {
+  if (info == NULL) [[unlikely]] {
     NCCL_OFI_WARN("Error accessing libfabric NIC info. "
                   "info has not been set.");
     return -EINVAL;
@@ -112,7 +112,7 @@ static inline int sendrecv_process_completions(struct fi_cq_tagged_entry *cq_ent
   for (comp_idx = 0; comp_idx < num_cqes; comp_idx++) {
     void *op_ctx = cq_entry[comp_idx].op_context;
 
-    if (OFI_UNLIKELY(op_ctx == NULL)) {
+    if (op_ctx == NULL) [[unlikely]] {
       NCCL_OFI_WARN("Invalid request context provided");
       ret = -EINVAL;
       goto exit;
@@ -124,7 +124,7 @@ static inline int sendrecv_process_completions(struct fi_cq_tagged_entry *cq_ent
     NCCL_OFI_TRACE_COMPLETIONS_SENDRECV(req->dev_id, req, &req->ctx);
 
     /* Determine if this is control message */
-    if (OFI_UNLIKELY(cq_entry[comp_idx].tag & control_bit_mask)) {
+    if (cq_entry[comp_idx].tag & control_bit_mask) [[unlikely]] {
       if (comp_flags & FI_RECV) {
         /* Mark listen_comm to accepted state */
         assert(req->comm->type == NCCL_NET_OFI_LISTEN_COMM);
@@ -201,17 +201,18 @@ static int sendrecv_cq_process(struct fid_cq *cq, uint64_t max_tag) {
     rc = fi_cq_read(cq, cqe_tagged_buffers, cq_read_count);
     if (rc > 0) {
       ret = sendrecv_process_completions(cqe_tagged_buffers, rc, max_tag);
-      if (OFI_UNLIKELY(ret != 0))
+      if (ret != 0) [[unlikely]]
         goto exit;
-    } else if (OFI_UNLIKELY(rc == -FI_EAVAIL)) {
+
+    } else if (rc == -FI_EAVAIL) [[unlikely]] {
       rc = fi_cq_readerr(cq, &err_buffer, 0);
-      if (OFI_UNLIKELY(rc == -FI_EAGAIN)) {
+      if (rc == -FI_EAGAIN) [[unlikely]] {
         /*
          * Error not available yet.
          * fi_cq_read will keep returning -FI_EAVAIL so just bail out and try again later.
          */
         break;
-      } else if (OFI_UNLIKELY(rc < 0)) {
+      } else if (rc < 0) [[unlikely]] {
         NCCL_OFI_WARN("Unable to read from fi_cq_readerr. RC: %zd. Error: %s", rc, fi_strerror(-rc));
         ret = rc;
         goto exit;
@@ -259,14 +260,14 @@ static inline int sendrecv_req_free(uint64_t *num_inflight_reqs, nccl_ofi_freeli
   int ret = 0;
   nccl_ofi_freelist_elem_t *elem = NULL;
 
-  if (OFI_UNLIKELY(req == NULL)) {
+  if (req == NULL) [[unlikely]] {
     ret = -EINVAL;
     NCCL_OFI_WARN("Provided null request for cleanup");
     goto exit;
   }
 
   /* Update free list */
-  if (OFI_UNLIKELY(nccl_ofi_reqs_fl == NULL)) {
+  if (nccl_ofi_reqs_fl == NULL) [[unlikely]] {
     ret = -EINVAL;
     NCCL_OFI_WARN("Comm for device %d does not have valid free list", dev_id);
     goto exit;
@@ -281,7 +282,7 @@ static inline int sendrecv_req_free(uint64_t *num_inflight_reqs, nccl_ofi_freeli
   nccl_ofi_freelist_entry_free(nccl_ofi_reqs_fl, elem);
 
   /* Reduce inflight commands */
-  if (OFI_LIKELY(dec_inflight_reqs == true))
+  if (dec_inflight_reqs == true) [[likely]]
     (*num_inflight_reqs)--;
 
 exit:
@@ -335,7 +336,7 @@ static int sendrecv_req_test(nccl_net_ofi_req_t *base_req, int *done, int *size)
 
   /* Retrieve and validate comm */
   nccl_net_ofi_comm_t *base_comm = req->comm;
-  if (OFI_UNLIKELY(base_comm == NULL)) {
+  if (base_comm == NULL) [[unlikely]] {
     ret = -EINVAL;
     NCCL_OFI_WARN("Invalid comm object provided");
     goto exit;
@@ -343,7 +344,7 @@ static int sendrecv_req_test(nccl_net_ofi_req_t *base_req, int *done, int *size)
 
   /* Retrieve and validate endpoint */
   ep = (nccl_net_ofi_sendrecv_ep_t *)base_comm->ep;
-  if (OFI_UNLIKELY(ep == NULL)) {
+  if (ep == NULL) [[unlikely]] {
     ret = -EINVAL;
     NCCL_OFI_WARN("Invalid endpoint provided");
     goto exit;
@@ -351,7 +352,7 @@ static int sendrecv_req_test(nccl_net_ofi_req_t *base_req, int *done, int *size)
 
   /* Retrieve and validate device */
   device = sendrecv_endpoint_get_device(ep);
-  if (OFI_UNLIKELY(device == NULL)) {
+  if (device == NULL) [[unlikely]] {
     ret = -EINVAL;
     NCCL_OFI_WARN("Invalid device provided");
     goto exit;
@@ -360,19 +361,19 @@ static int sendrecv_req_test(nccl_net_ofi_req_t *base_req, int *done, int *size)
   /* Process more completions unless the current request is completed */
   if (req->state != NCCL_OFI_SENDRECV_REQ_COMPLETED) {
     ret = sendrecv_cq_process(ep->cq, device->max_tag);
-    if (OFI_UNLIKELY(ret != 0))
+    if (ret != 0) [[unlikely]]
       goto exit;
   }
 
   /* Determine whether the request has finished and free if done */
-  if (OFI_LIKELY(req->state == NCCL_OFI_SENDRECV_REQ_COMPLETED || req->state == NCCL_OFI_SENDRECV_REQ_ERROR)) {
+  if (req->state == NCCL_OFI_SENDRECV_REQ_COMPLETED || req->state == NCCL_OFI_SENDRECV_REQ_ERROR) [[likely]] {
     __compiler_barrier();
     if (size)
       *size = req->size;
     /* Mark as done */
     *done = 1;
 
-    if (OFI_UNLIKELY(req->state == NCCL_OFI_SENDRECV_REQ_ERROR))
+    if (req->state == NCCL_OFI_SENDRECV_REQ_ERROR) [[unlikely]]
       ret = -ENOTSUP;
 
     int dev_id = base_comm->dev_id;
@@ -398,7 +399,7 @@ static nccl_net_ofi_sendrecv_req_t *sendrecv_recv_req_prepare(nccl_net_ofi_sendr
 
   /* Allocate a NCCL OFI request */
   req = (nccl_net_ofi_sendrecv_req_t *)calloc(1, sizeof(nccl_net_ofi_sendrecv_req_t));
-  if (OFI_UNLIKELY(req == NULL)) {
+  if (req == NULL) [[unlikely]] {
     NCCL_OFI_WARN("Unable to allocate nccl_ofi_req_t");
     return NULL;
   }
@@ -437,8 +438,9 @@ static int sendrecv_recv_conn_post(nccl_net_ofi_sendrecv_listen_comm_t *l_comm, 
      * resources for posting receive buffer
      */
     ret = sendrecv_cq_process(ep->cq, device->max_tag);
-    if (OFI_UNLIKELY(ret != 0))
+    if (ret != 0) [[unlikely]]
       return ret;
+
   } else if (rc != 0)
     NCCL_OFI_WARN("Unable to post a buffer for receiving connections for dev %d. RC: %zd, ERROR: %s", dev_id, rc, fi_strerror(-rc));
 
@@ -504,9 +506,10 @@ static int sendrecv_mr_buffers_register(struct fid_domain *domain, struct fid_ep
 
     /* Get CUDA device ID */
     ret = nccl_net_ofi_get_cuda_device_for_addr((void *)nccl_ofi_mr_ckey_baseaddr(ckey), &mr_attr.device.cuda);
-    if (OFI_UNLIKELY(ret != 0)) {
+    if (ret != 0) [[unlikely]] {
       goto exit;
     }
+
     break;
 #endif
 #if HAVE_NEURON
@@ -530,28 +533,29 @@ static int sendrecv_mr_buffers_register(struct fid_domain *domain, struct fid_ep
 
   if (nccl_ofi_idpool_active(key_pool)) {
     int key = nccl_ofi_idpool_allocate_id(key_pool);
-    if (OFI_UNLIKELY(key < 0)) {
+    if (key < 0) [[unlikely]] {
       NCCL_OFI_WARN("MR key allocation failed");
       goto exit;
     }
+
     mr_attr.requested_key = (uint64_t)key;
   }
 
   ret = fi_mr_regattr(domain, &mr_attr, regattr_flags, mr_handle);
-  if (OFI_UNLIKELY(ret != 0)) {
+  if (ret != 0) [[unlikely]] {
     NCCL_OFI_WARN("Unable to register memory (type = %d) for device %d. RC: %d, Error: %s", type, dev_id, ret, fi_strerror(-ret));
     goto exit;
   }
 
   if (endpoint_mr) {
     ret = fi_mr_bind(*mr_handle, &ep->fid, 0);
-    if (OFI_UNLIKELY(ret != 0)) {
+    if (ret != 0) [[unlikely]] {
       NCCL_OFI_WARN("Unable to bind MR to EP (type = %d) for device %d. RC: %d, Error: %s", type, dev_id, ret, fi_strerror(-ret));
       goto exit;
     }
 
     ret = fi_mr_enable(*mr_handle);
-    if (OFI_UNLIKELY(ret != 0)) {
+    if (ret != 0) [[unlikely]] {
       NCCL_OFI_WARN("Unable to enable MR (type = %d) for device %d. RC: %d, Error: %s", type, dev_id, ret, fi_strerror(-ret));
       goto exit;
     }
@@ -647,7 +651,7 @@ static int sendrecv_mr_base_register(struct fid_domain *domain, struct fid_ep *e
 static int sendrecv_comm_mr_base_dereg(struct fid_mr *mr_handle, nccl_ofi_idpool_t *key_pool, nccl_ofi_mr_cache_t *mr_cache) {
   int ret = 0;
 
-  if (OFI_LIKELY(mr_handle == NULL)) {
+  if (mr_handle == NULL) [[likely]] {
     NCCL_OFI_TRACE(NCCL_NET, "Null MR handle provided. Skipping deregisteration.");
     goto exit;
   }
@@ -661,7 +665,7 @@ static int sendrecv_comm_mr_base_dereg(struct fid_mr *mr_handle, nccl_ofi_idpool
     nccl_net_ofi_mutex_lock(&mr_cache->lock);
     ret = nccl_ofi_mr_cache_del_entry(mr_cache, (void *)mr_handle);
     nccl_net_ofi_mutex_unlock(&mr_cache->lock);
-    if (OFI_UNLIKELY(ret < 0)) {
+    if (ret < 0) [[unlikely]] {
       NCCL_OFI_WARN("Failed to delete MR cache entry");
     } else if (ret == 0) {
       /* Entry must not be deregistered */
@@ -671,18 +675,18 @@ static int sendrecv_comm_mr_base_dereg(struct fid_mr *mr_handle, nccl_ofi_idpool
 
   if (nccl_ofi_idpool_active(key_pool)) {
     uint64_t key = fi_mr_key(mr_handle);
-    if (OFI_UNLIKELY(key == FI_KEY_NOTAVAIL)) {
+    if (key == FI_KEY_NOTAVAIL) [[unlikely]] {
       NCCL_OFI_WARN("Error retrieving MR key, leaking key");
     } else {
       ret = nccl_ofi_idpool_free_id(key_pool, key);
-      if (OFI_UNLIKELY(ret != 0)) {
+      if (ret != 0) [[unlikely]] {
         NCCL_OFI_WARN("Error freeing MR key %" PRIu64 ", leaking key", key);
       }
     }
   }
 
   ret = fi_close((fid_t)mr_handle);
-  if (OFI_UNLIKELY(ret != 0)) {
+  if (ret != 0) [[unlikely]] {
     NCCL_OFI_WARN("Unable to de-register memory. RC: %d, Error: %s", ret, fi_strerror(-ret));
   }
 
@@ -694,14 +698,14 @@ static int sendrecv_comm_mr_base_reg(nccl_net_ofi_comm_t *base_comm, nccl_ofi_mr
   /* Retrieve and validate endpoint */
   nccl_net_ofi_sendrecv_ep_t *ep = (nccl_net_ofi_sendrecv_ep_t *)base_comm->ep;
   nccl_ofi_idpool_t *key_pool = NULL;
-  if (OFI_UNLIKELY(ep == NULL)) {
+  if (ep == NULL) [[unlikely]] {
     NCCL_OFI_WARN("Invalid endpoint provided");
     return -EINVAL;
   }
 
   /* Retrieve and validate device */
   nccl_net_ofi_sendrecv_device_t *device = sendrecv_endpoint_get_device(ep);
-  if (OFI_UNLIKELY(device == NULL)) {
+  if (device == NULL) [[unlikely]] {
     NCCL_OFI_WARN("Invalid device provided");
     return -EINVAL;
   }
@@ -738,14 +742,14 @@ static int sendrecv_comm_mr_base_reg(nccl_net_ofi_comm_t *base_comm, nccl_ofi_mr
   struct fid_domain *ofi_domain;
   ofi_domain = sendrecv_endpoint_get_ofi_domain(ep);
   ret = sendrecv_mr_base_register(ofi_domain, ep->ofi_ep, key_pool, dev_id, ckey, type, &ret_handle);
-  if (OFI_UNLIKELY(ret_handle == NULL || ret != 0)) {
+  if (ret_handle == NULL || ret != 0) [[unlikely]] {
     ret_handle = NULL;
     goto unlock;
   }
 
   if (mr_cache) {
     ret = nccl_ofi_mr_cache_insert_entry(mr_cache, ckey, ret_handle);
-    if (OFI_UNLIKELY(ret != 0)) {
+    if (ret != 0) [[unlikely]] {
       /* MR cache insert failed. Deregister memory region without
        * trying to delete MR cache entry.
        */
@@ -777,14 +781,14 @@ static int sendrecv_recv_comm_reg_mr(nccl_net_ofi_recv_comm_t *comm, nccl_ofi_mr
 static int sendrecv_recv_comm_dereg_mr(nccl_net_ofi_recv_comm_t *recv_comm, nccl_net_ofi_mr_handle_t *mhandle) {
   /* Retrieve and validate endpoint */
   nccl_net_ofi_sendrecv_ep_t *ep = (nccl_net_ofi_sendrecv_ep_t *)recv_comm->base.ep;
-  if (OFI_UNLIKELY(ep == NULL)) {
+  if (ep == NULL) [[unlikely]] {
     NCCL_OFI_WARN("Invalid endpoint provided");
     return -EINVAL;
   }
 
   /* Retrieve and validate device */
   nccl_net_ofi_sendrecv_device_t *device = sendrecv_endpoint_get_device(ep);
-  if (OFI_UNLIKELY(device == NULL)) {
+  if (device == NULL) [[unlikely]] {
     NCCL_OFI_WARN("Invalid device provided");
     return -EINVAL;
   }
@@ -803,13 +807,13 @@ static inline nccl_net_ofi_sendrecv_req_t *sendrecv_allocate_req(nccl_ofi_freeli
   nccl_net_ofi_sendrecv_req_t *req = NULL;
   nccl_ofi_freelist_elem_t *elem = NULL;
 
-  if (OFI_UNLIKELY(fl == NULL)) {
+  if (fl == NULL) [[unlikely]] {
     NCCL_OFI_WARN("Freelist not allocated");
     goto exit;
   }
 
   elem = nccl_ofi_freelist_entry_alloc(fl);
-  if (OFI_UNLIKELY(elem == NULL)) {
+  if (elem == NULL) [[unlikely]] {
     NCCL_OFI_WARN("No freelist items available");
     goto exit;
   }
@@ -838,7 +842,7 @@ static int sendrecv_recv_comm_recv(nccl_net_ofi_recv_comm_t *recv_comm, int n, v
 
   /* Retrieve and validate endpoint */
   ep = (nccl_net_ofi_sendrecv_ep_t *)r_comm->base.base.ep;
-  if (OFI_UNLIKELY(ep == NULL)) {
+  if (ep == NULL) [[unlikely]] {
     ret = -EINVAL;
     NCCL_OFI_WARN("Invalid endpoint provided");
     goto error;
@@ -846,14 +850,14 @@ static int sendrecv_recv_comm_recv(nccl_net_ofi_recv_comm_t *recv_comm, int n, v
 
   /* Retrieve and validate device */
   device = sendrecv_endpoint_get_device(ep);
-  if (OFI_UNLIKELY(device == NULL)) {
+  if (device == NULL) [[unlikely]] {
     ret = -EINVAL;
     NCCL_OFI_WARN("Invalid device provided");
     goto exit;
   }
 
   /* Support only NCCL_OFI_MAX_REQUESTS inflight reqs. */
-  if (OFI_UNLIKELY(r_comm->num_inflight_reqs == NCCL_OFI_MAX_REQUESTS)) {
+  if (r_comm->num_inflight_reqs == NCCL_OFI_MAX_REQUESTS) [[unlikely]] {
     ret = -EINVAL;
     NCCL_OFI_WARN("Can not support more than %d inflight requests", NCCL_OFI_MAX_REQUESTS);
     goto error;
@@ -861,7 +865,7 @@ static int sendrecv_recv_comm_recv(nccl_net_ofi_recv_comm_t *recv_comm, int n, v
 
   /* Allocate NCCL OFI request */
   req = sendrecv_allocate_req(r_comm->nccl_ofi_reqs_fl);
-  if (OFI_UNLIKELY(req == NULL)) {
+  if (req == NULL) [[unlikely]] {
     ret = -EINVAL;
     NCCL_OFI_WARN("Unable to get NCCL OFI request for device %d", dev_id);
     goto error;
@@ -869,7 +873,7 @@ static int sendrecv_recv_comm_recv(nccl_net_ofi_recv_comm_t *recv_comm, int n, v
 
   /* Progress NCCL OFI */
   ret = sendrecv_cq_process(ep->cq, device->max_tag);
-  if (OFI_UNLIKELY(ret != 0))
+  if (ret != 0) [[unlikely]]
     goto error;
 
   req->comm = &r_comm->base.base;
@@ -878,7 +882,7 @@ static int sendrecv_recv_comm_recv(nccl_net_ofi_recv_comm_t *recv_comm, int n, v
 
   req->num_recvs = n;
 
-  if (OFI_UNLIKELY(mr_handles == NULL)) {
+  if (mr_handles == NULL) [[unlikely]] {
     ret = -EINVAL;
     NCCL_OFI_WARN("Memory handles array is NULL");
     goto error;
@@ -934,7 +938,7 @@ static int sendrecv_recv_comm_close(nccl_net_ofi_recv_comm_t *recv_comm) {
 
   /* Retrieve and validate endpoint */
   nccl_net_ofi_ep_t *base_ep = r_comm->base.base.ep;
-  if (OFI_UNLIKELY(base_ep == NULL)) {
+  if (base_ep == NULL) [[unlikely]] {
     ret = -EINVAL;
     NCCL_OFI_WARN("Invalid endpoint provided");
     goto exit;
@@ -946,7 +950,7 @@ static int sendrecv_recv_comm_close(nccl_net_ofi_recv_comm_t *recv_comm) {
     mr_handle = (struct fid_mr *)r_comm->flush_buff.mr_handle;
     if (mr_handle) {
       ret = fi_close((fid_t)mr_handle);
-      if (OFI_UNLIKELY(ret != 0)) {
+      if (ret != 0) [[unlikely]] {
         NCCL_OFI_WARN("Unable to de-register memory. RC: %d, Error: %s", ret, fi_strerror(-ret));
         goto exit;
       }
@@ -1023,7 +1027,7 @@ static int sendrecv_recv_comm_flush(nccl_net_ofi_recv_comm_t *recv_comm, int n, 
   data = buffers[flush_n];
 
   /* Support only max_requests inflight requests. */
-  if (OFI_UNLIKELY(r_comm->num_inflight_reqs == NCCL_OFI_MAX_REQUESTS)) {
+  if (r_comm->num_inflight_reqs == NCCL_OFI_MAX_REQUESTS) [[unlikely]] {
     ret = -ENOSPC;
     NCCL_OFI_WARN("Can not support more than %d inflight requests", NCCL_OFI_MAX_REQUESTS);
     goto exit;
@@ -1031,7 +1035,7 @@ static int sendrecv_recv_comm_flush(nccl_net_ofi_recv_comm_t *recv_comm, int n, 
 
   /* Allocate NCCL OFI request */
   req = sendrecv_allocate_req(r_comm->nccl_ofi_reqs_fl);
-  if (OFI_UNLIKELY(req == NULL)) {
+  if (req == NULL) [[unlikely]] {
     ret = -ENOTSUP;
     NCCL_OFI_WARN("Unable to get NCCL OFI request for device %d", dev_id);
     goto exit;
@@ -1050,7 +1054,7 @@ static int sendrecv_recv_comm_flush(nccl_net_ofi_recv_comm_t *recv_comm, int n, 
   if (mr_handle != NULL) {
     /* Extract remote key */
     cuda_key = fi_mr_key(mr_handle);
-    if (OFI_UNLIKELY(cuda_key == FI_KEY_NOTAVAIL)) {
+    if (cuda_key == FI_KEY_NOTAVAIL) [[unlikely]] {
       ret = -ENOTSUP;
       NCCL_OFI_WARN("Memory registration may not have completed.");
       goto error;
@@ -1068,7 +1072,7 @@ static int sendrecv_recv_comm_flush(nccl_net_ofi_recv_comm_t *recv_comm, int n, 
     } else if (rc == -FI_EAGAIN) {
       /* Retrieve and validate endpoint */
       nccl_net_ofi_sendrecv_ep_t *ep = (nccl_net_ofi_sendrecv_ep_t *)r_comm->base.base.ep;
-      if (OFI_UNLIKELY(ep == NULL)) {
+      if (ep == NULL) [[unlikely]] {
         ret = -EINVAL;
         NCCL_OFI_WARN("Invalid endpoint provided");
         goto error;
@@ -1076,7 +1080,7 @@ static int sendrecv_recv_comm_flush(nccl_net_ofi_recv_comm_t *recv_comm, int n, 
 
       /* Retrieve and validate device */
       nccl_net_ofi_sendrecv_device_t *device = sendrecv_endpoint_get_device(ep);
-      if (OFI_UNLIKELY(device == NULL)) {
+      if (device == NULL) [[unlikely]] {
         ret = -EINVAL;
         NCCL_OFI_WARN("Invalid device provided");
         goto exit;
@@ -1087,8 +1091,9 @@ static int sendrecv_recv_comm_flush(nccl_net_ofi_recv_comm_t *recv_comm, int n, 
        * resources for issuing fi_read
        */
       ret = sendrecv_cq_process(ep->cq, device->max_tag);
-      if (OFI_UNLIKELY(ret != 0))
+      if (ret != 0) [[unlikely]]
         goto error;
+
     } else {
       NCCL_OFI_WARN("Unable to issue read operation for dev %d. RC: %zd, ERROR: %s", dev_id, rc, fi_strerror(-rc));
       ret = -ENOTSUP;
@@ -1139,14 +1144,14 @@ static int sendrecv_recv_comm_alloc_and_reg_flush_buff(struct fid_domain *domain
   NCCL_OFI_TRACE(NCCL_NET, "Registering buffer for flush operations");
 
   ret = nccl_net_ofi_alloc_mr_buffer(system_page_size, &(flush_buff->host_buffer));
-  if (OFI_UNLIKELY(ret != 0)) {
+  if (ret != 0) [[unlikely]] {
     NCCL_OFI_WARN("Unable to allocate flush buffer (%d)", ret);
     return ret;
   }
 
   /* Register flush dummy buffer for provider access */
   ret = sendrecv_mr_buffers_internal_register(domain, ep, key_pool, dev_id, flush_buff->host_buffer, system_page_size, NCCL_PTR_HOST, &mr_handle);
-  if (OFI_UNLIKELY(ret != 0)) {
+  if (ret != 0) [[unlikely]] {
     NCCL_OFI_WARN("Could not register dummy buffer for flush, dev: %d", dev_id);
     ret = nccl_net_ofi_dealloc_mr_buffer(flush_buff->host_buffer, system_page_size);
     if (ret != 0) {
@@ -1183,7 +1188,7 @@ static nccl_net_ofi_sendrecv_recv_comm_t *sendrecv_recv_comm_prepare(nccl_net_of
 
   /* Insert remote EP address to AV */
   ret = fi_av_insert(ep->av, (void *)remote_ep_addr, 1, &remote_ep, 0, NULL);
-  if (OFI_UNLIKELY(ret != 1)) {
+  if (ret != 1) [[unlikely]] {
     NCCL_OFI_WARN("Unable to insert remote address into address vector for device %d. RC: %s", dev_id, fi_strerror(-ret));
     return NULL;
   }
@@ -1212,7 +1217,7 @@ static nccl_net_ofi_sendrecv_recv_comm_t *sendrecv_recv_comm_prepare(nccl_net_of
   /* Pre-allocated buffers for data path */
 
   ret = nccl_ofi_freelist_init(req_size, 16, 16, NCCL_OFI_MAX_REQUESTS, &r_comm->nccl_ofi_reqs_fl);
-  if (OFI_UNLIKELY(ret != 0)) {
+  if (ret != 0) [[unlikely]] {
     NCCL_OFI_WARN("Could not allocate NCCL OFI requests free list for dev %d", dev_id);
     free(r_comm);
     return NULL;
@@ -1227,7 +1232,7 @@ static nccl_net_ofi_sendrecv_recv_comm_t *sendrecv_recv_comm_prepare(nccl_net_of
   if (!ofi_nccl_gdr_flush_disable() && support_gdr == GDR_SUPPORTED && !cuda_flush) {
     r_comm->flush_buff.size = NCCL_OFI_FLUSH_SIZE;
     ret = sendrecv_recv_comm_alloc_and_reg_flush_buff(ofi_domain, ep->ofi_ep, key_pool, &r_comm->flush_buff, dev_id);
-    if (OFI_UNLIKELY(ret != 0)) {
+    if (ret != 0) [[unlikely]] {
       free(r_comm);
       return NULL;
     }
@@ -1258,7 +1263,7 @@ static int sendrecv_listen_comm_accept(nccl_net_ofi_listen_comm_t *listen_comm, 
 
   /* Retrieve and validate endpoint */
   nccl_net_ofi_sendrecv_ep_t *ep = (nccl_net_ofi_sendrecv_ep_t *)l_comm->base.base.ep;
-  if (OFI_UNLIKELY(ep == NULL)) {
+  if (ep == NULL) [[unlikely]] {
     ret = -EINVAL;
     NCCL_OFI_WARN("Invalid endpoint provided");
     return ret;
@@ -1269,7 +1274,7 @@ static int sendrecv_listen_comm_accept(nccl_net_ofi_listen_comm_t *listen_comm, 
 
   /* Retrieve and validate device */
   nccl_net_ofi_sendrecv_device_t *device = sendrecv_endpoint_get_device(ep);
-  if (OFI_UNLIKELY(device == NULL)) {
+  if (device == NULL) [[unlikely]] {
     ret = -EINVAL;
     NCCL_OFI_WARN("Invalid device provided");
     return ret;
@@ -1335,7 +1340,7 @@ static int sendrecv_listen_comm_accept(nccl_net_ofi_listen_comm_t *listen_comm, 
 
     /* Progress NCCL OFI engine so that connection is accepted */
     ret = sendrecv_cq_process(ep->cq, device->max_tag);
-    if (OFI_UNLIKELY(ret != 0)) {
+    if (ret != 0) [[unlikely]] {
       free(req);
       return ret;
     }
@@ -1372,7 +1377,7 @@ static int sendrecv_listen_comm_accept(nccl_net_ofi_listen_comm_t *listen_comm, 
 
   /* Prepare receive communicator object for the received peer connection */
   r_comm = sendrecv_recv_comm_prepare(l_comm, device, domain, ep, conn_info->ep_name);
-  if (OFI_UNLIKELY(r_comm == NULL)) {
+  if (r_comm == NULL) [[unlikely]] {
     return -ENOMEM;
   }
 
@@ -1390,7 +1395,7 @@ static int sendrecv_listen_comm_close(nccl_net_ofi_listen_comm_t *listen_comm) {
 
   /* Retrieve and validate endpoint */
   nccl_net_ofi_ep_t *base_ep = l_comm->base.base.ep;
-  if (OFI_UNLIKELY(base_ep == NULL)) {
+  if (base_ep == NULL) [[unlikely]] {
     ret = -EINVAL;
     NCCL_OFI_WARN("Invalid endpoint provided");
     goto exit;
@@ -1440,7 +1445,7 @@ static int sendrecv_endpoint_listen(nccl_net_ofi_ep_t *base_ep, nccl_net_ofi_con
 
   /* Retrieve and validate device */
   nccl_net_ofi_sendrecv_device_t *device = sendrecv_endpoint_get_device(ep);
-  if (OFI_UNLIKELY(device == NULL)) {
+  if (device == NULL) [[unlikely]] {
     NCCL_OFI_WARN("Invalid device provided");
     return -EINVAL;
   }
@@ -1472,14 +1477,14 @@ static int sendrecv_endpoint_listen(nccl_net_ofi_ep_t *base_ep, nccl_net_ofi_con
   num_addrs = fi_av_insert(ep->av, (void *)local_ep_name, 1, &local_ep_addr, 0, NULL);
 
   /* Only 1 address should be inserted into the AV */
-  if (OFI_UNLIKELY(num_addrs != 1)) {
+  if (num_addrs != 1) [[unlikely]] {
     NCCL_OFI_WARN("Unable to insert remote address into address vector for device %d.", dev_id);
     return -EINVAL;
   }
 
   /* Build listen_comm */
   l_comm = (nccl_net_ofi_sendrecv_listen_comm_t *)calloc(1, sizeof(nccl_net_ofi_sendrecv_listen_comm_t));
-  if (OFI_UNLIKELY(l_comm == NULL)) {
+  if (l_comm == NULL) [[unlikely]] {
     NCCL_OFI_WARN("Couldn't allocate listen_comm for dev %d", dev_id);
     return -ENOMEM;
   }
@@ -1502,14 +1507,14 @@ static int sendrecv_endpoint_listen(nccl_net_ofi_ep_t *base_ep, nccl_net_ofi_con
 static int sendrecv_send_comm_dereg_mr(nccl_net_ofi_send_comm_t *send_comm, nccl_net_ofi_mr_handle_t *mhandle) {
   /* Retrieve and validate endpoint */
   nccl_net_ofi_sendrecv_ep_t *ep = (nccl_net_ofi_sendrecv_ep_t *)send_comm->base.ep;
-  if (OFI_UNLIKELY(ep == NULL)) {
+  if (ep == NULL) [[unlikely]] {
     NCCL_OFI_WARN("Invalid endpoint provided");
     return -EINVAL;
   }
 
   /* Retrieve and validate device */
   nccl_net_ofi_sendrecv_device_t *device = sendrecv_endpoint_get_device(ep);
-  if (OFI_UNLIKELY(device == NULL)) {
+  if (device == NULL) [[unlikely]] {
     NCCL_OFI_WARN("Invalid device provided");
     return -EINVAL;
   }
@@ -1534,7 +1539,7 @@ static int sendrecv_send_comm_send(nccl_net_ofi_send_comm_t *send_comm, void *da
 
   /* Validate endpoint */
   nccl_net_ofi_sendrecv_ep_t *ep = (nccl_net_ofi_sendrecv_ep_t *)s_comm->base.base.ep;
-  if (OFI_UNLIKELY(ep == NULL)) {
+  if (ep == NULL) [[unlikely]] {
     ret = -EINVAL;
     NCCL_OFI_WARN("Invalid endpoint provided");
     goto error;
@@ -1542,14 +1547,14 @@ static int sendrecv_send_comm_send(nccl_net_ofi_send_comm_t *send_comm, void *da
 
   /* Retrieve and validate device */
   device = sendrecv_endpoint_get_device(ep);
-  if (OFI_UNLIKELY(device == NULL)) {
+  if (device == NULL) [[unlikely]] {
     ret = -EINVAL;
     NCCL_OFI_WARN("Invalid device provided");
     goto exit;
   }
 
   /* Support only NCCL_OFI_MAX_REQUESTS inflight requests. */
-  if (OFI_UNLIKELY(s_comm->num_inflight_reqs == NCCL_OFI_MAX_SEND_REQUESTS)) {
+  if (s_comm->num_inflight_reqs == NCCL_OFI_MAX_SEND_REQUESTS) [[unlikely]] {
     ret = -EINVAL;
     NCCL_OFI_WARN("Can not support more than %d inflight requests", NCCL_OFI_MAX_SEND_REQUESTS);
     goto error;
@@ -1561,7 +1566,7 @@ static int sendrecv_send_comm_send(nccl_net_ofi_send_comm_t *send_comm, void *da
    * function to process completions and return NULL request for send to
    * retry.
    */
-  if (OFI_UNLIKELY(s_comm->conn_info && (s_comm->conn_info->connect_to_self == 1))) {
+  if (s_comm->conn_info && (s_comm->conn_info->connect_to_self == 1)) [[unlikely]] {
     nccl_ofi_connection_info_t *conn_info = s_comm->conn_info;
     assert(conn_info->req != NULL);
     nccl_net_ofi_sendrecv_req_t *self_req = (nccl_net_ofi_sendrecv_req_t *)conn_info->req;
@@ -1588,7 +1593,7 @@ static int sendrecv_send_comm_send(nccl_net_ofi_send_comm_t *send_comm, void *da
 
   /* Allocate NCCL OFI request */
   req = sendrecv_allocate_req(s_comm->nccl_ofi_reqs_fl);
-  if (OFI_UNLIKELY(req == NULL)) {
+  if (req == NULL) [[unlikely]] {
     ret = -ENOMEM;
     NCCL_OFI_WARN("Unable to get NCCL OFI request for device %d", dev_id);
     goto error;
@@ -1608,13 +1613,13 @@ static int sendrecv_send_comm_send(nccl_net_ofi_send_comm_t *send_comm, void *da
    * if not able to send.
    */
   rc = fi_tsend(s_comm->local_ep, data, size, desc, s_comm->remote_ep, s_comm->tag, &req->ctx);
-  if (OFI_UNLIKELY(rc == -FI_EAGAIN)) {
+  if (rc == -FI_EAGAIN) [[unlikely]] {
     /* Make progress for next try */
     ret = sendrecv_cq_process(ep->cq, device->max_tag);
     /* Return NULL request */
     *base_req = NULL;
     goto error;
-  } else if (OFI_UNLIKELY(rc != 0)) {
+  } else if (rc != 0) [[unlikely]] {
     NCCL_OFI_WARN("Could not send request for device %d. RC: %zd", dev_id, rc);
     ret = rc;
     goto error;
@@ -1643,7 +1648,7 @@ static int sendrecv_send_comm_close(nccl_net_ofi_send_comm_t *send_comm) {
 
   /* Retrieve and validate endpoint */
   nccl_net_ofi_ep_t *base_ep = s_comm->base.base.ep;
-  if (OFI_UNLIKELY(base_ep == NULL)) {
+  if (base_ep == NULL) [[unlikely]] {
     ret = -EINVAL;
     NCCL_OFI_WARN("Invalid endpoint provided");
     goto exit;
@@ -1682,7 +1687,7 @@ static inline int sendrecv_send_comm_create(nccl_net_ofi_conn_handle_t *handle, 
 
   /* Retrieve and validate device */
   nccl_net_ofi_sendrecv_device_t *device = sendrecv_endpoint_get_device(ep);
-  if (OFI_UNLIKELY(device == NULL)) {
+  if (device == NULL) [[unlikely]] {
     NCCL_OFI_WARN("Error accessing device.");
     return -EINVAL;
   }
@@ -1699,14 +1704,14 @@ static inline int sendrecv_send_comm_create(nccl_net_ofi_conn_handle_t *handle, 
 
   /* Insert remote address into AV */
   ret = fi_av_insert(ep->av, (void *)remote_ep_addr, 1, &remote_addr, 0, NULL);
-  if (OFI_UNLIKELY(ret != 1)) {
+  if (ret != 1) [[unlikely]] {
     NCCL_OFI_WARN("Unable to insert remote address into address vector for device %d. RC: %d", device->base.dev_id, ret);
     return -EINVAL;
   }
 
   /* Allocate and initialize send_comm */
   ret_s_comm = (nccl_net_ofi_sendrecv_send_comm_t *)calloc(1, sizeof(nccl_net_ofi_sendrecv_send_comm_t));
-  if (OFI_UNLIKELY(ret_s_comm == NULL)) {
+  if (ret_s_comm == NULL) [[unlikely]] {
     NCCL_OFI_WARN("Couldn't allocate send_comm for dev %d", device->base.dev_id);
     return -ENOMEM;
   }
@@ -1745,7 +1750,7 @@ static inline int sendrecv_send_comm_create(nccl_net_ofi_conn_handle_t *handle, 
 
   /* Pre-allocated buffers for data path */
   ret = nccl_ofi_freelist_init(req_size, 16, 16, NCCL_OFI_MAX_SEND_REQUESTS, &ret_s_comm->nccl_ofi_reqs_fl);
-  if (OFI_UNLIKELY(ret != 0)) {
+  if (ret != 0) [[unlikely]] {
     NCCL_OFI_WARN("Could not allocate NCCL OFI requests free list for dev %d", device->base.dev_id);
     goto out;
   }
@@ -1769,12 +1774,12 @@ out:
 static inline nccl_net_ofi_sendrecv_req_t *sendrecv_send_comm_prepare_send_req(nccl_net_ofi_sendrecv_send_comm_t *s_comm) {
   nccl_net_ofi_sendrecv_req_t *req = NULL;
 
-  if (OFI_UNLIKELY(s_comm == NULL)) {
+  if (s_comm == NULL) [[unlikely]] {
     return NULL;
   }
 
   req = sendrecv_allocate_req(s_comm->nccl_ofi_reqs_fl);
-  if (OFI_UNLIKELY(req == NULL)) {
+  if (req == NULL) [[unlikely]] {
     NCCL_OFI_WARN("Unable to get NCCL OFI request for device %d", s_comm->base.base.dev_id);
     return NULL;
   }
@@ -1831,10 +1836,11 @@ static int sendrecv_endpoint_connect(nccl_net_ofi_ep_t *base_ep, nccl_net_ofi_co
 
   /* Retrieve and validate devices */
   nccl_net_ofi_sendrecv_device_t *device = sendrecv_endpoint_get_device(ep);
-  if (OFI_UNLIKELY(device == NULL)) {
+  if (device == NULL) [[unlikely]] {
     NCCL_OFI_WARN("Error accessing devices array. Devices array has not been initialized.");
     return -EINVAL;
   }
+
   int dev_id = device->base.dev_id;
 
   /* Extract connection state of the communicator */
@@ -1860,13 +1866,13 @@ static int sendrecv_endpoint_connect(nccl_net_ofi_ep_t *base_ep, nccl_net_ofi_co
 
     /* Build send_comm */
     ret = sendrecv_send_comm_create(handle, ep, &s_comm);
-    if (OFI_UNLIKELY(ret != 0 || s_comm == NULL)) {
+    if (ret != 0 || s_comm == NULL) [[unlikely]] {
       return ret;
     }
 
     /* Prepare connect request to be sent to peer */
     req = sendrecv_send_comm_prepare_send_req(s_comm);
-    if (OFI_UNLIKELY(req == NULL)) {
+    if (req == NULL) [[unlikely]] {
       free(s_comm);
       return -ENOMEM;
     }
@@ -1901,7 +1907,7 @@ static int sendrecv_endpoint_connect(nccl_net_ofi_ep_t *base_ep, nccl_net_ofi_co
 
     /* Progress our engine to get completions */
     ret = sendrecv_cq_process(ep->cq, device->max_tag);
-    if (OFI_UNLIKELY(ret != 0)) {
+    if (ret != 0) [[unlikely]] {
       assert((nccl_net_ofi_comm_t *)s_comm == req->comm);
       sendrecv_send_comm_free_req(s_comm, dev_id, req, false);
       free(s_comm);
@@ -1945,7 +1951,7 @@ static int nccl_net_ofi_sendrecv_endpoint_free(nccl_net_ofi_ep_t *base_ep) {
 
   /* Validate device */
   nccl_net_ofi_sendrecv_ep_t *ep = (nccl_net_ofi_sendrecv_ep_t *)base_ep;
-  if (OFI_UNLIKELY(ep == NULL)) {
+  if (ep == NULL) [[unlikely]] {
     ret = -EINVAL;
     NCCL_OFI_WARN("Invalid endpoint provided");
     goto exit;
@@ -1953,7 +1959,7 @@ static int nccl_net_ofi_sendrecv_endpoint_free(nccl_net_ofi_ep_t *base_ep) {
 
   /* Validate device */
   device = sendrecv_endpoint_get_device(ep);
-  if (OFI_UNLIKELY(device == NULL)) {
+  if (device == NULL) [[unlikely]] {
     ret = -EINVAL;
     NCCL_OFI_WARN("Invalid device provided");
     goto exit;
@@ -1977,7 +1983,7 @@ static int nccl_net_ofi_sendrecv_domain_create_endpoint(nccl_net_ofi_domain_t *b
 
   /* Retrieve and validate device */
   nccl_net_ofi_sendrecv_domain_t *domain = (nccl_net_ofi_sendrecv_domain_t *)base_domain;
-  if (OFI_UNLIKELY(domain == NULL)) {
+  if (domain == NULL) [[unlikely]] {
     NCCL_OFI_WARN("Invalid domain provided");
     return -EINVAL;
   }
@@ -2054,7 +2060,7 @@ static nccl_net_ofi_domain_t *nccl_net_ofi_sendrecv_device_create_domain(nccl_ne
   }
 
   ret = fi_domain(device->fabric, device->info, &domain->domain, NULL);
-  if (OFI_UNLIKELY(ret != 0)) {
+  if (ret != 0) [[unlikely]] {
     NCCL_OFI_WARN("Couldn't open a fabric access domain. RC: %d, ERROR: %s", ret, fi_strerror(-ret));
     goto exit;
   }
@@ -2082,7 +2088,7 @@ static int sendrecv_device_prepare_for_connection(nccl_net_ofi_sendrecv_device_t
     ofi_tag_bits_for_ring_id--;
   }
 
-  if (OFI_UNLIKELY(ofi_tag_bits_for_ring_id < MIN_TAG_BITS_FOR_RING_ID)) {
+  if (ofi_tag_bits_for_ring_id < MIN_TAG_BITS_FOR_RING_ID) [[unlikely]] {
     NCCL_OFI_WARN("Provider %s does not provide enough tag bits %d for ring ID. Minimum required is %d", device->info->fabric_attr->prov_name,
                   ofi_tag_bits_for_ring_id, MIN_TAG_BITS_FOR_RING_ID);
     return -EINVAL;
@@ -2167,7 +2173,7 @@ static nccl_net_ofi_sendrecv_device_t *nccl_net_ofi_sendrecv_device_create(nccl_
 
   /* Create fabric */
   ret = fi_fabric(device->info->fabric_attr, &device->fabric, NULL);
-  if (OFI_UNLIKELY(ret != 0)) {
+  if (ret != 0) [[unlikely]] {
     NCCL_OFI_WARN("Couldn't open a fabric provider. RC: %d, ERROR: %s", ret, fi_strerror(-ret));
     goto error;
   }

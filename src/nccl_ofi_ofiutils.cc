@@ -255,7 +255,7 @@ int nccl_ofi_ofiutils_init_connection(struct fi_info *info, struct fid_domain *d
 
   /* Create transport level communication endpoint(s) */
   ret = fi_endpoint(domain, info, ep, NULL);
-  if (OFI_UNLIKELY(ret != 0)) {
+  if (ret != 0) [[unlikely]] {
     NCCL_OFI_WARN("Couldn't allocate endpoint. RC: %d, ERROR: %s", ret, fi_strerror(-ret));
     goto error;
   }
@@ -268,7 +268,7 @@ int nccl_ofi_ofiutils_init_connection(struct fi_info *info, struct fid_domain *d
     }
 
     ret = fi_cq_open(domain, &cq_attr, cq, NULL);
-    if (OFI_UNLIKELY(ret != 0)) {
+    if (ret != 0) [[unlikely]] {
       NCCL_OFI_WARN("Couldn't open CQ. RC: %d, ERROR: %s", ret, fi_strerror(-ret));
       goto error;
     }
@@ -276,21 +276,21 @@ int nccl_ofi_ofiutils_init_connection(struct fi_info *info, struct fid_domain *d
 
   /* Open AV */
   ret = fi_av_open(domain, &av_attr, av, NULL);
-  if (OFI_UNLIKELY(ret != 0)) {
+  if (ret != 0) [[unlikely]] {
     NCCL_OFI_WARN("Couldn't open AV. RC: %d, ERROR: %s", ret, fi_strerror(-ret));
     goto error;
   }
 
   /* Bind CQ to endpoint */
   ret = fi_ep_bind(*ep, &((*cq)->fid), FI_SEND | FI_RECV);
-  if (OFI_UNLIKELY(ret != 0)) {
+  if (ret != 0) [[unlikely]] {
     NCCL_OFI_WARN("Couldn't bind EP-CQ. RC: %d, ERROR: %s", ret, fi_strerror(-ret));
     goto error;
   }
 
   /* Bind AV to endpoint */
   ret = fi_ep_bind(*ep, &((*av)->fid), 0);
-  if (OFI_UNLIKELY(ret != 0)) {
+  if (ret != 0) [[unlikely]] {
     NCCL_OFI_WARN("Couldn't bind EP-AV. RC: %d, ERROR: %s", ret, fi_strerror(-ret));
     goto error;
   }
@@ -392,7 +392,7 @@ int nccl_ofi_ofiutils_init_connection(struct fi_info *info, struct fid_domain *d
 
   /* Enable endpoint for communication */
   ret = fi_enable(*ep);
-  if (OFI_UNLIKELY(ret != 0)) {
+  if (ret != 0) [[unlikely]] {
     NCCL_OFI_WARN("Couldn't enable endpoint. RC: %d, ERROR: %s", ret, fi_strerror(-ret));
     goto error;
   }

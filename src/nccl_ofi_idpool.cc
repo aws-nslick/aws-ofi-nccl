@@ -57,7 +57,7 @@ int nccl_ofi_idpool_init(nccl_ofi_idpool_t *idpool, size_t size) {
 
   /* Initialize mutex */
   ret = nccl_net_ofi_mutex_init(&idpool->lock, NULL);
-  if (OFI_UNLIKELY(ret)) {
+  if (ret) [[unlikely]] {
     NCCL_OFI_WARN("Unable to initialize mutex");
     free(idpool->ids);
     idpool->ids = NULL;
@@ -91,7 +91,7 @@ int nccl_ofi_idpool_allocate_id(nccl_ofi_idpool_t *idpool) {
     return -ENOMEM;
   }
 
-  if (OFI_UNLIKELY(NULL == idpool->ids)) {
+  if (NULL == idpool->ids) [[unlikely]] {
     NCCL_OFI_WARN("Invalid call to nccl_ofi_allocate_id with uninitialized pool");
     return -EINVAL;
   }
@@ -152,12 +152,12 @@ int nccl_ofi_idpool_free_id(nccl_ofi_idpool_t *idpool, size_t id) {
     return -EINVAL;
   }
 
-  if (OFI_UNLIKELY(NULL == idpool->ids)) {
+  if (NULL == idpool->ids) [[unlikely]] {
     NCCL_OFI_WARN("Invalid call to nccl_ofi_free_id with uninitialized pool");
     return -EINVAL;
   }
 
-  if (OFI_UNLIKELY(id >= idpool->size)) {
+  if (id >= idpool->size) [[unlikely]] {
     NCCL_OFI_WARN("ID value %lu out of range (max: %lu)", id, idpool->size);
     return -EINVAL;
   }
@@ -205,7 +205,7 @@ int nccl_ofi_idpool_fini(nccl_ofi_idpool_t *idpool) {
 
   /* Destroy mutex */
   ret = nccl_net_ofi_mutex_destroy(&idpool->lock);
-  if (OFI_UNLIKELY(ret != 0)) {
+  if (ret != 0) [[unlikely]] {
     NCCL_OFI_WARN("Unable to destroy mutex");
   }
 

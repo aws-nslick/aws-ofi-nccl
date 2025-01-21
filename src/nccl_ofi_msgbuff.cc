@@ -172,10 +172,11 @@ nccl_ofi_msgbuff_result_t nccl_ofi_msgbuff_retrieve(nccl_ofi_msgbuff_t *msgbuff,
                                                     nccl_ofi_msgbuff_status_t *msg_idx_status) {
   assert(msgbuff);
 
-  if (OFI_UNLIKELY(!elem)) {
+  if (!elem) [[unlikely]] {
     NCCL_OFI_WARN("elem is NULL");
     return NCCL_OFI_MSGBUFF_ERROR;
   }
+
   nccl_net_ofi_mutex_lock(&msgbuff->lock);
 
   *msg_idx_status = nccl_ofi_msgbuff_get_idx_status(msgbuff, msg_index);

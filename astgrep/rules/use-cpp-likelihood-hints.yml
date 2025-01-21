@@ -1,0 +1,25 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/ast-grep/ast-grep/main/schemas/rule.json
+
+id: use-std-minmax
+message: Use c++ min/max
+severity: hint
+language: Cpp
+rule:
+  pattern:
+    context: if ($M($$$ARGS)) $$$REST
+    selector: if_statement
+constraints:
+  M: {regex: "OFI_(LIKELY|UNLIKELY)"}
+transform:
+  DOWNCASED:
+    convert:
+      toCase: lowerCase
+      source: $M
+  ENDGOAL:
+    substring:
+      source: $DOWNCASED
+      startChar: 4
+      endChar: 64
+fix: |
+  if ($$$ARGS) [[$ENDGOAL]]
+    $$$REST
