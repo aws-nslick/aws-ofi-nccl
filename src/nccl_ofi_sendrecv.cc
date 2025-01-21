@@ -65,7 +65,7 @@ static inline int sendrecv_get_properties(nccl_net_ofi_device_t *base_dev, nccl_
   if (ret == 0) {
     /* make sure max_communicators can safely be copied
     into an int */
-    props->max_communicators = NCCL_OFI_MIN(device->max_tag, INT_MAX);
+    props->max_communicators = std::min(device->max_tag, INT_MAX);
   }
 
   props->rma_supported = 0;

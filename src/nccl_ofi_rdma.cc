@@ -4299,7 +4299,7 @@ static nccl_net_ofi_rdma_recv_comm_t *prepare_recv_comm(nccl_net_ofi_rdma_domain
     return NULL;
   }
 
-  ret = nccl_ofi_freelist_init_mr(NCCL_OFI_MAX(sizeof(nccl_net_ofi_rdma_ctrl_msg_t), sizeof(nccl_net_ofi_rdma_close_msg_t)), 8, 8, NCCL_OFI_MAX_REQUESTS,
+  ret = nccl_ofi_freelist_init_mr(std::max(sizeof(nccl_net_ofi_rdma_ctrl_msg_t), sizeof(nccl_net_ofi_rdma_close_msg_t)), 8, 8, NCCL_OFI_MAX_REQUESTS,
                                   freelist_regmr_host_fn, freelist_deregmr_host_fn, ep, 1, &r_comm->ctrl_buff_fl);
   if (ret != 0) {
     NCCL_OFI_WARN("Call to freelist_init_mr failed: %d", ret);
@@ -6556,7 +6556,7 @@ static int nccl_net_ofi_rdma_domain_create_endpoint(nccl_net_ofi_domain_t *base_
     goto error;
   }
 
-  ep->rx_buff_size = NCCL_OFI_MAX(NCCL_OFI_MAX(sizeof(nccl_net_ofi_rdma_ctrl_msg_t), eager_max_size), sizeof(nccl_ofi_rdma_connection_info_t));
+  ep->rx_buff_size = std::max(std::max(sizeof(nccl_net_ofi_rdma_ctrl_msg_t), eager_max_size), sizeof(nccl_ofi_rdma_connection_info_t));
 
   ep->is_endpoint_per_communicator_ep = false;
 

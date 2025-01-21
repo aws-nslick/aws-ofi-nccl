@@ -1,0 +1,24 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/ast-grep/ast-grep/main/schemas/rule.json
+
+id: use-std-minmax
+message: Use c++ min/max
+severity: hint
+language: Cpp
+rule:
+  pattern:
+    context: $M($$$ARGS);
+    selector: call_expression
+constraints:
+  M: {regex: "NCCL_OFI_(MIN|MAX)"}
+transform:
+  DOWNCASED:
+    convert:
+      toCase: lowerCase
+      source: $M
+  ENDGOAL:
+    substring:
+      source: $DOWNCASED
+      startChar: 9
+      endChar: 15
+fix: |
+  std::$ENDGOAL($$$ARGS)

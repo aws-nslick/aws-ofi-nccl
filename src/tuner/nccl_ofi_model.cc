@@ -79,7 +79,7 @@ static float nccl_ofi_tuner_compute_cost(struct nccl_ofi_tuner_model_params *par
 
     case NCCL_ALGO_NVLS_TREE:
       latency = 2 * (p2p_lat + (log2(dims->num_nodes) * net_lat));
-      bw = NCCL_OFI_MIN(params->intranode_bw, (params->internode_bw * params->num_rails) / 2) * ofi_nccl_tuner_num_channels();
+      bw = std::min(params->intranode_bw, (params->internode_bw * params->num_rails) / 2) * ofi_nccl_tuner_num_channels();
       break;
 
     case NCCL_ALGO_TREE:

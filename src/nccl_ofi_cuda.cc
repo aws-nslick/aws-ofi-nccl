@@ -25,7 +25,7 @@
       case cudaDriverEntryPointSymbolNotFound:                                                                                                                 \
         NCCL_OFI_WARN("Failed to resolve CUDA function %s", QUOTE(function));                                                                                  \
         break;                                                                                                                                                 \
-      case cudaDriverEntryPointVersionNotSufficent:                                                                                                           \
+      case cudaDriverEntryPointVersionNotSufficent:                                                                                                            \
         NCCL_OFI_WARN("Insufficient driver to use CUDA function %s", QUOTE(function));                                                                         \
         break;                                                                                                                                                 \
       case cudaDriverEntryPointSuccess:                                                                                                                        \

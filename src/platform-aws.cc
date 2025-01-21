@@ -308,7 +308,7 @@ static int configure_ep_max_msg_size(struct fid_ep *ep) {
 
 #if HAVE_DECL_FI_OPT_MAX_MSG_SIZE
   size_t eager_max_size = (size_t)ofi_nccl_eager_max_size();
-  size_t optval = NCCL_OFI_MAX(NCCL_OFI_MAX(sizeof(nccl_net_ofi_rdma_ctrl_msg_t), eager_max_size), sizeof(nccl_ofi_rdma_connection_info_t));
+  size_t optval = std::max(std::max(sizeof(nccl_net_ofi_rdma_ctrl_msg_t), eager_max_size), sizeof(nccl_ofi_rdma_connection_info_t));
 
   ret = fi_setopt(&ep->fid, FI_OPT_ENDPOINT, FI_OPT_MAX_MSG_SIZE, &optval, sizeof(optval));
 

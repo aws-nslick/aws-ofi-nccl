@@ -259,7 +259,7 @@ int main(int argc, char *argv[]) {
             inflight_reqs--;
             req_completed[idx] = 1;
 
-            if ((size_t)received_size != NCCL_OFI_MIN(send_sizes[szidx], recv_sizes[szidx])) {
+            if ((size_t)received_size != std::min(send_sizes[szidx], recv_sizes[szidx])) {
               NCCL_OFI_WARN("Wrong received size %d (send size: %zu recv size %zu)", received_size, send_sizes[szidx], recv_sizes[szidx]);
               res = ncclInternalError;
               goto exit;
