@@ -12,7 +12,7 @@
 #define test_get_front(deque, expected)                                                                                                                        \
   {                                                                                                                                                            \
     nccl_ofi_deque_elem_t *elem = nccl_ofi_deque_get_front(deque);                                                                                             \
-    if (expected == -1) {                                                                                                                                      \
+    if ((expected) == -1) {                                                                                                                                    \
       if (elem != NULL) {                                                                                                                                      \
         NCCL_OFI_WARN("get_front unexpectedly succeeded");                                                                                                     \
         exit(1);                                                                                                                                               \
@@ -23,7 +23,7 @@
         exit(1);                                                                                                                                               \
       }                                                                                                                                                        \
       int v = container_of(elem, struct elem_t, de)->v;                                                                                                        \
-      if (v != expected) {                                                                                                                                     \
+      if (v != (expected)) {                                                                                                                                   \
         NCCL_OFI_WARN("get_front bad result; expected %d but got %d", expected, v);                                                                            \
         exit(1);                                                                                                                                               \
       }                                                                                                                                                        \
@@ -37,16 +37,16 @@ int main(int argc, char *argv[]) {
     int v;
   } elems[num_elem];
 
-  nccl_ofi_deque_elem_t *deque_elem;
-  int ret;
-  size_t i;
+  nccl_ofi_deque_elem_t *deque_elem = nullptr;
+  int ret = 0;
+  size_t i = 0;
   for (i = 0; i < num_elem; ++i) {
     elems[i].v = i;
   }
 
   ofi_log_function = logger;
 
-  nccl_ofi_deque_t *deque;
+  nccl_ofi_deque_t *deque = nullptr;
   ret = nccl_ofi_deque_init(&deque);
   if (ret) {
     NCCL_OFI_WARN("deque_init failed: %d", ret);
@@ -71,7 +71,7 @@ int main(int argc, char *argv[]) {
   for (i = 0; i < num_elem; ++i) {
     int expected = (i == 0 ? elems[num_elem - 1].v : elems[i - 1].v);
     ret = nccl_ofi_deque_remove_front(deque, &deque_elem);
-    if (ret || deque_elem == NULL) {
+    if (ret || deque_elem == nullptr) {
       NCCL_OFI_WARN("remove_front unexpectedly failed: %d", ret);
       exit(1);
     }
@@ -82,7 +82,7 @@ int main(int argc, char *argv[]) {
     }
   }
   ret = nccl_ofi_deque_remove_front(deque, &deque_elem);
-  if (ret != 0 || deque_elem != NULL) {
+  if (ret != 0 || deque_elem != nullptr) {
     NCCL_OFI_WARN("remove_front from empty deque unexpectedly succeeded");
     exit(1);
   }
@@ -119,7 +119,7 @@ int main(int argc, char *argv[]) {
     test_get_front(deque, expected);
 
     ret = nccl_ofi_deque_remove_front(deque, &deque_elem);
-    if (ret || deque_elem == NULL) {
+    if (ret || deque_elem == nullptr) {
       NCCL_OFI_WARN("remove_front unexpectedly failed: %d", ret);
       exit(1);
     }
@@ -132,7 +132,7 @@ int main(int argc, char *argv[]) {
 
     {
       nccl_ofi_deque_elem_t *elem_next = nccl_ofi_deque_get_next(deque, deque_elem);
-      if (elem_next == NULL) {
+      if (elem_next == nullptr) {
         exp_next = -1;
       } else {
         exp_next = container_of(elem_next, struct elem_t, de)->v;
@@ -148,7 +148,7 @@ int main(int argc, char *argv[]) {
   }
 
   ret = nccl_ofi_deque_remove_front(deque, &deque_elem);
-  if (ret != 0 || deque_elem != NULL) {
+  if (ret != 0 || deque_elem != nullptr) {
     NCCL_OFI_WARN("remove_front from empty deque unexpectedly succeeded");
     exit(1);
   }

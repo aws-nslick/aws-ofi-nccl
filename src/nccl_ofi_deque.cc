@@ -12,9 +12,9 @@
 #include "nccl_ofi_log.hh"
 
 int nccl_ofi_deque_init(nccl_ofi_deque_t **deque_p) {
-  nccl_ofi_deque_t *deque = (nccl_ofi_deque_t *)malloc(sizeof(nccl_ofi_deque_t));
+  auto *deque = (nccl_ofi_deque_t *)malloc(sizeof(nccl_ofi_deque_t));
 
-  if (deque == NULL) {
+  if (deque == nullptr) {
     NCCL_OFI_WARN("Failed to allocate deque");
     return -ENOMEM;
   }
@@ -22,7 +22,7 @@ int nccl_ofi_deque_init(nccl_ofi_deque_t **deque_p) {
   deque->head.prev = &deque->head;
   deque->head.next = &deque->head;
 
-  int ret = pthread_mutex_init(&deque->lock, NULL);
+  int ret = pthread_mutex_init(&deque->lock, nullptr);
   if (ret != 0) {
     NCCL_OFI_WARN("Failed to initialize deque mutex.");
     free(deque);

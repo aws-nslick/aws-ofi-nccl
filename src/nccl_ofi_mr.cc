@@ -11,7 +11,7 @@
 #include "nccl_ofi_pthread.hh"
 
 nccl_ofi_mr_cache_t *nccl_ofi_mr_cache_init(size_t init_num_entries, size_t mr_cache_page_size) {
-  nccl_ofi_mr_cache_t *ret_cache = NULL;
+  nccl_ofi_mr_cache_t *ret_cache = nullptr;
 
   if (init_num_entries == 0) {
     NCCL_OFI_WARN("MR cache: initial number of entries must be positive");
@@ -35,7 +35,7 @@ nccl_ofi_mr_cache_t *nccl_ofi_mr_cache_init(size_t init_num_entries, size_t mr_c
     goto error;
   }
 
-  if (nccl_net_ofi_mutex_init(&ret_cache->lock, NULL)) {
+  if (nccl_net_ofi_mutex_init(&ret_cache->lock, nullptr)) {
     goto error;
   }
   /*
@@ -57,7 +57,7 @@ error:
     }
     free(ret_cache);
   }
-  return NULL;
+  return nullptr;
 }
 
 void nccl_ofi_mr_cache_finalize(nccl_ofi_mr_cache_t *cache) {
@@ -76,7 +76,7 @@ void nccl_ofi_mr_cache_finalize(nccl_ofi_mr_cache_t *cache) {
  * Grow cache to 2x its current size
  */
 static int nccl_ofi_mr_cache_grow(nccl_ofi_mr_cache_t *cache) {
-  void *ptr;
+  void *ptr = nullptr;
   int ret = 0;
   cache->size *= 2;
   NCCL_OFI_TRACE(NCCL_NET, "Growing cache to size %zu", cache->size);
@@ -98,8 +98,8 @@ static inline void compute_page_address(uintptr_t addr, size_t size, uintptr_t s
 }
 
 void *nccl_ofi_mr_cache_lookup_entry(nccl_ofi_mr_cache_t *cache, nccl_ofi_mr_ckey_ref ckey) {
-  uintptr_t page_addr;
-  size_t pages;
+  uintptr_t page_addr = 0;
+  size_t pages = 0;
 
   compute_page_address(nccl_ofi_mr_ckey_baseaddr(ckey), nccl_ofi_mr_ckey_len(ckey), (uintptr_t)cache->system_page_size, &page_addr, &pages);
 
@@ -109,7 +109,7 @@ void *nccl_ofi_mr_cache_lookup_entry(nccl_ofi_mr_cache_t *cache, nccl_ofi_mr_cke
     if (slot == cache->used || page_addr < cache->slots[slot]->addr) {
       /* cache missed */
       cache->miss_count++;
-      return NULL;
+      return nullptr;
     } else if ((page_addr >= cache->slots[slot]->addr) &&
                ((page_addr - cache->slots[slot]->addr) / cache->system_page_size + pages) <= cache->slots[slot]->pages) {
       /* cache hit */
@@ -123,8 +123,8 @@ void *nccl_ofi_mr_cache_lookup_entry(nccl_ofi_mr_cache_t *cache, nccl_ofi_mr_cke
 }
 
 int nccl_ofi_mr_cache_insert_entry(nccl_ofi_mr_cache_t *cache, nccl_ofi_mr_ckey_ref ckey, void *handle) {
-  uintptr_t page_addr;
-  size_t pages;
+  uintptr_t page_addr = 0;
+  size_t pages = 0;
   int ret = 0;
 
   compute_page_address((uintptr_t)nccl_ofi_mr_ckey_baseaddr(ckey), nccl_ofi_mr_ckey_len(ckey), (uintptr_t)cache->system_page_size, &page_addr, &pages);

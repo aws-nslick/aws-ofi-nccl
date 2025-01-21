@@ -4,17 +4,19 @@
 
 #include "config.hh"
 
+#include <cmath>
+
 #include <cassert>
+#include <cmath>
 #include <cstdio>
-#include <math.h>
 
 #include "nccl_ofi_param.hh"
 #include "tuner/nccl_ofi_tuner_region.hh"
 
-static int test_extend_region(void) {
+static int test_extend_region() {
   nccl_ofi_tuner_point_t extended_point;
-  double slope;
-  double projected_x, projected_y;
+  double slope = NAN;
+  double projected_x = NAN, projected_y = NAN;
 
   /* Extend the line on the x-axis */
   extended_point = extend_region((nccl_ofi_tuner_point_t){2, 8}, (nccl_ofi_tuner_point_t){4, 8}, (nccl_ofi_tuner_point_t){TUNER_MAX_SIZE, TUNER_MAX_RANKS});
@@ -71,7 +73,7 @@ static int test_extend_region(void) {
 |    p3(4M, 2)                                           |p4(TUNER_MAX_SIZE, 2))
 |                                                        |
 */
-static int test_is_inside_region(void) {
+static int test_is_inside_region() {
   nccl_ofi_tuner_point_t p1_288M_128 = {288.0 * 1024 * 1024, 128};
   nccl_ofi_tuner_point_t p2_38M_16 = {48.0 * 1024 * 1024, 16};
   nccl_ofi_tuner_point_t p3_4M_2 = {4.0 * 1024 * 1024, 2};

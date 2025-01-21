@@ -24,15 +24,15 @@
 #include "tuner/nccl_ofi_tuner_region.hh"
 
 pthread_mutex_t nccl_ofi_tuner_ctx_lock = PTHREAD_MUTEX_INITIALIZER;
-ncclDebugLogger_t ofi_log_function = NULL;
+ncclDebugLogger_t ofi_log_function = nullptr;
 
 static ncclResult_t nccl_ofi_tuner_destroy(void *context) {
   ncclResult_t ret = ncclSuccess;
-  nccl_ofi_tuner_context_t *ctx = (nccl_ofi_tuner_context_t *)context;
+  auto *ctx = (nccl_ofi_tuner_context_t *)context;
 
   nccl_net_ofi_mutex_lock(&nccl_ofi_tuner_ctx_lock);
-  if (ctx != NULL) {
-    if (ctx->destroy_internal != NULL) {
+  if (ctx != nullptr) {
+    if (ctx->destroy_internal != nullptr) {
       ret = ctx->destroy_internal(ctx);
     }
     free(ctx);
@@ -43,12 +43,12 @@ static ncclResult_t nccl_ofi_tuner_destroy(void *context) {
 }
 
 static ncclResult_t nccl_ofi_tuner_init(size_t nRanks, size_t nNodes, ncclDebugLogger_t logFunction, void **context) {
-  const char *platform_type = NULL;
-  const char *tuner_force_type = NULL;
+  const char *platform_type = nullptr;
+  const char *tuner_force_type = nullptr;
   ncclResult_t ret = ncclSuccess;
-  *context = NULL;
-  nccl_ofi_tuner_context_t *ctx = NULL;
-  bool region_support, model_support;
+  *context = nullptr;
+  nccl_ofi_tuner_context_t *ctx = nullptr;
+  bool region_support = false, model_support = false;
   int is_force_type_model = 0;
   enum nccl_ofi_tuner_platform tuner_platform;
 
@@ -61,13 +61,13 @@ static ncclResult_t nccl_ofi_tuner_init(size_t nRanks, size_t nNodes, ncclDebugL
    * If both Region and Model based tuner are not supported, log a warning and exit.
    */
   platform_type = nccl_net_ofi_get_product_name();
-  if (platform_type == NULL) {
+  if (platform_type == nullptr) {
     NCCL_OFI_WARN("NCCL_OFI_TUNER is not available because platform type is unavailable.");
     goto exit;
   }
 
   tuner_force_type = ofi_nccl_tuner_force_type();
-  if (tuner_force_type != NULL) {
+  if (tuner_force_type != nullptr) {
     if (strcmp(tuner_force_type, "Internal") == 0) {
       /* fallback to NCCL internal tuner */
       NCCL_OFI_INFO(NCCL_INIT | NCCL_TUNING, "NCCL_OFI_TUNER_TYPE is Internal, Fall back to NCCL's tuner for platform : %s", platform_type);
@@ -93,7 +93,7 @@ static ncclResult_t nccl_ofi_tuner_init(size_t nRanks, size_t nNodes, ncclDebugL
   }
 
   ctx = (nccl_ofi_tuner_context_t *)calloc(1, sizeof(nccl_ofi_tuner_context_t));
-  if (ctx == NULL) {
+  if (ctx == nullptr) {
     NCCL_OFI_WARN("Context allocation failed.");
     ret = ncclInternalError;
     goto exit;
@@ -133,9 +133,9 @@ static ncclResult_t nccl_ofi_tuner_init(size_t nRanks, size_t nNodes, ncclDebugL
   NCCL_OFI_INFO(NCCL_INIT | NCCL_TUNING, "Tuner init: comm with %ld ranks and %ld nodes.", nRanks, nNodes);
 
 exit:
-  if (ret != ncclSuccess && ctx != NULL) {
+  if (ret != ncclSuccess && ctx != nullptr) {
     nccl_ofi_tuner_destroy((void *)ctx);
-    ctx = NULL;
+    ctx = nullptr;
   }
 
   *context = (void *)ctx;
@@ -148,8 +148,8 @@ static ncclResult_t nccl_ofi_tuner_get_coll_info(void *context, ncclFunc_t collT
                                                  int numProto, int *nChannels) {
   ncclResult_t ret;
 
-  nccl_ofi_tuner_context_t *ctx = (nccl_ofi_tuner_context_t *)context;
-  if (ctx == NULL || ctx->get_coll_info_internal_v3 == NULL) {
+  auto *ctx = (nccl_ofi_tuner_context_t *)context;
+  if (ctx == nullptr || ctx->get_coll_info_internal_v3 == nullptr) {
     /* Fall back to NCCL's tuner */
     return ncclSuccess;
   }
@@ -167,8 +167,8 @@ static ncclResult_t nccl_ofi_tuner_get_coll_info_v2(void *context, ncclFunc_t co
                                                     int *algorithm, int *protocol, int *nChannels) {
   ncclResult_t ret;
 
-  nccl_ofi_tuner_context_t *ctx = (nccl_ofi_tuner_context_t *)context;
-  if (ctx == NULL || ctx->get_coll_info_internal_v2 == NULL) {
+  auto *ctx = (nccl_ofi_tuner_context_t *)context;
+  if (ctx == nullptr || ctx->get_coll_info_internal_v2 == nullptr) {
     /* Fall back to NCCL's tuner */
     return ncclSuccess;
   }
@@ -187,14 +187,14 @@ const ncclTuner_v2_t ncclTunerPlugin_v2 = {
  */
 static nccl_ofi_tuner_context_t *nccl_ofi_tuner_ctx_internal;
 
-static ncclResult_t nccl_ofi_tuner_destroy_v1(void) {
-  void *context = NULL;
+static ncclResult_t nccl_ofi_tuner_destroy_v1() {
+  void *context = nullptr;
 
   nccl_net_ofi_mutex_lock(&nccl_ofi_tuner_ctx_lock);
-  if (nccl_ofi_tuner_ctx_internal != NULL) {
+  if (nccl_ofi_tuner_ctx_internal != nullptr) {
     /* Prevent other threads from freeing a dangling global ctx */
     context = (void *)nccl_ofi_tuner_ctx_internal;
-    nccl_ofi_tuner_ctx_internal = NULL;
+    nccl_ofi_tuner_ctx_internal = nullptr;
   }
   nccl_net_ofi_mutex_unlock(&nccl_ofi_tuner_ctx_lock);
 
@@ -202,7 +202,7 @@ static ncclResult_t nccl_ofi_tuner_destroy_v1(void) {
 }
 
 static ncclResult_t nccl_ofi_tuner_init_v1(size_t nRanks, size_t nNodes, ncclDebugLogger_t logFunction) {
-  if (nccl_ofi_tuner_ctx_internal != NULL) {
+  if (nccl_ofi_tuner_ctx_internal != nullptr) {
     /* Repeated init call, the tuner is already initialized.
      * Destroy it, as it may have been initialized with different
      * parameters.

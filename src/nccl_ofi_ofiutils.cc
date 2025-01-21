@@ -26,11 +26,11 @@
 
 static int in_list(const char *item, const char *list) {
   int ret = 0;
-  char *token = NULL;
+  char *token = nullptr;
   char *list_temp = strdup(list);
 
-  if (list_temp == NULL) {
-    if (list != NULL) {
+  if (list_temp == nullptr) {
+    if (list != nullptr) {
       NCCL_OFI_WARN("Unable to duplicate list.");
       ret = -ENOMEM;
     }
@@ -44,7 +44,7 @@ static int in_list(const char *item, const char *list) {
       ret = 1;
       goto exit;
     }
-    token = strtok(NULL, ",");
+    token = strtok(nullptr, ",");
   }
 
 exit:
@@ -93,8 +93,8 @@ static bool match_prov_info(char *name, uint32_t addr_format, uint64_t mem_tag_f
  *		Number of NICs represented in info_list
  */
 static void filter_tcp_info_list(struct fi_info **info_list, unsigned int *num_infos) {
-  struct fi_info *prev = NULL, *curr = NULL;
-  struct fi_info *delete_info = NULL;
+  struct fi_info *prev = nullptr, *curr = nullptr;
+  struct fi_info *delete_info = nullptr;
   bool delete_prov = false;
   uint64_t expected_mem_tag_format = 0;
 
@@ -103,14 +103,14 @@ static void filter_tcp_info_list(struct fi_info **info_list, unsigned int *num_i
   assert(info_list != NULL);
   curr = *info_list;
 
-  while (curr != NULL) {
+  while (curr != nullptr) {
     expected_mem_tag_format = curr->ep_attr->mem_tag_format;
 
     /* Check if interface name and format matches deletion criteria */
     delete_prov = match_prov_info(curr->domain_attr->name, curr->addr_format, curr->ep_attr->mem_tag_format, expected_mem_tag_format);
     if (delete_prov) {
 
-      if (prev != NULL) {
+      if (prev != nullptr) {
         prev->next = curr->next;
       }
       (*num_infos)--;
@@ -119,10 +119,10 @@ static void filter_tcp_info_list(struct fi_info **info_list, unsigned int *num_i
       curr = curr->next;
 
       /* Delete node matching criteria */
-      delete_info->next = NULL;
+      delete_info->next = nullptr;
       fi_freeinfo(delete_info);
     } else {
-      if (prev == NULL) {
+      if (prev == nullptr) {
         /*
          * Update HEAD of prov_info_list to point to first endpoint which
          * can be used for communication.
@@ -139,7 +139,7 @@ static void filter_tcp_info_list(struct fi_info **info_list, unsigned int *num_i
    * In case all info objects match the filter criteria,
    * update HEAD of prov_info_list to point to NULL.
    */
-  if (prev == NULL) {
+  if (prev == nullptr) {
     *info_list = prev;
   }
 }
@@ -147,16 +147,16 @@ static void filter_tcp_info_list(struct fi_info **info_list, unsigned int *num_i
 int nccl_ofi_ofiutils_get_providers(const char *prov_include, uint32_t required_version, struct fi_info *hints, struct fi_info **prov_info_list,
                                     unsigned int *num_prov_infos) {
   int rc = 0;
-  struct fi_info *providers = NULL, *prov = NULL, *last_prov;
-  char *selected_prov_name = NULL;
+  struct fi_info *providers = nullptr, *prov = nullptr, *last_prov = nullptr;
+  char *selected_prov_name = nullptr;
   assert(num_prov_infos != NULL);
   *num_prov_infos = 0;
 
-  rc = fi_getinfo(required_version, NULL, NULL, 0ULL, hints, &providers);
+  rc = fi_getinfo(required_version, nullptr, nullptr, 0ULL, hints, &providers);
   if (rc != 0)
     goto error;
 
-  if (providers == NULL) {
+  if (providers == nullptr) {
     goto error;
   }
 
@@ -185,11 +185,11 @@ int nccl_ofi_ofiutils_get_providers(const char *prov_include, uint32_t required_
    * match the selected name, and count the ones that do.
    */
   prov = providers;
-  providers = NULL;
-  last_prov = NULL;
-  while (prov != NULL) {
+  providers = nullptr;
+  last_prov = nullptr;
+  while (prov != nullptr) {
     struct fi_info *prov_next = prov->next;
-    prov->next = NULL;
+    prov->next = nullptr;
 
     if (strcmp(selected_prov_name, prov->fabric_attr->prov_name) != 0) {
       /* Not a match. */
@@ -199,13 +199,13 @@ int nccl_ofi_ofiutils_get_providers(const char *prov_include, uint32_t required_
     }
     /* if this is the first matching info, save-off the start of the
      * filtered list. */
-    if (providers == NULL) {
+    if (providers == nullptr) {
       providers = prov;
     }
 
     /* If this is not the first matching info, update previous tail
      * of list to point at new tail of list. */
-    if (last_prov != NULL) {
+    if (last_prov != nullptr) {
       last_prov->next = prov;
     }
 
@@ -219,14 +219,14 @@ int nccl_ofi_ofiutils_get_providers(const char *prov_include, uint32_t required_
   /* Potentially, we filtered all providers and never restored `providers`
    * to a non-NULL value, so we must check here that providers is non-NULL
    * before deref'ing providers->fabric_attr */
-  if (providers == NULL || *num_prov_infos == 0) {
+  if (providers == nullptr || *num_prov_infos == 0) {
     return -FI_ENODATA;
   }
 
   /* If TCP provider is selected, filter out unnecessary interfaces and address formats */
   if (strncmp("tcp", providers->fabric_attr->prov_name, strlen("tcp")) == 0) {
     filter_tcp_info_list(&providers, num_prov_infos);
-    if (providers == NULL) {
+    if (providers == nullptr) {
       NCCL_OFI_WARN(
           "No viable endpoint found for TCP provider. Try and relax the filters using OFI_NCCL_USE_IPV6_TCP or OFI_NCCL_EXCLUDE_TCP_IF environment variables");
       rc = -ENOTSUP;
@@ -254,20 +254,20 @@ int nccl_ofi_ofiutils_init_connection(struct fi_info *info, struct fid_domain *d
   struct fi_cq_attr cq_attr = {};
 
   /* Create transport level communication endpoint(s) */
-  ret = fi_endpoint(domain, info, ep, NULL);
+  ret = fi_endpoint(domain, info, ep, nullptr);
   if (ret != 0) [[unlikely]] {
     NCCL_OFI_WARN("Couldn't allocate endpoint. RC: %d, ERROR: %s", ret, fi_strerror(-ret));
     goto error;
   }
 
-  if (*cq == NULL) {
+  if (*cq == nullptr) {
     if (info->caps & FI_TAGGED) {
       cq_attr.format = FI_CQ_FORMAT_TAGGED;
     } else {
       cq_attr.format = FI_CQ_FORMAT_DATA;
     }
 
-    ret = fi_cq_open(domain, &cq_attr, cq, NULL);
+    ret = fi_cq_open(domain, &cq_attr, cq, nullptr);
     if (ret != 0) [[unlikely]] {
       NCCL_OFI_WARN("Couldn't open CQ. RC: %d, ERROR: %s", ret, fi_strerror(-ret));
       goto error;
@@ -275,7 +275,7 @@ int nccl_ofi_ofiutils_init_connection(struct fi_info *info, struct fid_domain *d
   }
 
   /* Open AV */
-  ret = fi_av_open(domain, &av_attr, av, NULL);
+  ret = fi_av_open(domain, &av_attr, av, nullptr);
   if (ret != 0) [[unlikely]] {
     NCCL_OFI_WARN("Couldn't open AV. RC: %d, ERROR: %s", ret, fi_strerror(-ret));
     goto error;
@@ -401,17 +401,17 @@ int nccl_ofi_ofiutils_init_connection(struct fi_info *info, struct fid_domain *d
 error:
   if (*ep) {
     fi_close((fid_t)*ep);
-    *ep = NULL;
+    *ep = nullptr;
   }
 
   if (*av) {
     fi_close((fid_t)*av);
-    *av = NULL;
+    *av = nullptr;
   }
 
   if (*cq) {
     fi_close((fid_t)*cq);
-    *cq = NULL;
+    *cq = nullptr;
   }
 
   return ret;
@@ -477,10 +477,10 @@ void nccl_ofi_ofiutils_free_info_list(struct fi_info *info_list) {
     return;
 
   struct fi_info *info = info_list;
-  struct fi_info *next = NULL;
+  struct fi_info *next = nullptr;
   while (info) {
     next = info->next;
-    info->next = NULL;
+    info->next = nullptr;
     fi_freeinfo(info);
     info = next;
 

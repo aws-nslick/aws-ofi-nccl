@@ -32,7 +32,7 @@ int nccl_ofi_idpool_init(nccl_ofi_idpool_t *idpool, size_t size) {
 
   if (0 == size) {
     /* Empty or unused pool */
-    idpool->ids = NULL;
+    idpool->ids = nullptr;
     idpool->size = 0;
     return ret;
   }
@@ -44,7 +44,7 @@ int nccl_ofi_idpool_init(nccl_ofi_idpool_t *idpool, size_t size) {
   idpool->ids = (uint64_t *)malloc(sizeof(uint64_t) * num_long_elements);
 
   /* Return in case of allocation error */
-  if (NULL == idpool->ids) {
+  if (nullptr == idpool->ids) {
     NCCL_OFI_WARN("Unable to allocate ID pool");
     return -ENOMEM;
   }
@@ -56,11 +56,11 @@ int nccl_ofi_idpool_init(nccl_ofi_idpool_t *idpool, size_t size) {
   }
 
   /* Initialize mutex */
-  ret = nccl_net_ofi_mutex_init(&idpool->lock, NULL);
+  ret = nccl_net_ofi_mutex_init(&idpool->lock, nullptr);
   if (ret) [[unlikely]] {
     NCCL_OFI_WARN("Unable to initialize mutex");
     free(idpool->ids);
-    idpool->ids = NULL;
+    idpool->ids = nullptr;
     return ret;
   }
 
@@ -91,7 +91,7 @@ int nccl_ofi_idpool_allocate_id(nccl_ofi_idpool_t *idpool) {
     return -ENOMEM;
   }
 
-  if (NULL == idpool->ids) [[unlikely]] {
+  if (nullptr == idpool->ids) [[unlikely]] {
     NCCL_OFI_WARN("Invalid call to nccl_ofi_allocate_id with uninitialized pool");
     return -EINVAL;
   }
@@ -152,7 +152,7 @@ int nccl_ofi_idpool_free_id(nccl_ofi_idpool_t *idpool, size_t id) {
     return -EINVAL;
   }
 
-  if (NULL == idpool->ids) [[unlikely]] {
+  if (nullptr == idpool->ids) [[unlikely]] {
     NCCL_OFI_WARN("Invalid call to nccl_ofi_free_id with uninitialized pool");
     return -EINVAL;
   }
@@ -198,7 +198,7 @@ int nccl_ofi_idpool_fini(nccl_ofi_idpool_t *idpool) {
 
   assert(NULL != idpool);
 
-  if (0 == idpool->size && NULL == idpool->ids) {
+  if (0 == idpool->size && nullptr == idpool->ids) {
     /* Empty or unused pool, no-op */
     return ret;
   }
@@ -210,7 +210,7 @@ int nccl_ofi_idpool_fini(nccl_ofi_idpool_t *idpool) {
   }
 
   free(idpool->ids);
-  idpool->ids = NULL;
+  idpool->ids = nullptr;
   idpool->size = 0;
 
   return ret;

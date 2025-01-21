@@ -6,15 +6,15 @@
 
 #include "test-common.hh"
 
-#define PROC_NAME_IDX(i) (i * MPI_MAX_PROCESSOR_NAME)
+#define PROC_NAME_IDX(i) ((i) * MPI_MAX_PROCESSOR_NAME)
 
 int main(int argc, char *argv[]) {
   ncclResult_t res = ncclSuccess;
-  int rank, size, next, prev, proc_name_len, local_rank = 0;
+  int rank = 0, size = 0, next = 0, prev = 0, proc_name_len = 0, local_rank = 0;
   int buffer_type = NCCL_PTR_HOST;
 
   /* Plugin defines */
-  int ndev;
+  int ndev = 0;
 
   nccl_net_ofi_send_comm_t *sComm_next = NULL;
   nccl_net_ofi_listen_comm_t *lComm = NULL;
@@ -23,7 +23,7 @@ int main(int argc, char *argv[]) {
   char src_handle_prev[NCCL_NET_HANDLE_MAXSIZE] = {};
   char src_handle_next[NCCL_NET_HANDLE_MAXSIZE] = {};
   ncclNetDeviceHandle_v8_t *s_ignore, *r_ignore;
-  test_nccl_net_t *extNet = NULL;
+  test_nccl_net_t *extNet = nullptr;
 
   ofi_log_function = logger;
 
@@ -37,21 +37,21 @@ int main(int argc, char *argv[]) {
   int inflight_reqs = NUM_REQUESTS * 2;
   char *send_buf[NUM_REQUESTS] = {NULL};
   char *recv_buf[NUM_REQUESTS] = {NULL};
-  char *expected_buf = NULL;
-  int done, received_size;
+  char *expected_buf = nullptr;
+  int done = 0, received_size = 0;
 
   /* Indicates if NICs support GPUDirect */
-  int *test_support_gdr = NULL;
+  int *test_support_gdr = nullptr;
 
   /* All processors IDs, used to find out the local rank */
-  char *all_proc_name = NULL;
+  char *all_proc_name = nullptr;
 
   /* For grouped receives */
   int tag = 1;
   int nrecv = NCCL_OFI_MAX_RECVS;
   int *sizes = (int *)malloc(sizeof(int) * nrecv);
   int *tags = (int *)malloc(sizeof(int) * nrecv);
-  if (sizes == NULL || tags == NULL) {
+  if (sizes == nullptr || tags == nullptr) {
     NCCL_OFI_WARN("Failed to allocate memory");
     return ncclInternalError;
   }
@@ -73,7 +73,7 @@ int main(int argc, char *argv[]) {
   }
 
   all_proc_name = (char *)malloc(sizeof(char) * size * MPI_MAX_PROCESSOR_NAME);
-  if (all_proc_name == NULL) {
+  if (all_proc_name == nullptr) {
     NCCL_OFI_WARN("Failed to allocate memory");
     return ncclInternalError;
   }
@@ -107,7 +107,7 @@ int main(int argc, char *argv[]) {
 
   /* Get external Network from NCCL-OFI library */
   extNet = get_extNet();
-  if (extNet == NULL) {
+  if (extNet == nullptr) {
     res = ncclInternalError;
     goto exit;
   }
@@ -122,7 +122,7 @@ int main(int argc, char *argv[]) {
 
   /* Indicates if NICs support GPUDirect */
   test_support_gdr = (int *)malloc(sizeof(int) * ndev);
-  if (test_support_gdr == NULL) {
+  if (test_support_gdr == nullptr) {
     NCCL_OFI_WARN("Failed to allocate memory");
     res = ncclInternalError;
     goto exit;
@@ -314,27 +314,27 @@ exit:
       NCCL_OFI_WARN("Expected buffer deallocation failure: %d", close_res);
       res = res ? res : close_res;
     }
-    expected_buf = NULL;
+    expected_buf = nullptr;
   }
 
   if (test_support_gdr) {
     free(test_support_gdr);
-    test_support_gdr = NULL;
+    test_support_gdr = nullptr;
   }
 
   if (all_proc_name) {
     free(all_proc_name);
-    all_proc_name = NULL;
+    all_proc_name = nullptr;
   }
 
   if (sizes) {
     free(sizes);
-    sizes = NULL;
+    sizes = nullptr;
   }
 
   if (tags) {
     free(tags);
-    tags = NULL;
+    tags = nullptr;
   }
   return res;
 }

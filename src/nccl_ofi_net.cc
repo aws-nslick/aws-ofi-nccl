@@ -60,7 +60,7 @@ bool endpoint_mr = false;
 bool virt_addr_mr = false;
 
 /* Selected communication protocol. */
-const char *nccl_ofi_selected_protocol = NULL;
+const char *nccl_ofi_selected_protocol = nullptr;
 
 /* Internode network latency. */
 float net_latency = .0;
@@ -93,10 +93,10 @@ int nccl_net_ofi_alloc_mr_buffer(size_t size, void **ptr) {
   assert(system_page_size > 0);
   assert(aon::detail::math::is_aligned(size, system_page_size));
 
-  *ptr = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, -1, 0);
+  *ptr = mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, -1, 0);
   if (*ptr == MAP_FAILED) [[unlikely]] {
     NCCL_OFI_WARN("Unable to map MR buffer (%d %s)", errno, strerror(errno));
-    *ptr = NULL;
+    *ptr = nullptr;
     return -errno;
   }
 
@@ -130,10 +130,10 @@ int nccl_net_ofi_dealloc_mr_buffer(void *ptr, size_t size) {
 
 int nccl_net_ofi_create_plugin(nccl_net_ofi_plugin_t **plugin_p) {
   int ret = 0;
-  const char *provider_filter = NULL;
-  nccl_net_ofi_plugin_t *plugin;
-  nccl_net_ofi_ep_t *base_ep = NULL;
-  nccl_net_ofi_device_t *device = NULL;
+  const char *provider_filter = nullptr;
+  nccl_net_ofi_plugin_t *plugin = nullptr;
+  nccl_net_ofi_ep_t *base_ep = nullptr;
+  nccl_net_ofi_device_t *device = nullptr;
   nccl_ofi_properties_t properties;
 
   NCCL_OFI_INFO(NCCL_INIT | NCCL_NET, "Initializing " PACKAGE_STRING);
@@ -192,12 +192,12 @@ int nccl_net_ofi_create_plugin(nccl_net_ofi_plugin_t **plugin_p) {
   if (ofi_nccl_protocol()) {
     nccl_ofi_selected_protocol = ofi_nccl_protocol();
     NCCL_OFI_INFO(NCCL_INIT | NCCL_NET, "Using transport protocol %s (user set)", nccl_ofi_selected_protocol);
-  } else if (nccl_ofi_selected_protocol != NULL) {
+  } else if (nccl_ofi_selected_protocol != nullptr) {
     NCCL_OFI_INFO(NCCL_INIT | NCCL_NET, "Using transport protocol %s (platform set)", nccl_ofi_selected_protocol);
   }
 
-  if (nccl_ofi_selected_protocol != NULL) {
-    bool dummy;
+  if (nccl_ofi_selected_protocol != nullptr) {
+    bool dummy = false;
 
     if (0 == strcasecmp(nccl_ofi_selected_protocol, "SENDRECV")) {
       ret = nccl_net_ofi_sendrecv_init(provider_filter, &plugin);
@@ -218,38 +218,38 @@ int nccl_net_ofi_create_plugin(nccl_net_ofi_plugin_t **plugin_p) {
     }
   } else {
     bool have_multiple_rails = false;
-    nccl_net_ofi_plugin_t *rdma_plugin = NULL, *sendrecv_plugin = NULL;
+    nccl_net_ofi_plugin_t *rdma_plugin = nullptr, *sendrecv_plugin = nullptr;
 
     ret = nccl_net_ofi_rdma_init(provider_filter, &rdma_plugin, &have_multiple_rails);
     if (ret != 0) {
       NCCL_OFI_TRACE(NCCL_INIT | NCCL_NET, "Failed to initialize rdma protocol: %s", fi_strerror(-ret));
       have_multiple_rails = false;
-      rdma_plugin = NULL;
+      rdma_plugin = nullptr;
     }
 
-    if (!have_multiple_rails || rdma_plugin == NULL) {
+    if (!have_multiple_rails || rdma_plugin == nullptr) {
       ret = nccl_net_ofi_sendrecv_init(provider_filter, &sendrecv_plugin);
       if (ret != 0) {
         NCCL_OFI_TRACE(NCCL_INIT | NCCL_NET, "Failed to initialized sendrecv protocol: %s", fi_strerror(-ret));
-        sendrecv_plugin = NULL;
+        sendrecv_plugin = nullptr;
       }
     }
 
-    if (have_multiple_rails && rdma_plugin != NULL) {
+    if (have_multiple_rails && rdma_plugin != nullptr) {
       nccl_ofi_selected_protocol = "RDMA";
       plugin = rdma_plugin;
-      if (sendrecv_plugin != NULL) {
+      if (sendrecv_plugin != nullptr) {
         sendrecv_plugin->release_plugin(sendrecv_plugin);
       }
     } else {
       nccl_ofi_selected_protocol = "SENDRECV";
       plugin = sendrecv_plugin;
-      if (rdma_plugin != NULL) {
+      if (rdma_plugin != nullptr) {
         rdma_plugin->release_plugin(rdma_plugin);
       }
     }
 
-    if (nccl_ofi_selected_protocol == NULL || plugin == NULL) {
+    if (nccl_ofi_selected_protocol == nullptr || plugin == nullptr) {
       NCCL_OFI_WARN("Unable to find a protocol that worked.  Failing initialization.");
       ret = -EINVAL;
       goto exit;
@@ -333,8 +333,8 @@ exit:
 
 static int get_device_pci_path(struct fid_nic *nic_info, char **path) {
   int ret = 0;
-  struct fi_pci_attr *pci = NULL;
-  char *device_path = NULL;
+  struct fi_pci_attr *pci = nullptr;
+  char *device_path = nullptr;
 
   if (nic_info->bus_attr->bus_type != FI_BUS_PCI) {
     NCCL_OFI_INFO(NCCL_INIT | NCCL_NET, "Invalid type of PCI bus returned %d", nic_info->bus_attr->bus_type);
@@ -354,8 +354,8 @@ static int get_device_pci_path(struct fid_nic *nic_info, char **path) {
     ret = 0;
   }
 
-  *path = realpath(device_path, NULL);
-  if (*path == NULL) {
+  *path = realpath(device_path, nullptr);
+  if (*path == nullptr) {
     NCCL_OFI_WARN("pciPath: Could not find real path of %s", device_path);
     ret = -errno;
     goto exit;
@@ -416,8 +416,8 @@ static int set_nic_props_default(int dev_id, struct fi_info *nic_prov, nccl_ofi_
  */
 int nccl_net_ofi_info_properties(nccl_net_ofi_plugin_t *plugin, struct fi_info *nic_prov, int dev_id, int num_devices, nccl_ofi_properties_t *props) {
   int ret = 0;
-  struct fid_nic *nic_info = NULL;
-  const char *platform_type = NULL;
+  struct fid_nic *nic_info = nullptr;
+  const char *platform_type = nullptr;
 
   memset(props, 0, sizeof(*props));
 
@@ -428,7 +428,7 @@ int nccl_net_ofi_info_properties(nccl_net_ofi_plugin_t *plugin, struct fi_info *
 
   /* Change default values as set by NIC attributes */
   nic_info = (struct fid_nic *)nic_prov->nic;
-  if (nic_info == NULL) {
+  if (nic_info == nullptr) {
     NCCL_OFI_INFO(NCCL_INIT | NCCL_NET, "No NIC info for dev %d. Supplying default values for NIC properties.", dev_id);
     ret = 0;
     goto exit;
@@ -477,7 +477,7 @@ int nccl_net_ofi_info_properties(nccl_net_ofi_plugin_t *plugin, struct fi_info *
    * fixes port_speed for impacted platforms.
    */
   platform_type = nccl_net_ofi_get_product_name();
-  if (platform_type != NULL && strcmp(platform_type, "p5en.48xlarge") == 0) {
+  if (platform_type != nullptr && strcmp(platform_type, "p5en.48xlarge") == 0) {
     NCCL_OFI_TRACE(NCCL_INIT, "Overriding OFI link_attr speed to 200Gbps/link for P5en platform");
     props->port_speed = 200 * (1e3);
   }
@@ -485,7 +485,7 @@ int nccl_net_ofi_info_properties(nccl_net_ofi_plugin_t *plugin, struct fi_info *
   ret = get_device_pci_path(nic_info, &props->pci_path);
   if (ret != 0) {
     ret = 0;
-    props->pci_path = NULL;
+    props->pci_path = nullptr;
   }
 
   if (nic_dup_conns > 1) {
@@ -619,7 +619,7 @@ static int nccl_net_ofi_plugin_assign_device(nccl_net_ofi_plugin_t *plugin, size
 static nccl_net_ofi_device_t *nccl_net_ofi_plugin_get_device(nccl_net_ofi_plugin_t *plugin, size_t device_index) {
   if (device_index >= plugin->p_num_devs) {
     NCCL_OFI_WARN("Invalid device index %zu", device_index);
-    return NULL;
+    return nullptr;
   }
 
   return plugin->p_devs[device_index];
@@ -629,7 +629,7 @@ static size_t nccl_net_ofi_plugin_get_num_devices(nccl_net_ofi_plugin_t *plugin)
 
 int nccl_net_ofi_plugin_init(nccl_net_ofi_plugin_t *plugin, size_t num_devices) {
   plugin->p_devs = (nccl_net_ofi_device_t **)calloc(num_devices, sizeof(nccl_net_ofi_device_t *));
-  if (plugin->p_devs == NULL) {
+  if (plugin->p_devs == nullptr) {
     NCCL_OFI_WARN("Unable to allocate "
                   "nccl_net_ofi_device_t pointer array");
     return -ENOMEM;
@@ -647,7 +647,7 @@ int nccl_net_ofi_plugin_init(nccl_net_ofi_plugin_t *plugin, size_t num_devices) 
 
 int nccl_net_ofi_plugin_fini(nccl_net_ofi_plugin_t *plugin) {
   for (size_t i = 0; i < plugin->p_num_devs; i++) {
-    if (plugin->p_devs[i] != NULL) {
+    if (plugin->p_devs[i] != nullptr) {
       plugin->p_devs[i]->release(plugin->p_devs[i]);
     }
   }
@@ -666,8 +666,8 @@ int nccl_net_ofi_plugin_fini(nccl_net_ofi_plugin_t *plugin) {
  * the ep.
  */
 nccl_net_ofi_domain_t static *nccl_net_ofi_device_get_domain_impl(nccl_net_ofi_device_t *device) {
-  nccl_net_ofi_plugin_t *plugin = NULL;
-  nccl_net_ofi_domain_t *domain = NULL;
+  nccl_net_ofi_plugin_t *plugin = nullptr;
+  nccl_net_ofi_domain_t *domain = nullptr;
 
   assert(device != NULL);
 
@@ -678,11 +678,11 @@ nccl_net_ofi_domain_t static *nccl_net_ofi_device_get_domain_impl(nccl_net_ofi_d
 
   HASH_FIND(hh, device->domain_table, &lookup_key, sizeof(domain->creating_thread_id), domain);
 
-  if (domain == NULL) {
+  if (domain == nullptr) {
     domain = device->create_domain(device);
-    if (domain == NULL) {
+    if (domain == nullptr) {
       NCCL_OFI_WARN("Initializing a new domain for device %s failed", device->name);
-      return NULL;
+      return nullptr;
     }
 
     domain->creating_thread_id = lookup_key;
@@ -696,7 +696,7 @@ nccl_net_ofi_domain_t static *nccl_net_ofi_device_get_domain_impl(nccl_net_ofi_d
 }
 
 static nccl_net_ofi_domain_t *nccl_net_ofi_device_get_domain(nccl_net_ofi_device_t *device) {
-  nccl_net_ofi_domain_t *domain;
+  nccl_net_ofi_domain_t *domain = nullptr;
 
   nccl_net_ofi_mutex_lock(&device->device_lock);
   domain = nccl_net_ofi_device_get_domain_impl(device);
@@ -706,13 +706,13 @@ static nccl_net_ofi_domain_t *nccl_net_ofi_device_get_domain(nccl_net_ofi_device
 }
 
 static int nccl_net_ofi_device_get_ep(nccl_net_ofi_device_t *device, nccl_net_ofi_ep_t **ep_p) {
-  int ret;
-  nccl_net_ofi_domain_t *domain = NULL;
+  int ret = 0;
+  nccl_net_ofi_domain_t *domain = nullptr;
 
   nccl_net_ofi_mutex_lock(&device->device_lock);
 
   domain = nccl_net_ofi_device_get_domain_impl(device);
-  if (domain == NULL) {
+  if (domain == nullptr) {
     ret = -EINVAL;
     goto unlock;
   }
@@ -731,20 +731,20 @@ int nccl_net_ofi_device_init(nccl_net_ofi_device_t *device, nccl_net_ofi_plugin_
   device->plugin = plugin;
   device->dev_id = device_index;
   device->name = strdup(ofi_info->fabric_attr->prov_name);
-  if (device->name == NULL) {
+  if (device->name == nullptr) {
     NCCL_OFI_WARN("Unable to allocate device name");
     ret = -ENOMEM;
     goto exit;
   }
 
-  device->get_properties = NULL;
+  device->get_properties = nullptr;
   device->get_domain = nccl_net_ofi_device_get_domain;
   device->get_ep = nccl_net_ofi_device_get_ep;
-  device->get_mr_key = NULL;
+  device->get_mr_key = nullptr;
   device->release = nccl_net_ofi_device_fini;
 
   /* Intiaialize mutex for endpoint access */
-  ret = nccl_net_ofi_mutex_init(&device->device_lock, NULL);
+  ret = nccl_net_ofi_mutex_init(&device->device_lock, nullptr);
   if (ret != 0) {
     NCCL_OFI_TRACE(NCCL_INIT | NCCL_NET, "Unable to initialize device mutex");
     return -ret;
@@ -758,8 +758,8 @@ int nccl_net_ofi_device_init(nccl_net_ofi_device_t *device, nccl_net_ofi_plugin_
     return -ret;
   }
 
-  device->create_domain = NULL;
-  device->domain_table = NULL;
+  device->create_domain = nullptr;
+  device->domain_table = nullptr;
 
 exit:
 
@@ -768,11 +768,11 @@ exit:
 
 int nccl_net_ofi_device_fini(nccl_net_ofi_device_t *device) {
 
-  if (device == NULL) {
+  if (device == nullptr) {
     return 0;
   }
 
-  if (device->name != NULL) {
+  if (device->name != nullptr) {
     free(device->name);
   }
 
@@ -781,14 +781,14 @@ int nccl_net_ofi_device_fini(nccl_net_ofi_device_t *device) {
 
 static int nccl_net_ofi_domain_get_ep(nccl_net_ofi_domain_t *domain, nccl_net_ofi_ep_t **ep_p) {
   int ret = 0;
-  nccl_net_ofi_ep_t *ep = NULL;
+  nccl_net_ofi_ep_t *ep = nullptr;
 
   nccl_net_ofi_mutex_lock(&domain->domain_lock);
 
   auto thread_id = std::this_thread::get_id();
   HASH_FIND(hh, domain->endpoint_table, &thread_id, sizeof(ep->creating_thread_id), ep);
 
-  if (ep == NULL) {
+  if (ep == nullptr) {
     ret = domain->create_endpoint(domain, &ep);
     if (ret != 0) {
       NCCL_OFI_WARN("Creating new endpoint for domain %p failed: %s", domain, fi_strerror(-ret));
@@ -813,7 +813,7 @@ unlock:
 
 static int nccl_net_ofi_domain_release(nccl_net_ofi_domain_t *domain) {
   int ret = 0;
-  nccl_net_ofi_device_t *device;
+  nccl_net_ofi_device_t *device = nullptr;
 
   assert(domain != NULL);
   device = domain->device;
@@ -844,11 +844,11 @@ static int nccl_net_ofi_domain_release(nccl_net_ofi_domain_t *domain) {
 }
 
 int nccl_net_ofi_domain_init(nccl_net_ofi_device_t *device, nccl_net_ofi_domain_t *domain) {
-  int ret;
+  int ret = 0;
 
   domain->device = device;
 
-  ret = nccl_net_ofi_mutex_init(&domain->domain_lock, NULL);
+  ret = nccl_net_ofi_mutex_init(&domain->domain_lock, nullptr);
   if (ret != 0) {
     NCCL_OFI_TRACE(NCCL_INIT | NCCL_NET, "Unable to initialize domain mutex");
     return -ret;
@@ -856,10 +856,10 @@ int nccl_net_ofi_domain_init(nccl_net_ofi_device_t *device, nccl_net_ofi_domain_
 
   domain->get_ep = nccl_net_ofi_domain_get_ep;
   domain->release = nccl_net_ofi_domain_release;
-  domain->endpoint_table = NULL;
+  domain->endpoint_table = nullptr;
   domain->creating_thread_id = std::thread::id{};
 
-  domain->mr_cache = NULL;
+  domain->mr_cache = nullptr;
   if (!ofi_nccl_mr_cache_disable()) {
     domain->mr_cache = nccl_ofi_mr_cache_init(NCCL_OFI_MR_CACHE_INIT_SIZE, system_page_size);
     if (!domain->mr_cache) {
@@ -893,7 +893,7 @@ exit:
 }
 
 int nccl_net_ofi_domain_fini(nccl_net_ofi_domain_t *domain) {
-  if (domain->mr_cache != NULL) {
+  if (domain->mr_cache != nullptr) {
     nccl_ofi_mr_cache_finalize(domain->mr_cache);
   }
 
@@ -904,7 +904,7 @@ int nccl_net_ofi_domain_fini(nccl_net_ofi_domain_t *domain) {
 
 int nccl_net_ofi_endpoint_release(nccl_net_ofi_ep_t *ep) {
   int ret = 0;
-  nccl_net_ofi_domain_t *domain;
+  nccl_net_ofi_domain_t *domain = nullptr;
 
   assert(ep != NULL);
   domain = ep->domain;
@@ -953,7 +953,7 @@ int nccl_net_ofi_endpoint_fini(nccl_net_ofi_ep_t *ep) {
 
 int get_inject_rma_size_opt(struct fid_ep *ofi_ep, size_t *max_write_inline_size) {
 #if HAVE_DECL_FI_OPT_INJECT_RMA_SIZE
-  int ret;
+  int ret = 0;
   size_t optlen = sizeof(size_t);
   ret = fi_getopt(&ofi_ep->fid, FI_OPT_ENDPOINT, FI_OPT_INJECT_RMA_SIZE, max_write_inline_size, &optlen);
   if (ret != 0 && ret != -FI_ENOPROTOOPT) {

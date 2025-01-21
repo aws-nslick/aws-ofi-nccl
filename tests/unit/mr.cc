@@ -91,21 +91,21 @@ int main(int argc, char *argv[]) {
       /* Lookup left hit */
       test_lookup(cache, (void *)((i - 1) * fake_page_size + 2), 2, (void *)(i - 1));
       /* Lookup left miss overlap right */
-      test_lookup(cache, (void *)(i * fake_page_size - 1), 2, NULL);
+      test_lookup(cache, (void *)(i * fake_page_size - 1), 2, nullptr);
       /* Test insert existing */
       test_insert(cache, (void *)((i - 1) * fake_page_size + 1), 1, (void *)i, -EEXIST);
     }
     /* Lookup here miss */
-    test_lookup(cache, (void *)(i * fake_page_size + 4), 2, NULL);
+    test_lookup(cache, (void *)(i * fake_page_size + 4), 2, nullptr);
     /* Test insert */
     test_insert(cache, (void *)(i * fake_page_size), 1, (void *)i, 0);
     /* Lookup here hit */
     test_lookup(cache, (void *)(i * fake_page_size), 2, (void *)i);
     /* Lookup here miss overlap right */
-    test_lookup(cache, (void *)((i + 1) * fake_page_size - 1), 2, NULL);
+    test_lookup(cache, (void *)((i + 1) * fake_page_size - 1), 2, nullptr);
 
     /* Lookup right miss */
-    test_lookup(cache, (void *)((i + 1) * fake_page_size + 2), 2, NULL);
+    test_lookup(cache, (void *)((i + 1) * fake_page_size + 2), 2, nullptr);
   }
 
   /* At this point, every entry should have refcnt==3 (insert, here hit,
@@ -137,7 +137,7 @@ int main(int argc, char *argv[]) {
     }
 
     /* Lookup miss after removal */
-    test_lookup(cache, (void *)(i * fake_page_size), 1, NULL);
+    test_lookup(cache, (void *)(i * fake_page_size), 1, nullptr);
   }
 
   /* Test of nccl_ofi_mr_ckey_mk_[vec|dmabuf] to build aligned keys */

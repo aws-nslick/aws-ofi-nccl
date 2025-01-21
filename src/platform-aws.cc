@@ -5,6 +5,7 @@
 
 #include "config.hh"
 
+#include <algorithm>
 #include <alloca.h>
 #include <array>
 #include <cinttypes>
@@ -132,12 +133,12 @@ struct ec2_platform_data *platform_aws_get_platform_map(size_t *len) {
  * that niceness.
  */
 struct ec2_platform_data *platform_aws_get_platform_entry(const char *platform_type, struct ec2_platform_data *platform_data_list, size_t platform_data_len) {
-  struct ec2_platform_data *response = NULL;
+  struct ec2_platform_data *response = nullptr;
   regex_t regex;
-  int ret;
+  int ret = 0;
 
   for (size_t idx = 0; idx < platform_data_len; idx++) {
-    if (platform_data_list[idx].regex == NULL) {
+    if (platform_data_list[idx].regex == nullptr) {
       if (0 == strcmp(platform_type, platform_data_list[idx].name)) {
         response = &platform_data_list[idx];
         break;
@@ -149,7 +150,7 @@ struct ec2_platform_data *platform_aws_get_platform_entry(const char *platform_t
         goto done;
       }
 
-      ret = regexec(&regex, platform_type, 0, NULL, 0);
+      ret = regexec(&regex, platform_type, 0, nullptr, 0);
 
       regfree(&regex);
 
@@ -177,13 +178,13 @@ done:
  * @return	NULL, if no entry found
  * 		platform data, if match found
  */
-static struct ec2_platform_data *get_platform_data(void) {
+static struct ec2_platform_data *get_platform_data() {
   static bool init = false;
   static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-  static struct ec2_platform_data *platform_data = NULL;
-  const char *platform_type = NULL;
-  struct ec2_platform_data *platform_data_list;
-  size_t platform_data_len;
+  static struct ec2_platform_data *platform_data = nullptr;
+  const char *platform_type = nullptr;
+  struct ec2_platform_data *platform_data_list = nullptr;
+  size_t platform_data_len = 0;
 
   nccl_net_ofi_mutex_lock(&mutex);
 
@@ -193,12 +194,12 @@ static struct ec2_platform_data *get_platform_data(void) {
   init = true;
 
   platform_type = nccl_net_ofi_get_product_name();
-  if (platform_type == NULL) {
+  if (platform_type == nullptr) {
     goto done;
   }
 
   platform_data_list = platform_aws_get_platform_map(&platform_data_len);
-  if (platform_data_list == NULL) {
+  if (platform_data_list == nullptr) {
     goto done;
   }
 
@@ -217,7 +218,7 @@ done:
 static int validate_rdma_write(struct fid_ep *ep) {
   int ret = 0;
 #if HAVE_DECL_FI_OPT_EFA_EMULATED_WRITE
-  bool optval;
+  bool optval = false;
   size_t optlen = sizeof(optval);
 
   ret = fi_getopt(&ep->fid, FI_OPT_ENDPOINT, FI_OPT_EFA_EMULATED_WRITE, &optval, &optlen);
@@ -245,8 +246,8 @@ exit:
 }
 
 #if HAVE_CUDA
-static int configure_nccl_proto(void) {
-  int ret;
+static int configure_nccl_proto() {
+  int ret = 0;
 
   if (!getenv("NCCL_PROTO")) {
     NCCL_OFI_INFO(NCCL_INIT, "Setting NCCL_PROTO to \"simple\"");
@@ -307,8 +308,8 @@ static int configure_ep_max_msg_size(struct fid_ep *ep) {
   int ret = 0;
 
 #if HAVE_DECL_FI_OPT_MAX_MSG_SIZE
-  size_t eager_max_size = (size_t)ofi_nccl_eager_max_size();
-  size_t optval = std::max(std::max(sizeof(nccl_net_ofi_rdma_ctrl_msg_t), eager_max_size), sizeof(nccl_ofi_rdma_connection_info_t));
+  auto eager_max_size = (size_t)ofi_nccl_eager_max_size();
+  size_t optval = std::max({sizeof(nccl_net_ofi_rdma_ctrl_msg_t), eager_max_size, sizeof(nccl_ofi_rdma_connection_info_t)});
 
   ret = fi_setopt(&ep->fid, FI_OPT_ENDPOINT, FI_OPT_MAX_MSG_SIZE, &optval, sizeof(optval));
 
@@ -325,22 +326,22 @@ static int configure_ep_max_msg_size(struct fid_ep *ep) {
   return ret;
 }
 
-typedef ncclResult_t (*nccl_get_version_fn_t)(int *version);
+using nccl_get_version_fn_t = ncclResult_t (*)(int *);
 
-static int configure_nvls_option(void) {
+static int configure_nvls_option() {
   /* Disable NVLS topology discovery for older NCCL versions. There's a
    * bug with EFA and NCCL version 2.18.3 and earlier on platforms with
    * NVLink Switch support.  We selectively disable NVLS support
    * to avoid the bug, which was fixed in 2.18.5.
    */
-  nccl_get_version_fn_t nccl_get_version = NULL;
+  nccl_get_version_fn_t nccl_get_version = nullptr;
   int version = 0;
   ncclResult_t nccl_ret;
-  int ret;
+  int ret = 0;
 
-  if (getenv("NCCL_NVLS_ENABLE") == NULL) {
+  if (getenv("NCCL_NVLS_ENABLE") == nullptr) {
     nccl_get_version = (nccl_get_version_fn_t)dlsym(RTLD_DEFAULT, "ncclGetVersion");
-    if (nccl_get_version == NULL) {
+    if (nccl_get_version == nullptr) {
       NCCL_OFI_TRACE(NCCL_INIT | NCCL_NET, "Could not find ncclGetVersion symbol; skipping NVLS NCCL version check");
       return 0;
     } else {
@@ -381,9 +382,9 @@ static int configure_nvls_option(void) {
  */
 int platform_init(const char **provider_filter) {
   int ret = ncclSuccess;
-  struct ec2_platform_data *platform_data;
+  struct ec2_platform_data *platform_data = nullptr;
   bool select_efa = false;
-  char *fi_provider;
+  char *fi_provider = nullptr;
 
   NCCL_OFI_INFO(NCCL_INIT, "Configuring AWS-specific options");
 
@@ -396,7 +397,7 @@ int platform_init(const char **provider_filter) {
    * behaviors we want).
    */
   fi_provider = getenv("FI_PROVIDER");
-  if (fi_provider == NULL) {
+  if (fi_provider == nullptr) {
     NCCL_OFI_INFO(NCCL_INIT, "Setting provider_filter to efa");
     *provider_filter = "efa";
     select_efa = true;
@@ -451,7 +452,7 @@ int platform_init(const char **provider_filter) {
     goto exit;
   }
 
-  if ((platform_data && !platform_data->net_flush_required) && NULL == getenv("NCCL_NET_FORCE_FLUSH")) {
+  if ((platform_data && !platform_data->net_flush_required) && nullptr == getenv("NCCL_NET_FORCE_FLUSH")) {
 
     /* Hopper GPUs do not require a network flush, but NCCL versions <2.19.1
      * still enable flush by default on any GPU type.
@@ -550,7 +551,7 @@ int platform_init(const char **provider_filter) {
     NCCL_OFI_INFO(NCCL_INIT | NCCL_NET, "Internode latency set at %.1f us", net_latency);
   }
 
-  if (select_efa && ofi_nccl_protocol() == NULL && platform_data) {
+  if (select_efa && ofi_nccl_protocol() == nullptr && platform_data) {
     nccl_ofi_selected_protocol = platform_data->default_protocol;
   }
 
@@ -565,7 +566,7 @@ int platform_config_endpoint(struct fi_info *info, struct fid_ep *endpoint) {
   int optname = -1;
 #endif
 
-  if (endpoint == NULL) {
+  if (endpoint == nullptr) {
     NCCL_OFI_WARN("Unable to configure invalid endpoint");
     ret = -EINVAL;
     goto exit;
@@ -645,7 +646,7 @@ int platform_config_endpoint(struct fi_info *info, struct fid_ep *endpoint) {
    * the check when using the RDMA protocol.
    */
   if (!nccl_proto_configured) {
-    if ((NULL == getenv("NCCL_PROTO")) && (0 == strcasecmp("RDMA", nccl_ofi_selected_protocol)) &&
+    if ((nullptr == getenv("NCCL_PROTO")) && (0 == strcasecmp("RDMA", nccl_ofi_selected_protocol)) &&
         (0 == strcmp(nccl_net_ofi_get_product_name(), "p5en.48xlarge"))) {
       NCCL_OFI_INFO(NCCL_INIT, "Skipping NCCL_PROTO checks on P5en + RDMA");
       need_ordering = false;
@@ -711,10 +712,10 @@ exit:
 }
 
 static int get_rail_vf_idx(struct fi_info *info) {
-  char *node_guid_filename = NULL;
-  FILE *fp = NULL;
-  int vf_idx;
-  int ret;
+  char *node_guid_filename = nullptr;
+  FILE *fp = nullptr;
+  int vf_idx = 0;
+  int ret = 0;
 
   ret = asprintf(&node_guid_filename, "/sys/class/infiniband/%s/node_guid", info->nic->device_attr->name);
   if (ret < 0) {
@@ -722,7 +723,7 @@ static int get_rail_vf_idx(struct fi_info *info) {
     goto cleanup;
   }
   fp = fopen(node_guid_filename, "r");
-  if (fp == NULL) {
+  if (fp == nullptr) {
     NCCL_OFI_WARN("Error opening file: %s", node_guid_filename);
     vf_idx = -errno;
     goto cleanup;
@@ -746,7 +747,7 @@ cleanup:
   if (node_guid_filename) {
     free(node_guid_filename);
   }
-  if (fp != NULL) {
+  if (fp != nullptr) {
     fclose(fp);
   }
 
@@ -768,14 +769,14 @@ cleanup:
  * pair index, and so on.
  */
 void platform_sort_rails(struct fi_info **info_list, size_t num_rails, size_t num_groups) {
-  struct fi_info **info_array = NULL;
-  struct fi_info *info_iter = NULL;
-  size_t *vf_array = NULL;
-  struct fi_info *output_info_list = NULL;
-  struct fi_info *output_info_end = NULL;
+  struct fi_info **info_array = nullptr;
+  struct fi_info *info_iter = nullptr;
+  size_t *vf_array = nullptr;
+  struct fi_info *output_info_list = nullptr;
+  struct fi_info *output_info_end = nullptr;
   size_t highest_vf_idx = 0;
   size_t next_vf_idx = 0;
-  size_t info_count;
+  size_t info_count = 0;
 
   /* we only want to reorder if there's more than one NIC per
    * group (ie, per GPU).  Less than that (P4d or trainium), we
@@ -785,13 +786,13 @@ void platform_sort_rails(struct fi_info **info_list, size_t num_rails, size_t nu
   }
 
   info_array = (struct fi_info **)calloc(num_rails, sizeof(struct fi_info *));
-  if (info_array == NULL) {
+  if (info_array == nullptr) {
     NCCL_OFI_WARN("Did not reorder arrays due to calloc failure");
     goto cleanup;
   }
 
   vf_array = (size_t *)calloc(num_rails, sizeof(size_t));
-  if (vf_array == NULL) {
+  if (vf_array == nullptr) {
     NCCL_OFI_WARN("Did not reorder arrays due to calloc failure");
     goto cleanup;
   }
@@ -801,9 +802,9 @@ void platform_sort_rails(struct fi_info **info_list, size_t num_rails, size_t nu
    * input and keep everything organized */
   info_iter = *info_list;
   info_count = 0;
-  while (info_iter != NULL && info_count < num_rails) {
+  while (info_iter != nullptr && info_count < num_rails) {
     info_array[info_count] = fi_dupinfo(info_iter);
-    if (info_array[info_count] == NULL) {
+    if (info_array[info_count] == nullptr) {
       NCCL_OFI_WARN("fi_dupinfo failed");
       goto cleanup;
     }
@@ -835,18 +836,18 @@ void platform_sort_rails(struct fi_info **info_list, size_t num_rails, size_t nu
   for (size_t i = 0; i < num_rails; i++) {
     size_t j = num_rails;
     for (j = 0; j < num_rails; j++) {
-      if (info_array[j] == NULL) {
+      if (info_array[j] == nullptr) {
         continue;
       }
 
       if (vf_array[j] == next_vf_idx) {
-        if (output_info_list == NULL) {
+        if (output_info_list == nullptr) {
           output_info_list = output_info_end = info_array[j];
         } else {
           output_info_end->next = info_array[j];
           output_info_end = info_array[j];
         }
-        info_array[j] = NULL;
+        info_array[j] = nullptr;
         next_vf_idx = (next_vf_idx + 1) % (highest_vf_idx + 1);
         break;
       }
@@ -859,30 +860,30 @@ void platform_sort_rails(struct fi_info **info_list, size_t num_rails, size_t nu
 
   fi_freeinfo(*info_list);
   *info_list = output_info_list;
-  output_info_list = NULL;
+  output_info_list = nullptr;
 
 cleanup:
-  if (info_array != NULL) {
+  if (info_array != nullptr) {
     for (size_t i = 0; i < num_rails; i++) {
-      if (info_array[i] != NULL) {
+      if (info_array[i] != nullptr) {
         fi_freeinfo(info_array[i]);
       }
     }
     free(info_array);
   }
-  if (vf_array != NULL) {
+  if (vf_array != nullptr) {
     free(vf_array);
   }
-  if (output_info_list != NULL) {
+  if (output_info_list != nullptr) {
     fi_freeinfo(output_info_list);
   }
 
   return;
 }
 
-bool platform_default_domain_per_thread(void) {
+bool platform_default_domain_per_thread() {
   struct ec2_platform_data *platform_data = get_platform_data();
-  if (platform_data != NULL && platform_data->domain_per_thread != 0) {
+  if (platform_data != nullptr && platform_data->domain_per_thread != 0) {
     return true;
   }
   return false;

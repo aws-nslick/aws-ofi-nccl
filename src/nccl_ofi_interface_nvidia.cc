@@ -275,8 +275,8 @@ NCCL_OFI_EXPORT_SYMBOL ncclNet_v7_t ncclNetPlugin_v7 = {
     .closeSend = nccl_net_ofi_closeSend,
     .closeRecv = nccl_net_ofi_closeRecv,
     .closeListen = nccl_net_ofi_closeListen,
-    .getDeviceMr = NULL,
-    .irecvConsumed = NULL,
+    .getDeviceMr = nullptr,
+    .irecvConsumed = nullptr,
 };
 
 NCCL_OFI_EXPORT_SYMBOL ncclNet_v8_t ncclNetPlugin_v8 = {
@@ -297,8 +297,8 @@ NCCL_OFI_EXPORT_SYMBOL ncclNet_v8_t ncclNetPlugin_v8 = {
     .closeSend = nccl_net_ofi_closeSend,
     .closeRecv = nccl_net_ofi_closeRecv,
     .closeListen = nccl_net_ofi_closeListen,
-    .getDeviceMr = NULL,
-    .irecvConsumed = NULL,
+    .getDeviceMr = nullptr,
+    .irecvConsumed = nullptr,
 };
 
 /*
@@ -309,9 +309,9 @@ NCCL_OFI_EXPORT_SYMBOL ncclNet_v8_t ncclNetPlugin_v8 = {
  * that.  And, since we're here, also deal with the constant
  * "Libfabric" vs. "OFI" confusion.
  */
-__attribute__((constructor)) static void nvidia_plugin_name_fixup(void) {
+__attribute__((constructor)) static void nvidia_plugin_name_fixup() {
   char *net_env = getenv("NCCL_NET");
-  if (net_env != NULL && 0 == strcasecmp(net_env, "AWS Libfabric")) {
+  if (net_env != nullptr && 0 == strcasecmp(net_env, "AWS Libfabric")) {
     ncclNetPlugin_v2.name = "AWS Libfabric";
     ncclNetPlugin_v3.name = "AWS Libfabric";
     ncclNetPlugin_v4.name = "AWS Libfabric";
@@ -319,7 +319,7 @@ __attribute__((constructor)) static void nvidia_plugin_name_fixup(void) {
     ncclNetPlugin_v6.name = "AWS Libfabric";
     ncclNetPlugin_v7.name = "AWS Libfabric";
     ncclNetPlugin_v8.name = "AWS Libfabric";
-  } else if (net_env != NULL && 0 == strcasecmp(net_env, "OFI")) {
+  } else if (net_env != nullptr && 0 == strcasecmp(net_env, "OFI")) {
     ncclNetPlugin_v2.name = "OFI";
     ncclNetPlugin_v3.name = "OFI";
     ncclNetPlugin_v4.name = "OFI";

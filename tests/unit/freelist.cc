@@ -30,9 +30,9 @@ static inline int deregmr_simple(void *handle) {
   if (simple_handle != handle)
     return ncclSystemError;
 
-  simple_base = NULL;
+  simple_base = nullptr;
   simple_size = 0;
-  simple_handle = NULL;
+  simple_handle = nullptr;
 
   return ncclSuccess;
 }
@@ -43,10 +43,10 @@ struct random_freelisted_item {
 };
 
 int main(int argc, char *argv[]) {
-  struct nccl_ofi_freelist_t *freelist;
-  nccl_ofi_freelist_elem_t *entry;
-  int ret;
-  size_t i;
+  struct nccl_ofi_freelist_t *freelist = nullptr;
+  nccl_ofi_freelist_elem_t *entry = nullptr;
+  int ret = 0;
+  size_t i = 0;
 
   system_page_size = 4096;
   ofi_log_function = logger;
@@ -129,7 +129,7 @@ int main(int argc, char *argv[]) {
     NCCL_OFI_WARN("freelist_init failed: %d", ret);
     exit(1);
   }
-  char *last_buff = NULL;
+  char *last_buff = nullptr;
   for (i = 0; i < 8; i++) {
     entry = nccl_ofi_freelist_entry_alloc(freelist);
     if (!entry) {
@@ -152,7 +152,7 @@ int main(int argc, char *argv[]) {
   }
 
   /* and now with registrations... */
-  simple_base = NULL;
+  simple_base = nullptr;
   ret = nccl_ofi_freelist_init_mr(1024, 32, 0, 32, regmr_simple, deregmr_simple, (void *)0xdeadbeaf, 1, &freelist);
   if (ret != ncclSuccess) {
     NCCL_OFI_WARN("freelist_init failed: %d", ret);

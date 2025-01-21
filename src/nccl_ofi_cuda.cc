@@ -39,7 +39,7 @@
 DECLARE_CUDA_FUNCTION(cuCtxGetDevice);
 DECLARE_CUDA_FUNCTION(cuDeviceGetAttribute);
 
-int nccl_net_ofi_cuda_init(void) {
+int nccl_net_ofi_cuda_init() {
   int driverVersion = -1;
   int runtimeVersion = -1;
 
@@ -74,7 +74,7 @@ int nccl_net_ofi_cuda_init(void) {
   return 0;
 }
 
-int nccl_net_ofi_cuda_flush_gpudirect_rdma_writes(void) {
+int nccl_net_ofi_cuda_flush_gpudirect_rdma_writes() {
 #if HAVE_CUDA_GDRFLUSH_SUPPORT
   static_assert(CUDA_VERSION >= 11030, "Requires cudart>=11.3");
   cudaError_t ret = cudaDeviceFlushGPUDirectRDMAWrites(cudaFlushGPUDirectRDMAWritesTargetCurrentDevice, cudaFlushGPUDirectRDMAWritesToOwner);
@@ -84,13 +84,13 @@ int nccl_net_ofi_cuda_flush_gpudirect_rdma_writes(void) {
 #endif
 }
 
-int nccl_net_ofi_cuda_get_num_devices(void) {
+int nccl_net_ofi_cuda_get_num_devices() {
   int count = -1;
   cudaError_t res = cudaGetDeviceCount(&count);
   return res == cudaSuccess ? count : -1;
 }
 
-int nccl_net_ofi_cuda_get_active_device_idx(void) {
+int nccl_net_ofi_cuda_get_active_device_idx() {
   int index = -1;
   cudaError_t res = cudaGetDevice(&index);
   return res == cudaSuccess ? index : -1;
@@ -117,19 +117,19 @@ int nccl_net_ofi_get_cuda_device_for_addr(void *data, int *dev_id) {
   };
 }
 
-bool nccl_net_ofi_cuda_have_gdr_support_attr(void) {
+bool nccl_net_ofi_cuda_have_gdr_support_attr() {
 #if HAVE_CUDA_GDRFLUSH_SUPPORT
-  if (pfn_cuCtxGetDevice == NULL || pfn_cuDeviceGetAttribute == NULL) {
+  if (pfn_cuCtxGetDevice == nullptr || pfn_cuDeviceGetAttribute == nullptr) {
     return false;
   }
 
-  CUdevice dev;
+  CUdevice dev = 0;
   CUresult result = pfn_cuCtxGetDevice(&dev);
   if (result != CUDA_SUCCESS) {
     return false;
   }
 
-  int supported;
+  int supported = 0;
   result = pfn_cuDeviceGetAttribute(&supported, CU_DEVICE_ATTRIBUTE_GPU_DIRECT_RDMA_SUPPORTED, dev);
   if (result != CUDA_SUCCESS || !((bool)supported)) {
     return false;
@@ -142,20 +142,20 @@ bool nccl_net_ofi_cuda_have_gdr_support_attr(void) {
 #endif
 }
 
-bool nccl_net_ofi_cuda_have_dma_buf_attr(void) {
+bool nccl_net_ofi_cuda_have_dma_buf_attr() {
 #if HAVE_CUDA_DMABUF_SUPPORT
   static_assert(CUDA_VERSION >= 11070, "Requires cudart>=11.7");
-  if (pfn_cuCtxGetDevice == NULL || pfn_cuDeviceGetAttribute == NULL) {
+  if (pfn_cuCtxGetDevice == nullptr || pfn_cuDeviceGetAttribute == nullptr) {
     return false;
   }
 
-  CUdevice dev;
+  CUdevice dev = 0;
   CUresult result = pfn_cuCtxGetDevice(&dev);
   if (result != CUDA_SUCCESS) {
     return false;
   }
 
-  int supported;
+  int supported = 0;
   result = pfn_cuDeviceGetAttribute(&supported, CU_DEVICE_ATTRIBUTE_DMA_BUF_SUPPORTED, dev);
   if (result != CUDA_SUCCESS) {
     return false;

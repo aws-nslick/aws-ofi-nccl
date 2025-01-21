@@ -15,9 +15,9 @@ int main(int argc, char *argv[]) {
   const uint16_t max_inprogress = 4;
   const uint16_t num_msg_seq_num_bits = 4;
   const uint16_t field_size = 1 << num_msg_seq_num_bits;
-  uint16_t *result;
+  uint16_t *result = nullptr;
 
-  uint16_t *buff_store = (uint16_t *)calloc(max_inprogress, sizeof(uint16_t));
+  auto *buff_store = (uint16_t *)calloc(max_inprogress, sizeof(uint16_t));
   if (!buff_store) {
     NCCL_OFI_WARN("Memory allocation failed");
     return 1;
@@ -27,7 +27,7 @@ int main(int argc, char *argv[]) {
     buff_store[i] = i;
   }
 
-  nccl_ofi_msgbuff_t *msgbuff;
+  nccl_ofi_msgbuff_t *msgbuff = nullptr;
   if (!(msgbuff = nccl_ofi_msgbuff_init(max_inprogress, num_msg_seq_num_bits))) {
     NCCL_OFI_WARN("nccl_ofi_msgbuff_init failed");
     return 1;
@@ -47,13 +47,13 @@ int main(int argc, char *argv[]) {
       }
     }
 
-    if (nccl_ofi_msgbuff_insert(msgbuff, (msg_seq_num + max_inprogress) % field_size, NULL, type, &stat) != NCCL_OFI_MSGBUFF_INVALID_IDX ||
+    if (nccl_ofi_msgbuff_insert(msgbuff, (msg_seq_num + max_inprogress) % field_size, nullptr, type, &stat) != NCCL_OFI_MSGBUFF_INVALID_IDX ||
         stat != NCCL_OFI_MSGBUFF_UNAVAILABLE) {
       NCCL_OFI_WARN("nccl_ofi_msgbuff_insert did not return unavailable when full");
       return 1;
     }
 
-    if (nccl_ofi_msgbuff_insert(msgbuff, (msg_seq_num + max_inprogress - 1) % field_size, NULL, type, &stat) != NCCL_OFI_MSGBUFF_INVALID_IDX ||
+    if (nccl_ofi_msgbuff_insert(msgbuff, (msg_seq_num + max_inprogress - 1) % field_size, nullptr, type, &stat) != NCCL_OFI_MSGBUFF_INVALID_IDX ||
         stat != NCCL_OFI_MSGBUFF_INPROGRESS) {
       NCCL_OFI_WARN("nccl_ofi_msgbuff_insert did not return inprogress on duplicate insert");
       return 1;

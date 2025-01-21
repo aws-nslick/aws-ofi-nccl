@@ -14,8 +14,8 @@
 #include "nccl_ofi_pthread.hh"
 
 nccl_ofi_msgbuff_t *nccl_ofi_msgbuff_init(uint16_t max_inprogress, uint16_t bit_width) {
-  int ret;
-  nccl_ofi_msgbuff_t *msgbuff = NULL;
+  int ret = 0;
+  nccl_ofi_msgbuff_t *msgbuff = nullptr;
 
   if (max_inprogress == 0 || (uint16_t)(1 << bit_width) <= 2 * max_inprogress) {
     NCCL_OFI_WARN("Wrong parameters for msgbuff_init max_inprogress %" PRIu16 " bit_width %" PRIu16 "", max_inprogress, bit_width);
@@ -40,7 +40,7 @@ nccl_ofi_msgbuff_t *nccl_ofi_msgbuff_init(uint16_t max_inprogress, uint16_t bit_
   msgbuff->field_mask = (uint16_t)(1 << bit_width) - 1;
   msgbuff->max_inprogress = max_inprogress;
 
-  ret = nccl_net_ofi_mutex_init(&msgbuff->lock, NULL);
+  ret = nccl_net_ofi_mutex_init(&msgbuff->lock, nullptr);
   if (ret != 0) {
     NCCL_OFI_WARN("Mutex initialization failed: %s", strerror(ret));
     goto error;
@@ -55,7 +55,7 @@ error:
     }
     free(msgbuff);
   }
-  return NULL;
+  return nullptr;
 }
 
 static inline uint16_t distance(const nccl_ofi_msgbuff_t *msgbuff, const uint16_t front, const uint16_t back) {
@@ -134,7 +134,7 @@ nccl_ofi_msgbuff_result_t nccl_ofi_msgbuff_insert(nccl_ofi_msgbuff_t *msgbuff, u
     while (distance(msgbuff, msg_index, msgbuff->msg_next) <= msgbuff->max_inprogress) {
       if (msgbuff->msg_next != msg_index) {
         buff_idx(msgbuff, msgbuff->msg_next)->stat = NCCL_OFI_MSGBUFF_NOTSTARTED;
-        buff_idx(msgbuff, msgbuff->msg_next)->elem = NULL;
+        buff_idx(msgbuff, msgbuff->msg_next)->elem = nullptr;
       }
       msgbuff->msg_next = (msgbuff->msg_next + 1) & msgbuff->field_mask;
     }
@@ -208,7 +208,7 @@ nccl_ofi_msgbuff_result_t nccl_ofi_msgbuff_complete(nccl_ofi_msgbuff_t *msgbuff,
 
   if (*msg_idx_status == NCCL_OFI_MSGBUFF_INPROGRESS) {
     buff_idx(msgbuff, msg_index)->stat = NCCL_OFI_MSGBUFF_COMPLETED;
-    buff_idx(msgbuff, msg_index)->elem = NULL;
+    buff_idx(msgbuff, msg_index)->elem = nullptr;
     /* Move up tail msg_last_incomplete ptr */
     while (msgbuff->msg_last_incomplete != msgbuff->msg_next && buff_idx(msgbuff, msgbuff->msg_last_incomplete)->stat == NCCL_OFI_MSGBUFF_COMPLETED) {
       msgbuff->msg_last_incomplete = (msgbuff->msg_last_incomplete + 1) & msgbuff->field_mask;

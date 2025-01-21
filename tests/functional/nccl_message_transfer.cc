@@ -12,21 +12,22 @@
 #include "test-common.hh"
 
 #include <algorithm>
+#include <cstddef>
 
-#define PROC_NAME_IDX(i) (i * MPI_MAX_PROCESSOR_NAME)
+#define PROC_NAME_IDX(i) ((i) * MPI_MAX_PROCESSOR_NAME)
 
 int main(int argc, char *argv[]) {
   ncclResult_t res = ncclSuccess;
-  int rank, proc_name_len, num_ranks = 0, local_rank = 0, peer_rank = 0;
+  int rank = 0, proc_name_len = 0, num_ranks = 0, local_rank = 0, peer_rank = 0;
   int buffer_type = NCCL_PTR_HOST;
   test_nccl_properties_t props = {};
 
   /* Plugin defines */
-  int ndev;
+  int ndev = 0;
   nccl_net_ofi_send_comm_t *sComm = NULL;
   nccl_net_ofi_listen_comm_t *lComm = NULL;
   nccl_net_ofi_recv_comm_t *rComm = NULL;
-  test_nccl_net_t *extNet = NULL;
+  test_nccl_net_t *extNet = nullptr;
   ncclNetDeviceHandle_v8_t *s_ignore, *r_ignore;
   char src_handle[NCCL_NET_HANDLE_MAXSIZE] = {};
 
@@ -40,28 +41,46 @@ int main(int argc, char *argv[]) {
   int inflight_reqs = NUM_REQUESTS;
   char *send_buf[NUM_REQUESTS] = {NULL};
   char *recv_buf[NUM_REQUESTS] = {NULL};
-  char *expected_buf = NULL;
-  int done, received_size;
+  char *expected_buf = nullptr;
+  int done = 0, received_size = 0;
 
   /* Indicates if NICs support GPUDirect */
-  int *test_support_gdr = NULL;
+  int *test_support_gdr = nullptr;
 
   /* All processors IDs, used to find out the local rank */
-  char *all_proc_name = NULL;
+  char *all_proc_name = nullptr;
 
   /* Data sizes. We want to check send size greater, equal
      and smaller than recv size. And check values 1. below
      the eager threshold, 2. between eager and rr threshold,
      3. above the rr threshold, and 4. fraction of page size. */
-  size_t send_sizes[] = {512, 4 * 1024, 16 * 1024, 1024 * 1024, 5 * 1024, 17 * 1024, 2 * 1024 * 1024, 4 * 1024, 16 * 1024, 1024 * 1024};
-  size_t recv_sizes[] = {512, 4 * 1024, 16 * 1024, 1024 * 1024, 4 * 1024, 16 * 1024, 1024 * 1024, 5 * 1024, 17 * 1024, 2 * 1024 * 1024};
+  size_t send_sizes[] = {512,
+                         static_cast<size_t>(4 * 1024),
+                         static_cast<size_t>(16 * 1024),
+                         static_cast<size_t>(1024 * 1024),
+                         static_cast<size_t>(5 * 1024),
+                         static_cast<size_t>(17 * 1024),
+                         static_cast<size_t>(2 * 1024 * 1024),
+                         static_cast<size_t>(4 * 1024),
+                         static_cast<size_t>(16 * 1024),
+                         static_cast<size_t>(1024 * 1024)};
+  size_t recv_sizes[] = {512,
+                         static_cast<size_t>(4 * 1024),
+                         static_cast<size_t>(16 * 1024),
+                         static_cast<size_t>(1024 * 1024),
+                         static_cast<size_t>(4 * 1024),
+                         static_cast<size_t>(16 * 1024),
+                         static_cast<size_t>(1024 * 1024),
+                         static_cast<size_t>(5 * 1024),
+                         static_cast<size_t>(17 * 1024),
+                         static_cast<size_t>(2 * 1024 * 1024)};
 
   /* For grouped recvs */
   int tag = 1;
   int nrecv = NCCL_OFI_MAX_RECVS;
   int *sizes = (int *)malloc(sizeof(int) * nrecv);
   int *tags = (int *)malloc(sizeof(int) * nrecv);
-  if (sizes == NULL || tags == NULL) {
+  if (sizes == nullptr || tags == nullptr) {
     NCCL_OFI_WARN("Failed to allocate memory");
     res = ncclInternalError;
     goto exit;
@@ -79,7 +98,7 @@ int main(int argc, char *argv[]) {
   }
 
   all_proc_name = (char *)malloc(sizeof(char) * num_ranks * MPI_MAX_PROCESSOR_NAME);
-  if (all_proc_name == NULL) {
+  if (all_proc_name == nullptr) {
     NCCL_OFI_WARN("Failed to allocate memory");
     res = ncclInternalError;
     goto exit;
@@ -102,7 +121,7 @@ int main(int argc, char *argv[]) {
 
   /* Get external Network from NCCL-OFI library */
   extNet = get_extNet();
-  if (extNet == NULL) {
+  if (extNet == nullptr) {
     res = ncclInternalError;
     goto exit;
   }
@@ -116,7 +135,7 @@ int main(int argc, char *argv[]) {
   NCCL_OFI_INFO(NCCL_NET, "Received %d network devices", ndev);
 
   test_support_gdr = (int *)malloc(sizeof(int) * ndev);
-  if (test_support_gdr == NULL) {
+  if (test_support_gdr == nullptr) {
     NCCL_OFI_WARN("Failed to allocate memory");
     res = ncclInternalError;
     goto exit;
@@ -358,27 +377,27 @@ exit:;
       NCCL_OFI_WARN("Expected buffer deallocation failure: %d", close_res);
       res = res ? res : close_res;
     }
-    expected_buf = NULL;
+    expected_buf = nullptr;
   }
 
   if (test_support_gdr) {
     free(test_support_gdr);
-    test_support_gdr = NULL;
+    test_support_gdr = nullptr;
   }
 
   if (all_proc_name) {
     free(all_proc_name);
-    all_proc_name = NULL;
+    all_proc_name = nullptr;
   }
 
   if (sizes) {
     free(sizes);
-    sizes = NULL;
+    sizes = nullptr;
   }
 
   if (tags) {
     free(tags);
-    tags = NULL;
+    tags = nullptr;
   }
 
   return res;

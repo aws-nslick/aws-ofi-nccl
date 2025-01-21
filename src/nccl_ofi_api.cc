@@ -17,8 +17,8 @@ static_assert(NCCL_NET_MAX_REQUESTS <= NCCL_OFI_MAX_REQUESTS, "Maximum outstandi
 
 /* nccl_net_ofi plugin */
 bool abort_on_error = false;
-nccl_net_ofi_plugin_t *plugin = NULL;
-nccl_ofi_logger_t ofi_log_function = NULL;
+nccl_net_ofi_plugin_t *plugin = nullptr;
+nccl_ofi_logger_t ofi_log_function = nullptr;
 
 static ncclResult_t nccl_net_ofi_retval_translate_impl(int retval) {
   /*
@@ -101,20 +101,20 @@ static ncclResult_t nccl_net_ofi_retval_translate_impl(int retval) {
     retval_translate_nccl_retval;                                                                                                                              \
   })
 
-static void nccl_net_ofi_fini(void) {
-  if (plugin != NULL) {
+static void nccl_net_ofi_fini() {
+  if (plugin != nullptr) {
     int ret = plugin->release_plugin(plugin);
     if (ret != 0) {
       NCCL_OFI_INFO(NCCL_NET, "Failure in plugin cleanup");
     }
-    plugin = NULL;
+    plugin = nullptr;
   }
 }
 
 ncclResult_t nccl_net_ofi_init(ncclDebugLogger_t logFunction) {
-  int ret;
+  int ret = 0;
 
-  if (plugin != NULL) {
+  if (plugin != nullptr) {
     return check_return(ncclSystemError);
   }
 
@@ -139,12 +139,12 @@ ncclResult_t nccl_net_ofi_init(ncclDebugLogger_t logFunction) {
 
 ncclResult_t nccl_net_ofi_devices(int *num_devices) {
   /* Validate plugin */
-  if (plugin == NULL) [[unlikely]] {
+  if (plugin == nullptr) [[unlikely]] {
     NCCL_OFI_WARN("Error accessing plugin. Plugin has not been initialized yet.");
     return check_return(ncclInvalidArgument);
   }
 
-  if (num_devices == NULL) [[unlikely]] {
+  if (num_devices == nullptr) [[unlikely]] {
     NCCL_OFI_WARN("Invalid num_devices pointer");
     return check_return(ncclInvalidArgument);
   }
@@ -154,16 +154,16 @@ ncclResult_t nccl_net_ofi_devices(int *num_devices) {
 }
 
 ncclResult_t nccl_net_ofi_get_properties(int dev_id, nccl_ofi_properties_t *ofi_properties) {
-  nccl_net_ofi_device_t *device;
+  nccl_net_ofi_device_t *device = nullptr;
 
   /* Validate plugin */
-  if (plugin == NULL) [[unlikely]] {
+  if (plugin == nullptr) [[unlikely]] {
     NCCL_OFI_WARN("Error accessing plugin. Plugin has not been initialized yet.");
     return check_return(ncclInvalidArgument);
   }
 
   device = plugin->get_device(plugin, dev_id);
-  if (device == NULL) {
+  if (device == nullptr) {
     NCCL_OFI_WARN("Error accessing device %i.", dev_id);
     return check_return(ncclInternalError);
   }
@@ -174,30 +174,30 @@ ncclResult_t nccl_net_ofi_get_properties(int dev_id, nccl_ofi_properties_t *ofi_
 
 ncclResult_t nccl_net_ofi_listen(int dev_id, void *handle, void **lComm) {
   int ret = 0;
-  nccl_net_ofi_device_t *device = NULL;
-  nccl_net_ofi_ep_t *base_ep = NULL;
-  nccl_net_ofi_listen_comm_t **listen_comm = (nccl_net_ofi_listen_comm_t **)lComm;
+  nccl_net_ofi_device_t *device = nullptr;
+  nccl_net_ofi_ep_t *base_ep = nullptr;
+  auto **listen_comm = (nccl_net_ofi_listen_comm_t **)lComm;
 
   /* Validate plugin */
-  if (plugin == NULL) [[unlikely]] {
+  if (plugin == nullptr) [[unlikely]] {
     NCCL_OFI_WARN("Error accessing plugin. Plugin has not been initialized yet.");
     return check_return(ncclInvalidArgument);
   }
 
   device = plugin->get_device(plugin, dev_id);
-  if (device == NULL) {
+  if (device == nullptr) {
     NCCL_OFI_WARN("Error accessing device %i.", dev_id);
     return check_return(ncclInternalError);
   }
   /* Validate Handle */
-  if (handle == NULL) [[unlikely]] {
+  if (handle == nullptr) [[unlikely]] {
     NCCL_OFI_WARN("Provided handle is NULL");
     return check_return(ncclInvalidArgument);
   }
 
   /* Retrieve and validate endpoint */
   device->get_ep(device, &base_ep);
-  if (base_ep == NULL) [[unlikely]] {
+  if (base_ep == nullptr) [[unlikely]] {
     NCCL_OFI_WARN("Error accessing endpoint. Endpoint has not been initialized.");
     return check_return(ncclInternalError);
   }
@@ -253,23 +253,23 @@ ncclResult_t nccl_net_ofi_listen_v4(int dev, void *handle, void **listenComm) {
  */
 ncclResult_t nccl_net_ofi_connect(int dev_id, void *handle, void **sComm) {
   /* Validate plugin */
-  if (plugin == NULL) [[unlikely]] {
+  if (plugin == nullptr) [[unlikely]] {
     NCCL_OFI_WARN("Error accessing plugin. Plugin has not been initialized yet.");
     return check_return(ncclInvalidArgument);
   }
 
   /* Retrieve and validate Handle */
-  nccl_net_ofi_conn_handle_t *ofi_handle = (nccl_net_ofi_conn_handle_t *)handle;
-  if (ofi_handle == NULL) [[unlikely]] {
+  auto *ofi_handle = (nccl_net_ofi_conn_handle_t *)handle;
+  if (ofi_handle == nullptr) [[unlikely]] {
     NCCL_OFI_WARN("Provided handle is NULL");
     return check_return(ncclInvalidArgument);
   }
 
   /* Retrieve and validate endpoint */
-  nccl_net_ofi_ep_t *base_ep = NULL;
+  nccl_net_ofi_ep_t *base_ep = nullptr;
   if (ofi_handle->state.stage == COMM_CREATE_START) {
     nccl_net_ofi_device_t *device = plugin->get_device(plugin, dev_id);
-    if (device == NULL) {
+    if (device == nullptr) {
       NCCL_OFI_WARN("Error accessing device %i.", dev_id);
       return check_return(ncclInternalError);
     }
@@ -281,14 +281,14 @@ ncclResult_t nccl_net_ofi_connect(int dev_id, void *handle, void **sComm) {
 
   } else {
     base_ep = ofi_handle->state.comm->ep;
-    if (base_ep == NULL) [[unlikely]] {
+    if (base_ep == nullptr) [[unlikely]] {
       NCCL_OFI_WARN("Error accessing endpoint. Endpoint has not been initialized.");
       return check_return(ncclInternalError);
     }
   }
 
   /* Connect */
-  nccl_net_ofi_send_comm_t **send_comm = (nccl_net_ofi_send_comm_t **)sComm;
+  auto **send_comm = (nccl_net_ofi_send_comm_t **)sComm;
   int ret = base_ep->connect(base_ep, (nccl_net_ofi_conn_handle_t *)handle, send_comm);
 
   if (ret != 0) {
@@ -309,7 +309,7 @@ ncclResult_t nccl_net_ofi_connect_v4(int dev, void *handle, void **sendComm) {
 
   memcpy(&nccl_net_ofi_handle, handle, NCCL_NET_HANDLE_MAXSIZE_V4);
 
-  while (*sendComm == NULL) {
+  while (*sendComm == nullptr) {
     ret = nccl_net_ofi_connect(dev, &nccl_net_ofi_handle, sendComm);
     if (ret != ncclSuccess)
       return ret;
@@ -329,16 +329,16 @@ ncclResult_t nccl_net_ofi_regMr(void *comm, void *data, size_t size, int type, v
 }
 
 ncclResult_t nccl_net_ofi_regMrDmaBuf(void *comm, void *data, size_t size, int type, uint64_t offset, int fd, void **mhandle) {
-  int ret;
+  int ret = 0;
   /* Retrieve and validate comm */
-  nccl_net_ofi_comm_t *base_comm = (nccl_net_ofi_comm_t *)comm;
+  auto *base_comm = (nccl_net_ofi_comm_t *)comm;
 
-  if (plugin == NULL) [[unlikely]] {
+  if (plugin == nullptr) [[unlikely]] {
     NCCL_OFI_WARN("Error accessing plugin. Plugin has not been initialized yet.");
     return check_return(ncclInvalidArgument);
   }
 
-  if (base_comm == NULL) [[unlikely]] {
+  if (base_comm == nullptr) [[unlikely]] {
     NCCL_OFI_WARN("Invalid comm object provided");
     return check_return(ncclInternalError);
   }
@@ -370,8 +370,8 @@ ncclResult_t nccl_net_ofi_regMrDmaBuf(void *comm, void *data, size_t size, int t
   const nccl_ofi_mr_ckey_t cache_key = nccl_ofi_mr_ckey_mk_vec(data, size);
 #endif
 
-  nccl_net_ofi_send_comm_t *send_comm = NULL;
-  nccl_net_ofi_recv_comm_t *recv_comm = NULL;
+  nccl_net_ofi_send_comm_t *send_comm = nullptr;
+  nccl_net_ofi_recv_comm_t *recv_comm = nullptr;
 
   switch (base_comm->type) {
   case NCCL_NET_OFI_SEND_COMM:
@@ -395,21 +395,21 @@ ncclResult_t nccl_net_ofi_regMrDmaBuf(void *comm, void *data, size_t size, int t
 
 ncclResult_t nccl_net_ofi_deregMr(void *comm, void *mhandle) {
   /* Retrieve and validate comm */
-  nccl_net_ofi_comm_t *base_comm = (nccl_net_ofi_comm_t *)comm;
+  auto *base_comm = (nccl_net_ofi_comm_t *)comm;
 
-  if (plugin == NULL) [[unlikely]] {
+  if (plugin == nullptr) [[unlikely]] {
     NCCL_OFI_WARN("Error accessing plugin. Plugin has not been initialized yet.");
     return check_return(ncclInvalidArgument);
   }
 
-  if (base_comm == NULL) [[unlikely]] {
+  if (base_comm == nullptr) [[unlikely]] {
     NCCL_OFI_WARN("Invalid comm object provided");
     return check_return(ncclInternalError);
   }
 
   int ret = 0;
-  nccl_net_ofi_send_comm_t *send_comm = NULL;
-  nccl_net_ofi_recv_comm_t *recv_comm = NULL;
+  nccl_net_ofi_send_comm_t *send_comm = nullptr;
+  nccl_net_ofi_recv_comm_t *recv_comm = nullptr;
 
   switch (base_comm->type) {
   case NCCL_NET_OFI_SEND_COMM:
@@ -447,27 +447,27 @@ ncclResult_t nccl_net_ofi_deregMr(void *comm, void *mhandle) {
  * 		error, on others
  */
 ncclResult_t nccl_net_ofi_accept(void *lComm, void **rComm) {
-  if (plugin == NULL) [[unlikely]] {
+  if (plugin == nullptr) [[unlikely]] {
     NCCL_OFI_WARN("Error accessing plugin. Plugin has not been initialized yet.");
     return check_return(ncclInvalidArgument);
   }
 
   /* Verify communicator */
-  if (lComm == NULL) {
+  if (lComm == nullptr) {
     NCCL_OFI_WARN("Invalid listen communicator provided");
     return check_return(ncclInternalError);
   }
 
   /* Invoke listen communicator accept() function */
-  nccl_net_ofi_listen_comm_t *listen_comm = (nccl_net_ofi_listen_comm_t *)lComm;
-  nccl_net_ofi_recv_comm_t **recv_comm = (nccl_net_ofi_recv_comm_t **)rComm;
+  auto *listen_comm = (nccl_net_ofi_listen_comm_t *)lComm;
+  auto **recv_comm = (nccl_net_ofi_recv_comm_t **)rComm;
   int ret = listen_comm->accept(listen_comm, recv_comm);
 
   /* Invoke release_ep() on listen comm's endpoint since accept failed */
   if (ret != 0) {
     /* Retrieve and validate endpoint */
     nccl_net_ofi_ep_t *ep = listen_comm->base.ep;
-    if (ep == NULL) [[unlikely]] {
+    if (ep == nullptr) [[unlikely]] {
       NCCL_OFI_WARN("Invalid endpoint provided");
       ret = -EINVAL;
       goto error;
@@ -488,7 +488,7 @@ ncclResult_t nccl_net_ofi_accept_v4(void *listenComm, void **recvComm) {
     return check_return(ncclInternalError);
   }
 
-  while (*recvComm == NULL) {
+  while (*recvComm == nullptr) {
     ret = nccl_net_ofi_accept(listenComm, recvComm);
     if (ret != ncclSuccess) {
       goto error;
@@ -500,12 +500,12 @@ error:
 }
 
 ncclResult_t nccl_net_ofi_isend(void *sComm, void *data, int size, int tag, void *mhandle, void **req) {
-  nccl_net_ofi_send_comm_t *send_comm = (nccl_net_ofi_send_comm_t *)sComm;
-  nccl_net_ofi_mr_handle_t *handle = (nccl_net_ofi_mr_handle_t *)mhandle;
-  nccl_net_ofi_req_t **base_req = (nccl_net_ofi_req_t **)req;
+  auto *send_comm = (nccl_net_ofi_send_comm_t *)sComm;
+  auto *handle = (nccl_net_ofi_mr_handle_t *)mhandle;
+  auto **base_req = (nccl_net_ofi_req_t **)req;
 
   /* Validate send_comm */
-  if (send_comm == NULL) [[unlikely]] {
+  if (send_comm == nullptr) [[unlikely]] {
     NCCL_OFI_WARN("Invalid communicator object provided");
     return check_return(ncclInternalError);
   }
@@ -516,7 +516,7 @@ ncclResult_t nccl_net_ofi_isend(void *sComm, void *data, int size, int tag, void
    * registration and the buffer is a host buffer.
    */
 
-  if (base_req == NULL) [[unlikely]] {
+  if (base_req == nullptr) [[unlikely]] {
     NCCL_OFI_WARN("Invalid request provided");
     return check_return(ncclInternalError);
   }
@@ -526,21 +526,21 @@ ncclResult_t nccl_net_ofi_isend(void *sComm, void *data, int size, int tag, void
 }
 
 ncclResult_t nccl_net_ofi_iwrite(void *sComm, void *src, size_t size, void *mhandle, uint64_t dest, uint64_t mr_key, void **req) {
-  nccl_net_ofi_send_comm_t *send_comm = (nccl_net_ofi_send_comm_t *)sComm;
-  nccl_net_ofi_req_t **base_req = (nccl_net_ofi_req_t **)req;
+  auto *send_comm = (nccl_net_ofi_send_comm_t *)sComm;
+  auto **base_req = (nccl_net_ofi_req_t **)req;
 
   /* Validate send_comm */
-  if (send_comm == NULL) [[unlikely]] {
+  if (send_comm == nullptr) [[unlikely]] {
     NCCL_OFI_WARN("Invalid communicator object provided");
     return check_return(ncclInternalError);
   }
 
-  if (send_comm->write == NULL) [[unlikely]] {
+  if (send_comm->write == nullptr) [[unlikely]] {
     NCCL_OFI_WARN("Protocol does not support iwrite API function");
     return check_return(ncclInternalError);
   }
 
-  if (base_req == NULL) [[unlikely]] {
+  if (base_req == nullptr) [[unlikely]] {
     NCCL_OFI_WARN("Invalid request provided");
     return check_return(ncclInternalError);
   }
@@ -550,21 +550,21 @@ ncclResult_t nccl_net_ofi_iwrite(void *sComm, void *src, size_t size, void *mhan
 }
 
 ncclResult_t nccl_net_ofi_iwrite_inline(void *sComm, void *src, size_t size, uint64_t dest, uint64_t mr_key, void **req) {
-  nccl_net_ofi_send_comm_t *send_comm = (nccl_net_ofi_send_comm_t *)sComm;
-  nccl_net_ofi_req_t **base_req = (nccl_net_ofi_req_t **)req;
+  auto *send_comm = (nccl_net_ofi_send_comm_t *)sComm;
+  auto **base_req = (nccl_net_ofi_req_t **)req;
 
   /* Validate send_comm */
-  if (send_comm == NULL) [[unlikely]] {
+  if (send_comm == nullptr) [[unlikely]] {
     NCCL_OFI_WARN("Invalid communicator object provided");
     return check_return(ncclInternalError);
   }
 
-  if (send_comm->write_inline == NULL) [[unlikely]] {
+  if (send_comm->write_inline == nullptr) [[unlikely]] {
     NCCL_OFI_WARN("Protocol does not support iwriteInline API function");
     return check_return(ncclInternalError);
   }
 
-  if (base_req == NULL) [[unlikely]] {
+  if (base_req == nullptr) [[unlikely]] {
     NCCL_OFI_WARN("Invalid request provided");
     return check_return(ncclInternalError);
   }
@@ -575,10 +575,10 @@ ncclResult_t nccl_net_ofi_iwrite_inline(void *sComm, void *src, size_t size, uin
 
 ncclResult_t nccl_net_ofi_get_mr_key(void *mhandle, uint64_t *mr_key) {
   int ret = 0;
-  nccl_net_ofi_device_t *device = NULL;
+  nccl_net_ofi_device_t *device = nullptr;
 
   /* Validate plugin */
-  if (plugin == NULL) [[unlikely]] {
+  if (plugin == nullptr) [[unlikely]] {
     NCCL_OFI_WARN("Error accessing plugin. Plugin has not been initialized yet.");
     return check_return(ncclInvalidArgument);
   }
@@ -588,12 +588,12 @@ ncclResult_t nccl_net_ofi_get_mr_key(void *mhandle, uint64_t *mr_key) {
   }
 
   device = plugin->get_device(plugin, 0);
-  if (device == NULL) [[unlikely]] {
+  if (device == nullptr) [[unlikely]] {
     NCCL_OFI_WARN("Error accessing device %i.", 0);
     return check_return(ncclInternalError);
   }
 
-  if (device->get_mr_key == NULL) [[unlikely]] {
+  if (device->get_mr_key == nullptr) [[unlikely]] {
     NCCL_OFI_WARN("Protocol does not support getMrKey API function");
     return check_return(ncclInternalError);
   }
@@ -603,21 +603,21 @@ ncclResult_t nccl_net_ofi_get_mr_key(void *mhandle, uint64_t *mr_key) {
 }
 
 ncclResult_t nccl_net_ofi_iread(void *rComm, void *dest, size_t size, void *mhandle, uint64_t src, uint64_t mr_key, void **req) {
-  nccl_net_ofi_recv_comm_t *recv_comm = (nccl_net_ofi_recv_comm_t *)rComm;
-  nccl_net_ofi_req_t **base_req = (nccl_net_ofi_req_t **)req;
+  auto *recv_comm = (nccl_net_ofi_recv_comm_t *)rComm;
+  auto **base_req = (nccl_net_ofi_req_t **)req;
 
   /* Validate recv_comm */
-  if (recv_comm == NULL) [[unlikely]] {
+  if (recv_comm == nullptr) [[unlikely]] {
     NCCL_OFI_WARN("Invalid communicator object provided");
     return check_return(ncclInternalError);
   }
 
-  if (recv_comm->read == NULL) [[unlikely]] {
+  if (recv_comm->read == nullptr) [[unlikely]] {
     NCCL_OFI_WARN("Protocol does not support iread API function");
     return check_return(ncclInternalError);
   }
 
-  if (base_req == NULL) [[unlikely]] {
+  if (base_req == nullptr) [[unlikely]] {
     NCCL_OFI_WARN("Invalid request provided");
     return check_return(ncclInternalError);
   }
@@ -631,11 +631,11 @@ ncclResult_t nccl_net_ofi_isend_v4(void *sendComm, void *data, int size, void *m
 }
 
 ncclResult_t nccl_net_ofi_irecv(void *rComm, int n, void **buffers, int *sizes, int *tags, void **mhandles, void **req) {
-  nccl_net_ofi_recv_comm_t *recv_comm = (nccl_net_ofi_recv_comm_t *)rComm;
-  nccl_net_ofi_mr_handle_t **handles = (nccl_net_ofi_mr_handle_t **)mhandles;
-  nccl_net_ofi_req_t **base_req = (nccl_net_ofi_req_t **)req;
+  auto *recv_comm = (nccl_net_ofi_recv_comm_t *)rComm;
+  auto **handles = (nccl_net_ofi_mr_handle_t **)mhandles;
+  auto **base_req = (nccl_net_ofi_req_t **)req;
 
-  if (recv_comm == NULL) [[unlikely]] {
+  if (recv_comm == nullptr) [[unlikely]] {
     NCCL_OFI_WARN("Invalid communicator object provided");
     return check_return(ncclInternalError);
   }
@@ -645,7 +645,7 @@ ncclResult_t nccl_net_ofi_irecv(void *rComm, int n, void **buffers, int *sizes, 
     return check_return(ncclInternalError);
   }
 
-  if (handles == NULL) [[unlikely]] {
+  if (handles == nullptr) [[unlikely]] {
     NCCL_OFI_WARN("Invalid memory handle provided");
     return check_return(ncclInternalError);
   }
@@ -656,7 +656,7 @@ ncclResult_t nccl_net_ofi_irecv(void *rComm, int n, void **buffers, int *sizes, 
    * registration and the buffer is a host buffer.
    */
 
-  if (base_req == NULL) [[unlikely]] {
+  if (base_req == nullptr) [[unlikely]] {
     NCCL_OFI_WARN("Invalid request provided");
     return check_return(ncclInternalError);
   }
@@ -673,21 +673,21 @@ ncclResult_t nccl_net_ofi_irecv_v4(void *recvComm, void *data, int size, void *m
 
 ncclResult_t nccl_net_ofi_test(void *req, int *done, int *size) {
   /* Validate request */
-  if (req == NULL) [[unlikely]] {
+  if (req == nullptr) [[unlikely]] {
     return check_return(ncclInternalError);
   }
 
-  nccl_net_ofi_req_t *base_req = (nccl_net_ofi_req_t *)req;
+  auto *base_req = (nccl_net_ofi_req_t *)req;
   int ret = base_req->test(base_req, done, size);
   return nccl_net_ofi_retval_translate(ret);
 }
 
 ncclResult_t nccl_net_ofi_iflush(void *rComm, int n, void **buffers, int *sizes, void **mhandles, void **req) {
-  nccl_net_ofi_recv_comm_t *recv_comm = (nccl_net_ofi_recv_comm_t *)rComm;
-  nccl_net_ofi_mr_handle_t **handles = (nccl_net_ofi_mr_handle_t **)mhandles;
-  nccl_net_ofi_req_t **base_req = (nccl_net_ofi_req_t **)req;
+  auto *recv_comm = (nccl_net_ofi_recv_comm_t *)rComm;
+  auto **handles = (nccl_net_ofi_mr_handle_t **)mhandles;
+  auto **base_req = (nccl_net_ofi_req_t **)req;
 
-  if (recv_comm == NULL) [[unlikely]] {
+  if (recv_comm == nullptr) [[unlikely]] {
     NCCL_OFI_WARN("Invalid communicator object provided");
     return check_return(ncclInternalError);
   }
@@ -697,7 +697,7 @@ ncclResult_t nccl_net_ofi_iflush(void *rComm, int n, void **buffers, int *sizes,
     return check_return(ncclInternalError);
   }
 
-  if (handles == NULL) [[unlikely]] {
+  if (handles == nullptr) [[unlikely]] {
     NCCL_OFI_WARN("Invalid memory handle provided");
     return check_return(ncclInternalError);
   }
@@ -708,7 +708,7 @@ ncclResult_t nccl_net_ofi_iflush(void *rComm, int n, void **buffers, int *sizes,
    * registration and the buffer is a host buffer.
    */
 
-  if (base_req == NULL) [[unlikely]] {
+  if (base_req == nullptr) [[unlikely]] {
     NCCL_OFI_WARN("Invalid request provided");
     return check_return(ncclInternalError);
   }
@@ -718,12 +718,12 @@ ncclResult_t nccl_net_ofi_iflush(void *rComm, int n, void **buffers, int *sizes,
 }
 
 ncclResult_t nccl_net_ofi_flush_v3(void *recvComm, void *data, int size, void *mhandle) {
-  void *req = NULL;
+  void *req = nullptr;
   ncclResult_t ret = ncclSuccess;
   int done = 0;
 
   ret = nccl_net_ofi_iflush_v4(recvComm, data, size, mhandle, &req);
-  if ((ret != ncclSuccess) || (req == NULL)) {
+  if ((ret != ncclSuccess) || (req == nullptr)) {
     return ret;
   }
 
@@ -745,18 +745,18 @@ ncclResult_t nccl_net_ofi_iflush_v4(void *recvComm, void *data, int size, void *
  * @brief	Destroy send communicator
  */
 ncclResult_t nccl_net_ofi_closeSend(void *sComm) {
-  nccl_net_ofi_send_comm_t *send_comm = (nccl_net_ofi_send_comm_t *)sComm;
+  auto *send_comm = (nccl_net_ofi_send_comm_t *)sComm;
 
   /* neuron has a cleanup race between the atexit handler and *
    * calling close on all the communicators, so be more silent
    * on calling after shutdown for close, as well as don't abort
    * on error for this error. */
-  if (plugin == NULL) [[unlikely]] {
+  if (plugin == nullptr) [[unlikely]] {
     NCCL_OFI_TRACE(NCCL_NET, "Error accessing plugin. Plugin has not been initialized yet.");
     return ncclInvalidArgument;
   }
 
-  if (send_comm == NULL) [[unlikely]] {
+  if (send_comm == nullptr) [[unlikely]] {
     NCCL_OFI_WARN("Invalid communicator object provided");
     return check_return(ncclInternalError);
   }
@@ -770,18 +770,18 @@ ncclResult_t nccl_net_ofi_closeSend(void *sComm) {
  * @brief	Destroy receive communicator
  */
 ncclResult_t nccl_net_ofi_closeRecv(void *rComm) {
-  nccl_net_ofi_recv_comm_t *recv_comm = (nccl_net_ofi_recv_comm_t *)rComm;
+  auto *recv_comm = (nccl_net_ofi_recv_comm_t *)rComm;
 
   /* neuron has a cleanup race between the atexit handler and *
    * calling close on all the communicators, so be more silent
    * on calling after shutdown for close, as well as don't abort
    * on error for this error. */
-  if (plugin == NULL) [[unlikely]] {
+  if (plugin == nullptr) [[unlikely]] {
     NCCL_OFI_TRACE(NCCL_NET, "Error accessing plugin. Plugin has not been initialized yet.");
     return ncclInvalidArgument;
   }
 
-  if (recv_comm == NULL) [[unlikely]] {
+  if (recv_comm == nullptr) [[unlikely]] {
     NCCL_OFI_WARN("Invalid communicator object provided");
     return check_return(ncclInternalError);
   }
@@ -792,18 +792,18 @@ ncclResult_t nccl_net_ofi_closeRecv(void *rComm) {
 }
 
 ncclResult_t nccl_net_ofi_closeListen(void *lComm) {
-  nccl_net_ofi_listen_comm_t *listen_comm = (nccl_net_ofi_listen_comm_t *)lComm;
+  auto *listen_comm = (nccl_net_ofi_listen_comm_t *)lComm;
 
   /* neuron has a cleanup race between the atexit handler and *
    * calling close on all the communicators, so be more silent
    * on calling after shutdown for close, as well as don't abort
    * on error for this error. */
-  if (plugin == NULL) [[unlikely]] {
+  if (plugin == nullptr) [[unlikely]] {
     NCCL_OFI_TRACE(NCCL_NET, "Error accessing plugin. Plugin has not been initialized yet.");
     return ncclInvalidArgument;
   }
 
-  if (listen_comm == NULL) [[unlikely]] {
+  if (listen_comm == nullptr) [[unlikely]] {
     NCCL_OFI_WARN("Invalid communicator object provided");
     return check_return(ncclInternalError);
   }

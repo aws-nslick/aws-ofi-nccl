@@ -73,8 +73,8 @@ static inline int set_ref_schedule(nccl_net_ofi_schedule_t *schedule, size_t ind
 static inline int test_multiplexer(nccl_net_ofi_scheduler_t *scheduler, int num_rails, size_t msg_size, size_t num_stripes, int *rail_id, size_t *offset,
                                    size_t *msg_size_per_stripe) {
   int ret = 0;
-  nccl_net_ofi_schedule_t *ref_schedule;
-  nccl_net_ofi_schedule_t *schedule = NULL;
+  nccl_net_ofi_schedule_t *ref_schedule = nullptr;
+  nccl_net_ofi_schedule_t *schedule = nullptr;
   if (create_ref_schedule(&ref_schedule, num_stripes)) {
     return ret;
   };
@@ -107,7 +107,7 @@ static inline int test_threshold_scheduler() {
   std::size_t num_stripes = 0;
   int ret = 0;
 
-  nccl_net_ofi_scheduler_t *scheduler;
+  nccl_net_ofi_scheduler_t *scheduler = nullptr;
   if (nccl_net_ofi_threshold_scheduler_init(num_rails, min_stripe_size, &scheduler)) {
     NCCL_OFI_WARN("Failed to initialize threshold scheduler");
     return ret;

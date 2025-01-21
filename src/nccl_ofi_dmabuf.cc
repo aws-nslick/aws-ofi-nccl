@@ -24,7 +24,7 @@
  *  github.com/torvalds/linux/commit/bfe0cc6
  */
 
-static bool kernel_version_rdma_dmabuf_ioctl_ok(void) {
+static bool kernel_version_rdma_dmabuf_ioctl_ok() {
   struct utsname buf = {};
   int maj = 0;
   int min = 0;

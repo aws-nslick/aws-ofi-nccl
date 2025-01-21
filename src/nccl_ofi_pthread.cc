@@ -14,8 +14,8 @@
 static pthread_once_t errorcheck_once = PTHREAD_ONCE_INIT;
 static pthread_mutexattr_t errorcheck_attr;
 
-static void errorcheck_init(void) {
-  int ret;
+static void errorcheck_init() {
+  int ret = 0;
 
   ret = pthread_mutexattr_init(&errorcheck_attr);
   if (ret != 0) {
@@ -31,8 +31,8 @@ static void errorcheck_init(void) {
 }
 
 int nccl_net_ofi_mutex_init(pthread_mutex_t *mutex, const pthread_mutexattr_t *attr) {
-  int ret;
-  const pthread_mutexattr_t *passed_attr;
+  int ret = 0;
+  const pthread_mutexattr_t *passed_attr = nullptr;
 
   int want_errorcheck = ofi_nccl_errorcheck_mutex();
 
@@ -42,7 +42,7 @@ int nccl_net_ofi_mutex_init(pthread_mutex_t *mutex, const pthread_mutexattr_t *a
     return ret;
   }
 
-  if (attr != NULL || want_errorcheck == 0) {
+  if (attr != nullptr || want_errorcheck == 0) {
     passed_attr = attr;
   } else {
     NCCL_OFI_TRACE(NCCL_NET, "Enabling error checking on mutex");
@@ -59,7 +59,7 @@ int nccl_net_ofi_mutex_init(pthread_mutex_t *mutex, const pthread_mutexattr_t *a
 }
 
 int nccl_net_ofi_mutex_destroy(pthread_mutex_t *mutex) {
-  int ret;
+  int ret = 0;
 
   ret = pthread_mutex_destroy(mutex);
   if (ret != 0) {

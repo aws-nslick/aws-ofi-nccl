@@ -135,13 +135,13 @@ ncclResult_t model_get_coll_info_internal_v3(nccl_ofi_tuner_context_t *ctx, nccl
                                              int numAlgo, int numProto, int *nChannels) {
   float cost = 0;
   float lowest = FLT_MAX;
-  int algo, proto = 0;
-  float(*table)[NCCL_NUM_PROTOCOLS] = (float(*)[NCCL_NUM_PROTOCOLS])collCostTable;
+  int algo = 0, proto = 0;
+  auto *table = (float(*)[NCCL_NUM_PROTOCOLS])collCostTable;
   int chosen_algo = NCCL_ALGO_UNDEF;
   int chosen_proto = NCCL_PROTO_UNDEF;
-  nccl_ofi_tuner_model_context_t *model_ctx = (nccl_ofi_tuner_model_context_t *)ctx->type_ctx;
+  auto *model_ctx = (nccl_ofi_tuner_model_context_t *)ctx->type_ctx;
 
-  if (model_ctx == NULL) {
+  if (model_ctx == nullptr) {
     /* we do not update cost table. Fall back to NCCL's tuner */
     NCCL_OFI_INFO(NCCL_TUNING, "Model Context is not ready. Fall back to NCCL's tuner.");
     return ncclSuccess;
@@ -207,10 +207,10 @@ ncclResult_t model_get_coll_info_internal_v2(nccl_ofi_tuner_context_t *ctx, nccl
                                              int numPipeOps, int *algorithm, int *protocol, int *nChannels) {
   float cost = 0;
   float lowest = FLT_MAX;
-  int algo, proto = 0;
-  nccl_ofi_tuner_model_context_t *model_ctx = (nccl_ofi_tuner_model_context_t *)ctx->type_ctx;
+  int algo = 0, proto = 0;
+  auto *model_ctx = (nccl_ofi_tuner_model_context_t *)ctx->type_ctx;
 
-  if (model_ctx == NULL) {
+  if (model_ctx == nullptr) {
     /* we do not update cost table. Fall back to NCCL's tuner */
     NCCL_OFI_INFO(NCCL_TUNING, "Model Context is not ready. Fall back to NCCL's tuner.");
     return ncclSuccess;
@@ -274,8 +274,8 @@ exit:
 }
 
 ncclResult_t model_destroy_internal(nccl_ofi_tuner_context_t *ctx) {
-  nccl_ofi_tuner_model_context_t *model_ctx = (nccl_ofi_tuner_model_context_t *)ctx->type_ctx;
-  if (model_ctx != NULL) {
+  auto *model_ctx = (nccl_ofi_tuner_model_context_t *)ctx->type_ctx;
+  if (model_ctx != nullptr) {
     free(model_ctx);
   }
 
@@ -284,9 +284,9 @@ ncclResult_t model_destroy_internal(nccl_ofi_tuner_context_t *ctx) {
 
 ncclResult_t model_init_internal(nccl_ofi_tuner_context_t *ctx, enum nccl_ofi_tuner_platform platform, size_t nRanks, size_t nNodes) {
   ncclResult_t ret = ncclSuccess;
-  nccl_ofi_tuner_model_context_t *model_ctx = (nccl_ofi_tuner_model_context_t *)calloc(1, sizeof(nccl_ofi_tuner_model_context_t));
+  auto *model_ctx = (nccl_ofi_tuner_model_context_t *)calloc(1, sizeof(nccl_ofi_tuner_model_context_t));
 
-  if (model_ctx == NULL) {
+  if (model_ctx == nullptr) {
     NCCL_OFI_WARN("Model Context allocation failed.");
     ret = ncclInternalError;
     goto exit;
@@ -303,7 +303,7 @@ ncclResult_t model_init_internal(nccl_ofi_tuner_context_t *ctx, enum nccl_ofi_tu
   }
 
   model_ctx->model_params = &model_platform_params[platform];
-  if (model_ctx->model_params == NULL) {
+  if (model_ctx->model_params == nullptr) {
     NCCL_OFI_WARN("Failed to get tuner parameters for model.");
     ret = ncclInternalError;
     goto exit;
@@ -312,7 +312,7 @@ ncclResult_t model_init_internal(nccl_ofi_tuner_context_t *ctx, enum nccl_ofi_tu
   NCCL_OFI_INFO(NCCL_INIT | NCCL_TUNING, "Model Tuner init (platform %d): comm with %ld ranks and %ld nodes.", platform, nRanks, nNodes);
 
 exit:
-  if (ret != ncclSuccess && model_ctx != NULL) {
+  if (ret != ncclSuccess && model_ctx != nullptr) {
     model_destroy_internal(ctx);
   }
 

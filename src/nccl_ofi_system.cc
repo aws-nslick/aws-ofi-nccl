@@ -16,18 +16,18 @@
 #define SYSFS_PRODUCT_NAME_STR "/sys/devices/virtual/dmi/id/product_name"
 #endif
 
-const char *nccl_net_ofi_get_product_name(void) {
+const char *nccl_net_ofi_get_product_name() {
   char file[] = SYSFS_PRODUCT_NAME_STR;
-  FILE *fd = NULL;
-  char ch;
+  FILE *fd = nullptr;
+  char ch = 0;
   size_t len = 0;
   size_t product_name_len = 64;
   static bool init = false;
-  static char *product_name = NULL;
+  static char *product_name = nullptr;
   static pthread_mutex_t product_name_mutex = PTHREAD_MUTEX_INITIALIZER;
 
   char *forced_on = getenv("OFI_NCCL_FORCE_PRODUCT_NAME");
-  if (forced_on != NULL) {
+  if (forced_on != nullptr) {
     return forced_on;
   }
 
@@ -41,13 +41,13 @@ const char *nccl_net_ofi_get_product_name(void) {
   init = true;
 
   fd = fopen(file, "r");
-  if (fd == NULL) {
+  if (fd == nullptr) {
     NCCL_OFI_WARN("Error opening file: %s", file);
     goto error;
   }
 
   product_name = (char *)malloc(sizeof(char) * product_name_len);
-  if (product_name == NULL) {
+  if (product_name == nullptr) {
     NCCL_OFI_WARN("Unable to allocate product name");
     goto error;
   }
@@ -57,7 +57,7 @@ const char *nccl_net_ofi_get_product_name(void) {
     product_name[len++] = ch;
     if (len >= product_name_len) {
       char *new_product_name = (char *)realloc(product_name, len + product_name_len);
-      if (new_product_name == NULL) {
+      if (new_product_name == nullptr) {
         NCCL_OFI_WARN("Unable to (re)allocate product name");
         goto error;
       }
@@ -79,7 +79,7 @@ const char *nccl_net_ofi_get_product_name(void) {
 error:
   if (product_name) {
     free(product_name);
-    product_name = NULL;
+    product_name = nullptr;
   }
 
 exit:

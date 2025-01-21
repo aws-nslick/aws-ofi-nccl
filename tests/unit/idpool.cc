@@ -17,13 +17,11 @@ int main(int argc, char *argv[]) {
   (void)ret; // Avoid unused-variable warning
   size_t sizes[] = {0, 5, 63, 64, 65, 127, 128, 129, 255};
 
-  for (long unsigned int t = 0; t < sizeof(sizes) / sizeof(size_t); t++) {
-    size_t size = sizes[t];
-
+  for (unsigned long size : sizes) {
     /* Scale pool size to number of 64-bit uints (rounded up) */
     size_t num_long_elements = aon::detail::math::round_up(size, sizeof(uint64_t) * 8) / (sizeof(uint64_t) * 8);
 
-    nccl_ofi_idpool_t *idpool = (nccl_ofi_idpool_t *)malloc(sizeof(nccl_ofi_idpool_t));
+    auto *idpool = (nccl_ofi_idpool_t *)malloc(sizeof(nccl_ofi_idpool_t));
     assert(NULL != idpool);
 
     /* Test nccl_ofi_idpool_init */
@@ -101,7 +99,7 @@ int main(int argc, char *argv[]) {
     assert(0 == ret);
 
     free(idpool);
-    idpool = NULL;
+    idpool = nullptr;
   }
 
   printf("Test completed successfully!\n");

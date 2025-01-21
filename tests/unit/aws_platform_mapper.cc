@@ -13,13 +13,13 @@
 static int check_value(struct ec2_platform_data *platform_data_list, size_t len, const char *platform_type, const char *expected_value) {
   struct ec2_platform_data *entry = platform_aws_get_platform_entry(platform_type, platform_data_list, len);
 
-  if (NULL == entry && expected_value != NULL) {
+  if (nullptr == entry && expected_value != nullptr) {
     printf("Got NULL reply, expected %s\n", expected_value);
     return 1;
-  } else if (NULL != entry && expected_value == NULL) {
+  } else if (nullptr != entry && expected_value == nullptr) {
     printf("Got reply %s, expected NULL\n", entry->name);
     return 1;
-  } else if (NULL == entry && expected_value == NULL) {
+  } else if (nullptr == entry && expected_value == nullptr) {
     return 0;
   } else if (0 != strcmp(entry->name, expected_value)) {
     printf("Got reply %s, expected %s\n", entry->name, expected_value);
@@ -29,9 +29,9 @@ static int check_value(struct ec2_platform_data *platform_data_list, size_t len,
   return 0;
 }
 
-static int check_known_platforms(void) {
-  struct ec2_platform_data *platform_data_list;
-  size_t len;
+static int check_known_platforms() {
+  struct ec2_platform_data *platform_data_list = nullptr;
+  size_t len = 0;
   int ret = 0;
 
   platform_data_list = platform_aws_get_platform_map(&len);
@@ -41,10 +41,10 @@ static int check_known_platforms(void) {
   ret += check_value(platform_data_list, len, "trn1.2xlarge", "trn1");
   ret += check_value(platform_data_list, len, "trn2.48xlarge", "trn2");
   ret += check_value(platform_data_list, len, "trn2u.48xlarge", "trn2");
-  ret += check_value(platform_data_list, len, "inf2.48xlarge", NULL);
-  ret += check_value(platform_data_list, len, "p3.2xlarge", NULL);
-  ret += check_value(platform_data_list, len, "p3.8xlarge", NULL);
-  ret += check_value(platform_data_list, len, "p3.16xlarge", NULL);
+  ret += check_value(platform_data_list, len, "inf2.48xlarge", nullptr);
+  ret += check_value(platform_data_list, len, "p3.2xlarge", nullptr);
+  ret += check_value(platform_data_list, len, "p3.8xlarge", nullptr);
+  ret += check_value(platform_data_list, len, "p3.16xlarge", nullptr);
   ret += check_value(platform_data_list, len, "p3dn.24xlarge", "p3dn.24xlarge");
   ret += check_value(platform_data_list, len, "p4d.24xlarge", "p4d.24xlarge");
   ret += check_value(platform_data_list, len, "p4de.24xlarge", "p4de.24xlarge");
@@ -52,7 +52,7 @@ static int check_known_platforms(void) {
   ret += check_value(platform_data_list, len, "p5e.48xlarge", "p-series");
   ret += check_value(platform_data_list, len, "p5en.48xlarge", "p-series");
   ret += check_value(platform_data_list, len, "g5.48xlarge", "g5.48xlarge");
-  ret += check_value(platform_data_list, len, "g6.16xlarge", NULL);
+  ret += check_value(platform_data_list, len, "g6.16xlarge", nullptr);
 
   // obviously future platforms
   ret += check_value(platform_data_list, len, "p100.2048xlarge", "p-series");

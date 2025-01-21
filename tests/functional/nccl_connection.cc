@@ -13,18 +13,18 @@
 
 int main(int argc, char *argv[]) {
   ncclResult_t res = ncclSuccess;
-  int rank, size, proc_name;
+  int rank = 0, size = 0, proc_name = 0;
   char name[MPI_MAX_PROCESSOR_NAME];
 
   /* Plugin defines */
-  int ndev;
+  int ndev = 0;
   nccl_net_ofi_send_comm_t *sComm = NULL;
   nccl_net_ofi_listen_comm_t *lComm = NULL;
   nccl_net_ofi_recv_comm_t *rComm = NULL;
   ncclNetDeviceHandle_v8_t *s_ignore, *r_ignore;
   char src_handle[NCCL_NET_HANDLE_MAXSIZE] = {};
   char handle[NCCL_NET_HANDLE_MAXSIZE] = {};
-  test_nccl_net_t *extNet = NULL;
+  test_nccl_net_t *extNet = nullptr;
 
   ofi_log_function = logger;
 
@@ -51,7 +51,7 @@ int main(int argc, char *argv[]) {
 
   /* Get external Network from NCCL-OFI library */
   extNet = get_extNet();
-  if (extNet == NULL) {
+  if (extNet == nullptr) {
     return ncclInternalError;
   }
 

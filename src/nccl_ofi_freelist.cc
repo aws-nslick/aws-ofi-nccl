@@ -46,8 +46,8 @@ static inline size_t freelist_page_padded_entry_count(size_t entry_size, size_t 
 static int freelist_init_internal(size_t entry_size, size_t initial_entry_count, size_t increase_entry_count, size_t max_entry_count, bool have_reginfo,
                                   nccl_ofi_freelist_regmr_fn regmr_fn, nccl_ofi_freelist_deregmr_fn deregmr_fn, void *regmr_opaque, size_t entry_alignment,
                                   nccl_ofi_freelist_t **freelist_p) {
-  int ret;
-  nccl_ofi_freelist_t *freelist = NULL;
+  int ret = 0;
+  nccl_ofi_freelist_t *freelist = nullptr;
 
   freelist = (nccl_ofi_freelist_t *)malloc(sizeof(nccl_ofi_freelist_t));
   if (!freelist) {
@@ -59,7 +59,7 @@ static int freelist_init_internal(size_t entry_size, size_t initial_entry_count,
 
   freelist->memcheck_redzone_size = aon::detail::math::round_up(std::size_t{MEMCHECK_REDZONE_SIZE}, entry_alignment);
 
-  freelist->entry_size = aon::detail::math::round_up(entry_size, std::max(entry_alignment, std::max(8ul, MEMCHECK_GRANULARITY)));
+  freelist->entry_size = aon::detail::math::round_up(entry_size, std::max({entry_alignment, 8ul, MEMCHECK_GRANULARITY}));
   freelist->entry_size += freelist->memcheck_redzone_size;
 
   /* Use initial_entry_count and increase_entry_count as lower
@@ -72,15 +72,15 @@ static int freelist_init_internal(size_t entry_size, size_t initial_entry_count,
   freelist->num_allocated_entries = 0;
   freelist->max_entry_count = max_entry_count;
   freelist->increase_entry_count = increase_entry_count;
-  freelist->entries = NULL;
-  freelist->blocks = NULL;
+  freelist->entries = nullptr;
+  freelist->blocks = nullptr;
 
   freelist->have_reginfo = have_reginfo;
   freelist->regmr_fn = regmr_fn;
   freelist->deregmr_fn = deregmr_fn;
   freelist->regmr_opaque = regmr_opaque;
 
-  ret = pthread_mutex_init(&freelist->lock, NULL);
+  ret = pthread_mutex_init(&freelist->lock, nullptr);
   if (ret != 0) {
     NCCL_OFI_WARN("Mutex initialization failed: %s", strerror(ret));
     free(freelist);
@@ -101,7 +101,7 @@ static int freelist_init_internal(size_t entry_size, size_t initial_entry_count,
 
 int nccl_ofi_freelist_init(size_t entry_size, size_t initial_entry_count, size_t increase_entry_count, size_t max_entry_count,
                            nccl_ofi_freelist_t **freelist_p) {
-  return freelist_init_internal(entry_size, initial_entry_count, increase_entry_count, max_entry_count, false, NULL, NULL, NULL, 1, freelist_p);
+  return freelist_init_internal(entry_size, initial_entry_count, increase_entry_count, max_entry_count, false, nullptr, nullptr, nullptr, 1, freelist_p);
 }
 
 int nccl_ofi_freelist_init_mr(size_t entry_size, size_t initial_entry_count, size_t increase_entry_count, size_t max_entry_count,
@@ -112,7 +112,7 @@ int nccl_ofi_freelist_init_mr(size_t entry_size, size_t initial_entry_count, siz
 }
 
 int nccl_ofi_freelist_fini(nccl_ofi_freelist_t *freelist) {
-  int ret;
+  int ret = 0;
 
   assert(freelist);
 
@@ -145,12 +145,12 @@ int nccl_ofi_freelist_fini(nccl_ofi_freelist_t *freelist) {
     }
 
     free(block->entries);
-    block->entries = NULL;
+    block->entries = nullptr;
     free(block);
   }
 
   freelist->entry_size = 0;
-  freelist->entries = NULL;
+  freelist->entries = nullptr;
 
   pthread_mutex_destroy(&freelist->lock);
 
@@ -162,13 +162,13 @@ int nccl_ofi_freelist_fini(nccl_ofi_freelist_t *freelist) {
 /* note: it is assumed that the lock is either held or not needed when
  * this function is called */
 int nccl_ofi_freelist_add(nccl_ofi_freelist_t *freelist, size_t num_entries) {
-  int ret;
+  int ret = 0;
   size_t allocation_count = num_entries;
   size_t block_mem_size = 0;
-  char *buffer = NULL;
-  struct nccl_ofi_freelist_block_t *block = NULL;
-  char *b_end = NULL;
-  char *b_end_aligned = NULL;
+  char *buffer = nullptr;
+  struct nccl_ofi_freelist_block_t *block = nullptr;
+  char *b_end = nullptr;
+  char *b_end_aligned = nullptr;
 
   if (freelist->max_entry_count > 0 && freelist->max_entry_count - freelist->num_allocated_entries < allocation_count) {
     allocation_count = freelist->max_entry_count - freelist->num_allocated_entries;
@@ -193,7 +193,7 @@ int nccl_ofi_freelist_add(nccl_ofi_freelist_t *freelist, size_t num_entries) {
   }
 
   block = (struct nccl_ofi_freelist_block_t *)calloc(1, sizeof(struct nccl_ofi_freelist_block_t));
-  if (block == NULL) {
+  if (block == nullptr) {
     NCCL_OFI_WARN("Failed to allocate freelist block metadata");
     goto error;
   }
@@ -215,11 +215,11 @@ int nccl_ofi_freelist_add(nccl_ofi_freelist_t *freelist, size_t num_entries) {
       goto error;
     }
   } else {
-    block->mr_handle = NULL;
+    block->mr_handle = nullptr;
   }
 
   block->entries = (nccl_ofi_freelist_elem_t *)calloc(allocation_count, sizeof(*(block->entries)));
-  if (block->entries == NULL) {
+  if (block->entries == nullptr) {
     NCCL_OFI_WARN("Failed to allocate entries");
     goto error;
   }
@@ -238,7 +238,7 @@ int nccl_ofi_freelist_add(nccl_ofi_freelist_t *freelist, size_t num_entries) {
     if (freelist->have_reginfo) {
       entry->mr_handle = block->mr_handle;
     } else {
-      entry->mr_handle = NULL;
+      entry->mr_handle = nullptr;
     }
     entry->ptr = buffer;
     entry->next = freelist->entries;
@@ -257,18 +257,18 @@ int nccl_ofi_freelist_add(nccl_ofi_freelist_t *freelist, size_t num_entries) {
   return 0;
 
 error:
-  if (block != NULL) {
+  if (block != nullptr) {
     free(block);
-    block = NULL;
+    block = nullptr;
   }
-  if (buffer != NULL) {
+  if (buffer != nullptr) {
     /* Reset memcheck guards of block memory. This step
      * needs to be performed manually since reallocation
      * of the same memory via mmap() is invisible to
      * ASAN. */
     nccl_net_ofi_mem_undefined(buffer, block_mem_size);
     nccl_net_ofi_dealloc_mr_buffer(buffer, block_mem_size);
-    buffer = NULL;
+    buffer = nullptr;
   }
   return ret;
 }

@@ -6,21 +6,23 @@
 
 #include <cmath>
 
+#include <cmath>
+
 #include "nccl_ofi_param.hh"
 #include "tuner/nccl_ofi_tuner_region.hh"
 
-typedef struct nccl_ofi_tuner_region_dims {
+using nccl_ofi_tuner_region_dims_t = struct nccl_ofi_tuner_region_dims {
   /* communicator size */
   size_t num_ranks;
   size_t num_nodes;
-} nccl_ofi_tuner_region_dims_t;
+};
 
-typedef struct nccl_ofi_tuner_region_context {
+using nccl_ofi_tuner_region_context_t = struct nccl_ofi_tuner_region_context {
   enum nccl_ofi_tuner_platform platform;
   struct nccl_ofi_tuner_region_dims dims;
   size_t num_regions[NCCL_NUM_FUNCTIONS];
   nccl_ofi_tuner_region_t *regions[NCCL_NUM_FUNCTIONS];
-} nccl_ofi_tuner_region_context_t;
+};
 
 /* Vector subtraction */
 static inline nccl_ofi_tuner_point_t vsub(nccl_ofi_tuner_point_t a, nccl_ofi_tuner_point_t b) {
@@ -106,7 +108,7 @@ static int intersect(nccl_ofi_tuner_point_t x0, nccl_ofi_tuner_point_t x1, nccl_
 static inline double distance(nccl_ofi_tuner_point_t x, nccl_ofi_tuner_point_t y0, nccl_ofi_tuner_point_t y1, double eps) {
   nccl_ofi_tuner_point_t dy = vsub(y1, y0);
   nccl_ofi_tuner_point_t x1, s;
-  int r;
+  int r = 0;
 
   x1.x = x.x + dy.y;
   x1.y = x.y - dy.x;
@@ -136,9 +138,9 @@ static inline double distance(nccl_ofi_tuner_point_t x, nccl_ofi_tuner_point_t y
 int is_inside_region(nccl_ofi_tuner_point_t point, nccl_ofi_tuner_region_t *region) {
   assert(region->num_vertices > 1);
 
-  size_t i, k;
-  nccl_ofi_tuner_point_t *pv;
-  double min_x, max_x, min_y, max_y;
+  size_t i = 0, k = 0;
+  nccl_ofi_tuner_point_t *pv = nullptr;
+  double min_x = NAN, max_x = NAN, min_y = NAN, max_y = NAN;
   const double eps = 1e-10;
 
   for (i = 0; i < region->num_vertices; i++) {
@@ -183,7 +185,7 @@ int is_inside_region(nccl_ofi_tuner_point_t point, nccl_ofi_tuner_region_t *regi
   int intersectResult = -1;
   for (i = 0; i < region->num_vertices; i++) {
     k = (i + 1) % region->num_vertices;
-    intersectResult = intersect(point, e, region->vertices[i], region->vertices[k], eps, 0);
+    intersectResult = intersect(point, e, region->vertices[i], region->vertices[k], eps, nullptr);
 
     assert(intersectResult == 1 || intersectResult == -1);
 
@@ -200,7 +202,7 @@ static ncclResult_t set_regions(nccl_ofi_tuner_region_context_t *region_ctx, ncc
   assert(collType < NCCL_NUM_FUNCTIONS);
   region_ctx->num_regions[collType] = num_regions;
   region_ctx->regions[collType] = (nccl_ofi_tuner_region_t *)calloc(num_regions, sizeof(nccl_ofi_tuner_region_t));
-  if (region_ctx->regions[collType] == NULL) {
+  if (region_ctx->regions[collType] == nullptr) {
     NCCL_OFI_WARN("Context regions allocation failed.");
     return ncclInternalError;
   }
@@ -737,11 +739,11 @@ bool is_region_supported(enum nccl_ofi_tuner_platform platform, size_t nRanks, s
 ncclResult_t region_get_coll_info_internal_v2(nccl_ofi_tuner_context_t *ctx, ncclFunc_t collType, size_t nBytes, int collNetSupport, int nvlsSupport,
                                               int numPipeOps, int *algorithm, int *protocol, int *nChannels) {
   ncclResult_t ret = ncclSuccess;
-  nccl_ofi_tuner_region_context_t *region_ctx = (nccl_ofi_tuner_region_context_t *)ctx->type_ctx;
+  auto *region_ctx = (nccl_ofi_tuner_region_context_t *)ctx->type_ctx;
   int in_out = -1;
   nccl_ofi_tuner_point_t p;
 
-  if (region_ctx == NULL || region_ctx->regions[collType] == NULL) {
+  if (region_ctx == nullptr || region_ctx->regions[collType] == nullptr) {
     /* we do not update cost table. Fall back to NCCL's tuner */
     NCCL_OFI_INFO(NCCL_TUNING, "Region Context is not ready. Fall back to NCCL's tuner.");
     ret = ncclSuccess;
@@ -782,14 +784,14 @@ exit:
 ncclResult_t region_get_coll_info_internal_v3(nccl_ofi_tuner_context_t *ctx, ncclFunc_t collType, size_t nBytes, int numPipeOps, float **collCostTable,
                                               int numAlgo, int numProto, int *nChannels) {
   ncclResult_t ret = ncclSuccess;
-  nccl_ofi_tuner_region_context_t *region_ctx = (nccl_ofi_tuner_region_context_t *)ctx->type_ctx;
-  float(*table)[NCCL_NUM_PROTOCOLS] = (float(*)[NCCL_NUM_PROTOCOLS])collCostTable;
+  auto *region_ctx = (nccl_ofi_tuner_region_context_t *)ctx->type_ctx;
+  auto *table = (float(*)[NCCL_NUM_PROTOCOLS])collCostTable;
   int in_out = -1;
   int algorithm = NCCL_ALGO_UNDEF;
   int protocol = NCCL_PROTO_UNDEF;
   nccl_ofi_tuner_point_t p;
 
-  if (region_ctx == NULL || region_ctx->regions[collType] == NULL) {
+  if (region_ctx == nullptr || region_ctx->regions[collType] == nullptr) {
     /* we do not update cost table. Fall back to NCCL's tuner */
     NCCL_OFI_INFO(NCCL_TUNING, "Region Context is not ready. Fall back to NCCL's tuner.");
     ret = ncclSuccess;
@@ -827,12 +829,12 @@ exit:
 }
 
 ncclResult_t region_destroy_internal(nccl_ofi_tuner_context_t *ctx) {
-  nccl_ofi_tuner_region_context_t *region_ctx = (nccl_ofi_tuner_region_context_t *)ctx->type_ctx;
+  auto *region_ctx = (nccl_ofi_tuner_region_context_t *)ctx->type_ctx;
 
-  if (region_ctx != NULL) {
-    for (int collType = 0; collType < NCCL_NUM_FUNCTIONS; collType++) {
-      if (region_ctx->regions[collType] != NULL) {
-        free(region_ctx->regions[collType]);
+  if (region_ctx != nullptr) {
+    for (auto &region : region_ctx->regions) {
+      if (region != nullptr) {
+        free(region);
       }
     }
     free(region_ctx);
@@ -844,8 +846,8 @@ ncclResult_t region_destroy_internal(nccl_ofi_tuner_context_t *ctx) {
 ncclResult_t region_init_internal(nccl_ofi_tuner_context_t *ctx, enum nccl_ofi_tuner_platform platform, size_t nRanks, size_t nNodes) {
   ncclResult_t ret = ncclSuccess;
 
-  nccl_ofi_tuner_region_context_t *region_ctx = (nccl_ofi_tuner_region_context_t *)calloc(1, sizeof(nccl_ofi_tuner_region_context_t));
-  if (region_ctx == NULL) {
+  auto *region_ctx = (nccl_ofi_tuner_region_context_t *)calloc(1, sizeof(nccl_ofi_tuner_region_context_t));
+  if (region_ctx == nullptr) {
     NCCL_OFI_WARN("Region Context allocation failed.");
     ret = ncclInternalError;
     goto exit;
@@ -872,7 +874,7 @@ ncclResult_t region_init_internal(nccl_ofi_tuner_context_t *ctx, enum nccl_ofi_t
   NCCL_OFI_INFO(NCCL_INIT | NCCL_TUNING, "Region Tuner init (platform %d): comm with %ld ranks and %ld nodes.", platform, nRanks, nNodes);
 
 exit:
-  if (ret != ncclSuccess && region_ctx != NULL) {
+  if (ret != ncclSuccess && region_ctx != nullptr) {
     region_destroy_internal(ctx);
   }
 

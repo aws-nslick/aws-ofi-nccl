@@ -47,16 +47,16 @@ static nccl_net_ofi_sendrecv_plugin_t *sendrecv_device_get_plugin(nccl_net_ofi_s
 }
 
 static inline int sendrecv_get_properties(nccl_net_ofi_device_t *base_dev, nccl_ofi_properties_t *props) {
-  nccl_net_ofi_sendrecv_device_t *device = (nccl_net_ofi_sendrecv_device_t *)base_dev;
+  auto *device = (nccl_net_ofi_sendrecv_device_t *)base_dev;
   struct fi_info *info = device->info;
   int dev_id = device->base.dev_id;
   size_t num_devices = base_dev->plugin->get_num_devices(base_dev->plugin);
-  int ret;
+  int ret = 0;
   nccl_net_ofi_sendrecv_plugin_t *plugin = sendrecv_device_get_plugin(device);
   assert(plugin != NULL);
 
   /* Validate libfabric NIC info */
-  if (info == NULL) [[unlikely]] {
+  if (info == nullptr) [[unlikely]] {
     NCCL_OFI_WARN("Error accessing libfabric NIC info. "
                   "info has not been set.");
     return -EINVAL;
@@ -105,14 +105,14 @@ static inline void sendrecv_req_update(nccl_net_ofi_sendrecv_req_t *req, nccl_ne
  */
 static inline int sendrecv_process_completions(struct fi_cq_tagged_entry *cq_entry, uint64_t num_cqes, uint64_t max_tag) {
   int ret = 0;
-  nccl_net_ofi_sendrecv_req_t *req = NULL;
+  nccl_net_ofi_sendrecv_req_t *req = nullptr;
   uint64_t comp_idx = 0, comp_flags = 0;
   uint64_t control_bit_mask = max_tag + 1;
 
   for (comp_idx = 0; comp_idx < num_cqes; comp_idx++) {
     void *op_ctx = cq_entry[comp_idx].op_context;
 
-    if (op_ctx == NULL) [[unlikely]] {
+    if (op_ctx == nullptr) [[unlikely]] {
       NCCL_OFI_WARN("Invalid request context provided");
       ret = -EINVAL;
       goto exit;
@@ -128,7 +128,7 @@ static inline int sendrecv_process_completions(struct fi_cq_tagged_entry *cq_ent
       if (comp_flags & FI_RECV) {
         /* Mark listen_comm to accepted state */
         assert(req->comm->type == NCCL_NET_OFI_LISTEN_COMM);
-        nccl_net_ofi_sendrecv_listen_comm_t *l_comm = (nccl_net_ofi_sendrecv_listen_comm_t *)req->comm;
+        auto *l_comm = (nccl_net_ofi_sendrecv_listen_comm_t *)req->comm;
         l_comm->accepted = true;
       }
     }
@@ -194,7 +194,7 @@ static int sendrecv_cq_process(struct fid_cq *cq, uint64_t max_tag) {
   int ret = 0;
   struct fi_cq_err_entry err_buffer = {};
   struct fi_cq_tagged_entry cqe_tagged_buffers[cq_read_count];
-  nccl_net_ofi_sendrecv_req_t *req = NULL;
+  nccl_net_ofi_sendrecv_req_t *req = nullptr;
 
   while (true) {
     /* Receive completions for the given endpoint */
@@ -240,7 +240,7 @@ exit:
  * @brief	Zero out sendrecv request
  */
 static inline void sendrecv_req_zero(nccl_net_ofi_sendrecv_req_t *req) {
-  req->comm = NULL;
+  req->comm = nullptr;
 
   memset(&req->ctx, 0, sizeof(req->ctx));
 
@@ -258,16 +258,16 @@ static inline void sendrecv_req_zero(nccl_net_ofi_sendrecv_req_t *req) {
 static inline int sendrecv_req_free(uint64_t *num_inflight_reqs, nccl_ofi_freelist_t *nccl_ofi_reqs_fl, int dev_id, nccl_net_ofi_sendrecv_req_t *req,
                                     bool dec_inflight_reqs) {
   int ret = 0;
-  nccl_ofi_freelist_elem_t *elem = NULL;
+  nccl_ofi_freelist_elem_t *elem = nullptr;
 
-  if (req == NULL) [[unlikely]] {
+  if (req == nullptr) [[unlikely]] {
     ret = -EINVAL;
     NCCL_OFI_WARN("Provided null request for cleanup");
     goto exit;
   }
 
   /* Update free list */
-  if (nccl_ofi_reqs_fl == NULL) [[unlikely]] {
+  if (nccl_ofi_reqs_fl == nullptr) [[unlikely]] {
     ret = -EINVAL;
     NCCL_OFI_WARN("Comm for device %d does not have valid free list", dev_id);
     goto exit;
@@ -312,10 +312,10 @@ static inline int sendrecv_recv_comm_free_req(nccl_net_ofi_sendrecv_recv_comm_t 
  */
 static inline int sendrecv_comm_free_req(nccl_net_ofi_comm_t *base_comm, int dev_id, nccl_net_ofi_sendrecv_req_t *req, bool dec_inflight_reqs) {
   if (req->direction == NCCL_OFI_SENDRECV_SEND) {
-    nccl_net_ofi_sendrecv_send_comm_t *s_comm = (nccl_net_ofi_sendrecv_send_comm_t *)base_comm;
+    auto *s_comm = (nccl_net_ofi_sendrecv_send_comm_t *)base_comm;
     return sendrecv_send_comm_free_req(s_comm, dev_id, req, dec_inflight_reqs);
   } else if (req->direction == NCCL_OFI_SENDRECV_RECV) {
-    nccl_net_ofi_sendrecv_recv_comm_t *r_comm = (nccl_net_ofi_sendrecv_recv_comm_t *)base_comm;
+    auto *r_comm = (nccl_net_ofi_sendrecv_recv_comm_t *)base_comm;
     return sendrecv_recv_comm_free_req(r_comm, dev_id, req, dec_inflight_reqs);
   } else {
     NCCL_OFI_WARN("Unexpected transaction direction. Transaction direction: %d", req->direction);
@@ -323,20 +323,20 @@ static inline int sendrecv_comm_free_req(nccl_net_ofi_comm_t *base_comm, int dev
   }
 }
 
-#define __compiler_barrier()                                                                                                                                   \
+#define _compiler_barrier()                                                                                                                                    \
   do {                                                                                                                                                         \
     asm volatile("" : : : "memory");                                                                                                                           \
   } while (0)
 
 static int sendrecv_req_test(nccl_net_ofi_req_t *base_req, int *done, int *size) {
   int ret = 0;
-  nccl_net_ofi_sendrecv_req_t *req = (nccl_net_ofi_sendrecv_req_t *)base_req;
-  nccl_net_ofi_sendrecv_device_t *device = NULL;
-  nccl_net_ofi_sendrecv_ep_t *ep = NULL;
+  auto *req = (nccl_net_ofi_sendrecv_req_t *)base_req;
+  nccl_net_ofi_sendrecv_device_t *device = nullptr;
+  nccl_net_ofi_sendrecv_ep_t *ep = nullptr;
 
   /* Retrieve and validate comm */
   nccl_net_ofi_comm_t *base_comm = req->comm;
-  if (base_comm == NULL) [[unlikely]] {
+  if (base_comm == nullptr) [[unlikely]] {
     ret = -EINVAL;
     NCCL_OFI_WARN("Invalid comm object provided");
     goto exit;
@@ -344,7 +344,7 @@ static int sendrecv_req_test(nccl_net_ofi_req_t *base_req, int *done, int *size)
 
   /* Retrieve and validate endpoint */
   ep = (nccl_net_ofi_sendrecv_ep_t *)base_comm->ep;
-  if (ep == NULL) [[unlikely]] {
+  if (ep == nullptr) [[unlikely]] {
     ret = -EINVAL;
     NCCL_OFI_WARN("Invalid endpoint provided");
     goto exit;
@@ -352,7 +352,7 @@ static int sendrecv_req_test(nccl_net_ofi_req_t *base_req, int *done, int *size)
 
   /* Retrieve and validate device */
   device = sendrecv_endpoint_get_device(ep);
-  if (device == NULL) [[unlikely]] {
+  if (device == nullptr) [[unlikely]] {
     ret = -EINVAL;
     NCCL_OFI_WARN("Invalid device provided");
     goto exit;
@@ -367,7 +367,7 @@ static int sendrecv_req_test(nccl_net_ofi_req_t *base_req, int *done, int *size)
 
   /* Determine whether the request has finished and free if done */
   if (req->state == NCCL_OFI_SENDRECV_REQ_COMPLETED || req->state == NCCL_OFI_SENDRECV_REQ_ERROR) [[likely]] {
-    __compiler_barrier();
+    _compiler_barrier();
     if (size)
       *size = req->size;
     /* Mark as done */
@@ -395,13 +395,13 @@ exit:
  * 		NULL, on error
  */
 static nccl_net_ofi_sendrecv_req_t *sendrecv_recv_req_prepare(nccl_net_ofi_sendrecv_listen_comm_t *l_comm) {
-  nccl_net_ofi_sendrecv_req_t *req = NULL;
+  nccl_net_ofi_sendrecv_req_t *req = nullptr;
 
   /* Allocate a NCCL OFI request */
   req = (nccl_net_ofi_sendrecv_req_t *)calloc(1, sizeof(nccl_net_ofi_sendrecv_req_t));
-  if (req == NULL) [[unlikely]] {
+  if (req == nullptr) [[unlikely]] {
     NCCL_OFI_WARN("Unable to allocate nccl_ofi_req_t");
-    return NULL;
+    return nullptr;
   }
 
   req->base.test = sendrecv_req_test;
@@ -431,7 +431,7 @@ static int sendrecv_recv_conn_post(nccl_net_ofi_sendrecv_listen_comm_t *l_comm, 
   uint64_t max_tag = device->max_tag;
 
   /* Post a buffer for receiving connection requests */
-  rc = fi_trecv(l_comm->local_ep, buffer, size, NULL, FI_ADDR_UNSPEC, l_comm->tag | (max_tag + 1), 0, &req->ctx);
+  rc = fi_trecv(l_comm->local_ep, buffer, size, nullptr, FI_ADDR_UNSPEC, l_comm->tag | (max_tag + 1), 0, &req->ctx);
   if (rc == -FI_EAGAIN) {
     /*
      * Process completions so that you have enough
@@ -488,7 +488,7 @@ static int sendrecv_mr_buffers_register(struct fid_domain *domain, struct fid_ep
      * so we still need some sentinel to tell us not to try
      * and use the registration.  NULL is as good as any.
      */
-    *mr_handle = NULL;
+    *mr_handle = nullptr;
     goto exit;
   }
 
@@ -651,7 +651,7 @@ static int sendrecv_mr_base_register(struct fid_domain *domain, struct fid_ep *e
 static int sendrecv_comm_mr_base_dereg(struct fid_mr *mr_handle, nccl_ofi_idpool_t *key_pool, nccl_ofi_mr_cache_t *mr_cache) {
   int ret = 0;
 
-  if (mr_handle == NULL) [[likely]] {
+  if (mr_handle == nullptr) [[likely]] {
     NCCL_OFI_TRACE(NCCL_NET, "Null MR handle provided. Skipping deregisteration.");
     goto exit;
   }
@@ -696,16 +696,16 @@ exit:
 
 static int sendrecv_comm_mr_base_reg(nccl_net_ofi_comm_t *base_comm, nccl_ofi_mr_ckey_ref ckey, int type, void **mhandle) {
   /* Retrieve and validate endpoint */
-  nccl_net_ofi_sendrecv_ep_t *ep = (nccl_net_ofi_sendrecv_ep_t *)base_comm->ep;
-  nccl_ofi_idpool_t *key_pool = NULL;
-  if (ep == NULL) [[unlikely]] {
+  auto *ep = (nccl_net_ofi_sendrecv_ep_t *)base_comm->ep;
+  nccl_ofi_idpool_t *key_pool = nullptr;
+  if (ep == nullptr) [[unlikely]] {
     NCCL_OFI_WARN("Invalid endpoint provided");
     return -EINVAL;
   }
 
   /* Retrieve and validate device */
   nccl_net_ofi_sendrecv_device_t *device = sendrecv_endpoint_get_device(ep);
-  if (device == NULL) [[unlikely]] {
+  if (device == nullptr) [[unlikely]] {
     NCCL_OFI_WARN("Invalid device provided");
     return -EINVAL;
   }
@@ -717,11 +717,21 @@ static int sendrecv_comm_mr_base_reg(nccl_net_ofi_comm_t *base_comm, nccl_ofi_mr
 
   int ret = 0;
   nccl_ofi_mr_cache_t *mr_cache = domain->base.mr_cache;
-  void *ret_handle = NULL;
+  void *ret_handle = nullptr;
+  auto onExit = [&]() -> auto {
+    *mhandle = ret_handle;
+    return ret;
+  };
+  auto unlock = [&]() -> auto {
+    if (mr_cache != nullptr) {
+      nccl_net_ofi_mutex_unlock(&mr_cache->lock);
+    }
+    return onExit();
+  };
 
   if (sendrecv_mr_buffer_skip_local_registration(type)) {
     /* Registraton and caching are unnecessary */
-    goto exit;
+    return onExit();
   }
 
   if (mr_cache) {
@@ -733,18 +743,18 @@ static int sendrecv_comm_mr_base_reg(nccl_net_ofi_comm_t *base_comm, nccl_ofi_mr
     ret_handle = nccl_ofi_mr_cache_lookup_entry(mr_cache, ckey);
     if (ret_handle) {
       /* Cache hit */
-      goto unlock;
+      return unlock();
     }
     /* Cache miss */
   }
 
   key_pool = &domain->base.mr_rkey_pool;
-  struct fid_domain *ofi_domain;
+  struct fid_domain *ofi_domain = nullptr;
   ofi_domain = sendrecv_endpoint_get_ofi_domain(ep);
   ret = sendrecv_mr_base_register(ofi_domain, ep->ofi_ep, key_pool, dev_id, ckey, type, &ret_handle);
-  if (ret_handle == NULL || ret != 0) [[unlikely]] {
-    ret_handle = NULL;
-    goto unlock;
+  if (ret_handle == nullptr || ret != 0) [[unlikely]] {
+    ret_handle = nullptr;
+    return unlock();
   }
 
   if (mr_cache) {
@@ -753,21 +763,15 @@ static int sendrecv_comm_mr_base_reg(nccl_net_ofi_comm_t *base_comm, nccl_ofi_mr
       /* MR cache insert failed. Deregister memory region without
        * trying to delete MR cache entry.
        */
-      if (sendrecv_comm_mr_base_dereg((struct fid_mr *)ret_handle, key_pool, NULL) != 0) {
+      if (sendrecv_comm_mr_base_dereg((struct fid_mr *)ret_handle, key_pool, nullptr) != 0) {
         NCCL_OFI_WARN("Error deregistering memory region for addr %ld (%s)", nccl_ofi_mr_ckey_baseaddr(ckey), nccl_ofi_mr_ckey_type_str(ckey));
       }
-      ret_handle = NULL;
-      goto unlock;
+      ret_handle = nullptr;
+      return unlock();
     }
   }
 
-unlock:
-  if (mr_cache) {
-    nccl_net_ofi_mutex_unlock(&mr_cache->lock);
-  }
-exit:
-  *mhandle = ret_handle;
-  return ret;
+  return onExit();
 }
 
 static int sendrecv_send_comm_reg_mr(nccl_net_ofi_send_comm_t *comm, nccl_ofi_mr_ckey_ref ckey, int type, void **mhandle) {
@@ -780,15 +784,15 @@ static int sendrecv_recv_comm_reg_mr(nccl_net_ofi_recv_comm_t *comm, nccl_ofi_mr
 
 static int sendrecv_recv_comm_dereg_mr(nccl_net_ofi_recv_comm_t *recv_comm, nccl_net_ofi_mr_handle_t *mhandle) {
   /* Retrieve and validate endpoint */
-  nccl_net_ofi_sendrecv_ep_t *ep = (nccl_net_ofi_sendrecv_ep_t *)recv_comm->base.ep;
-  if (ep == NULL) [[unlikely]] {
+  auto *ep = (nccl_net_ofi_sendrecv_ep_t *)recv_comm->base.ep;
+  if (ep == nullptr) [[unlikely]] {
     NCCL_OFI_WARN("Invalid endpoint provided");
     return -EINVAL;
   }
 
   /* Retrieve and validate device */
   nccl_net_ofi_sendrecv_device_t *device = sendrecv_endpoint_get_device(ep);
-  if (device == NULL) [[unlikely]] {
+  if (device == nullptr) [[unlikely]] {
     NCCL_OFI_WARN("Invalid device provided");
     return -EINVAL;
   }
@@ -796,7 +800,7 @@ static int sendrecv_recv_comm_dereg_mr(nccl_net_ofi_recv_comm_t *recv_comm, nccl
   nccl_net_ofi_sendrecv_domain_t *domain = sendrecv_endpoint_get_domain(ep);
   assert(domain != NULL);
 
-  struct fid_mr *mr_handle = (struct fid_mr *)mhandle;
+  auto *mr_handle = (struct fid_mr *)mhandle;
   return sendrecv_comm_mr_base_dereg(mr_handle, &domain->base.mr_rkey_pool, domain->base.mr_cache);
 }
 
@@ -804,16 +808,16 @@ static int sendrecv_recv_comm_dereg_mr(nccl_net_ofi_recv_comm_t *recv_comm, nccl
  * @brief	Assign an allocated sendrecv request buffer
  */
 static inline nccl_net_ofi_sendrecv_req_t *sendrecv_allocate_req(nccl_ofi_freelist_t *fl) {
-  nccl_net_ofi_sendrecv_req_t *req = NULL;
-  nccl_ofi_freelist_elem_t *elem = NULL;
+  nccl_net_ofi_sendrecv_req_t *req = nullptr;
+  nccl_ofi_freelist_elem_t *elem = nullptr;
 
-  if (fl == NULL) [[unlikely]] {
+  if (fl == nullptr) [[unlikely]] {
     NCCL_OFI_WARN("Freelist not allocated");
     goto exit;
   }
 
   elem = nccl_ofi_freelist_entry_alloc(fl);
-  if (elem == NULL) [[unlikely]] {
+  if (elem == nullptr) [[unlikely]] {
     NCCL_OFI_WARN("No freelist items available");
     goto exit;
   }
@@ -833,16 +837,16 @@ static int sendrecv_recv_comm_recv(nccl_net_ofi_recv_comm_t *recv_comm, int n, v
                                    nccl_net_ofi_req_t **base_req) {
   int ret = 0;
   ssize_t rc = 0;
-  nccl_net_ofi_sendrecv_req_t *req = NULL;
-  nccl_net_ofi_sendrecv_ep_t *ep = NULL;
-  nccl_net_ofi_sendrecv_device_t *device = NULL;
-  nccl_net_ofi_sendrecv_recv_comm_t *r_comm = (nccl_net_ofi_sendrecv_recv_comm_t *)recv_comm;
+  nccl_net_ofi_sendrecv_req_t *req = nullptr;
+  nccl_net_ofi_sendrecv_ep_t *ep = nullptr;
+  nccl_net_ofi_sendrecv_device_t *device = nullptr;
+  auto *r_comm = (nccl_net_ofi_sendrecv_recv_comm_t *)recv_comm;
   int dev_id = r_comm->base.base.dev_id;
-  struct fid_mr **mr_handles = (struct fid_mr **)mhandles;
+  auto **mr_handles = (struct fid_mr **)mhandles;
 
   /* Retrieve and validate endpoint */
   ep = (nccl_net_ofi_sendrecv_ep_t *)r_comm->base.base.ep;
-  if (ep == NULL) [[unlikely]] {
+  if (ep == nullptr) [[unlikely]] {
     ret = -EINVAL;
     NCCL_OFI_WARN("Invalid endpoint provided");
     goto error;
@@ -850,7 +854,7 @@ static int sendrecv_recv_comm_recv(nccl_net_ofi_recv_comm_t *recv_comm, int n, v
 
   /* Retrieve and validate device */
   device = sendrecv_endpoint_get_device(ep);
-  if (device == NULL) [[unlikely]] {
+  if (device == nullptr) [[unlikely]] {
     ret = -EINVAL;
     NCCL_OFI_WARN("Invalid device provided");
     goto exit;
@@ -865,7 +869,7 @@ static int sendrecv_recv_comm_recv(nccl_net_ofi_recv_comm_t *recv_comm, int n, v
 
   /* Allocate NCCL OFI request */
   req = sendrecv_allocate_req(r_comm->nccl_ofi_reqs_fl);
-  if (req == NULL) [[unlikely]] {
+  if (req == nullptr) [[unlikely]] {
     ret = -EINVAL;
     NCCL_OFI_WARN("Unable to get NCCL OFI request for device %d", dev_id);
     goto error;
@@ -882,7 +886,7 @@ static int sendrecv_recv_comm_recv(nccl_net_ofi_recv_comm_t *recv_comm, int n, v
 
   req->num_recvs = n;
 
-  if (mr_handles == NULL) [[unlikely]] {
+  if (mr_handles == nullptr) [[unlikely]] {
     ret = -EINVAL;
     NCCL_OFI_WARN("Memory handles array is NULL");
     goto error;
@@ -891,9 +895,9 @@ static int sendrecv_recv_comm_recv(nccl_net_ofi_recv_comm_t *recv_comm, int n, v
   /* Currently, plugin doesn't support grouped receives */
   assert(n <= NCCL_OFI_MAX_RECVS);
   for (int recv_n = 0; recv_n < n; recv_n++) {
-    void *desc = NULL;
+    void *desc = nullptr;
 
-    if (mr_handles[recv_n] != NULL) {
+    if (mr_handles[recv_n] != nullptr) {
       desc = fi_mr_desc(mr_handles[recv_n]);
     }
 
@@ -908,7 +912,7 @@ static int sendrecv_recv_comm_recv(nccl_net_ofi_recv_comm_t *recv_comm, int n, v
     rc = fi_trecv(r_comm->local_ep, buffers[recv_n], sizes[recv_n], desc, FI_ADDR_UNSPEC, r_comm->tag, 0, &req->ctx);
     if (rc == -FI_EAGAIN) {
       /* Return NULL request */
-      *base_req = NULL;
+      *base_req = nullptr;
       goto error;
     } else if (rc != 0) {
       NCCL_OFI_WARN("Unable to post receive buffer for dev %d. RC: %zd, ERROR: %s", dev_id, rc, fi_strerror(-rc));
@@ -932,13 +936,13 @@ exit:
 }
 
 static int sendrecv_recv_comm_close(nccl_net_ofi_recv_comm_t *recv_comm) {
-  nccl_net_ofi_sendrecv_recv_comm_t *r_comm = (nccl_net_ofi_sendrecv_recv_comm_t *)recv_comm;
+  auto *r_comm = (nccl_net_ofi_sendrecv_recv_comm_t *)recv_comm;
   int ret = 0;
-  struct fid_mr *mr_handle = NULL;
+  struct fid_mr *mr_handle = nullptr;
 
   /* Retrieve and validate endpoint */
   nccl_net_ofi_ep_t *base_ep = r_comm->base.base.ep;
-  if (base_ep == NULL) [[unlikely]] {
+  if (base_ep == nullptr) [[unlikely]] {
     ret = -EINVAL;
     NCCL_OFI_WARN("Invalid endpoint provided");
     goto exit;
@@ -974,16 +978,16 @@ exit:
 static int sendrecv_recv_comm_flush(nccl_net_ofi_recv_comm_t *recv_comm, int n, void **buffers, int *sizes, nccl_net_ofi_mr_handle_t **mhandles,
                                     nccl_net_ofi_req_t **base_req) {
   int ret = 0;
-  nccl_net_ofi_sendrecv_recv_comm_t *r_comm = (nccl_net_ofi_sendrecv_recv_comm_t *)recv_comm;
-  nccl_net_ofi_sendrecv_req_t *req = NULL;
+  auto *r_comm = (nccl_net_ofi_sendrecv_recv_comm_t *)recv_comm;
+  nccl_net_ofi_sendrecv_req_t *req = nullptr;
   ssize_t rc = 0;
   uint64_t cuda_key = 0ULL;
-  struct fid_mr *mr_handle = NULL;
-  void *data = NULL;
-  void *flush_mr_desc = NULL;
+  struct fid_mr *mr_handle = nullptr;
+  void *data = nullptr;
+  void *flush_mr_desc = nullptr;
   int dev_id = recv_comm->base.dev_id;
   int flush_n = -1;
-  struct fid_mr **mr_handles = (struct fid_mr **)mhandles;
+  auto **mr_handles = (struct fid_mr **)mhandles;
 
   if (ofi_nccl_gdr_flush_disable() || support_gdr == GDR_UNSUPPORTED)
     goto exit;
@@ -1035,7 +1039,7 @@ static int sendrecv_recv_comm_flush(nccl_net_ofi_recv_comm_t *recv_comm, int n, 
 
   /* Allocate NCCL OFI request */
   req = sendrecv_allocate_req(r_comm->nccl_ofi_reqs_fl);
-  if (req == NULL) [[unlikely]] {
+  if (req == nullptr) [[unlikely]] {
     ret = -ENOTSUP;
     NCCL_OFI_WARN("Unable to get NCCL OFI request for device %d", dev_id);
     goto exit;
@@ -1045,13 +1049,13 @@ static int sendrecv_recv_comm_flush(nccl_net_ofi_recv_comm_t *recv_comm, int n, 
   req->dev_id = dev_id;
   req->direction = NCCL_OFI_SENDRECV_RECV;
 
-  if (r_comm->flush_buff.mr_handle != NULL) {
+  if (r_comm->flush_buff.mr_handle != nullptr) {
     /* Not checking for NULL flush_mr_desc as fi_mr_desc()
      * returns valid descriptors by valid handles */
     flush_mr_desc = fi_mr_desc(r_comm->flush_buff.mr_handle);
   }
 
-  if (mr_handle != NULL) {
+  if (mr_handle != nullptr) {
     /* Extract remote key */
     cuda_key = fi_mr_key(mr_handle);
     if (cuda_key == FI_KEY_NOTAVAIL) [[unlikely]] {
@@ -1066,13 +1070,13 @@ static int sendrecv_recv_comm_flush(nccl_net_ofi_recv_comm_t *recv_comm, int n, 
   /* Issue RDMA read */
   do {
     rc = fi_read(r_comm->local_ep, r_comm->flush_buff.host_buffer, r_comm->flush_buff.size, flush_mr_desc, r_comm->local_ep_addr,
-                 (uint64_t)(virt_addr_mr ? data : 0), cuda_key, &req->ctx);
+                 (uint64_t)(virt_addr_mr ? data : nullptr), cuda_key, &req->ctx);
     if (rc == 0) {
       break;
     } else if (rc == -FI_EAGAIN) {
       /* Retrieve and validate endpoint */
-      nccl_net_ofi_sendrecv_ep_t *ep = (nccl_net_ofi_sendrecv_ep_t *)r_comm->base.base.ep;
-      if (ep == NULL) [[unlikely]] {
+      auto *ep = (nccl_net_ofi_sendrecv_ep_t *)r_comm->base.base.ep;
+      if (ep == nullptr) [[unlikely]] {
         ret = -EINVAL;
         NCCL_OFI_WARN("Invalid endpoint provided");
         goto error;
@@ -1080,7 +1084,7 @@ static int sendrecv_recv_comm_flush(nccl_net_ofi_recv_comm_t *recv_comm, int n, 
 
       /* Retrieve and validate device */
       nccl_net_ofi_sendrecv_device_t *device = sendrecv_endpoint_get_device(ep);
-      if (device == NULL) [[unlikely]] {
+      if (device == nullptr) [[unlikely]] {
         ret = -EINVAL;
         NCCL_OFI_WARN("Invalid device provided");
         goto exit;
@@ -1114,7 +1118,7 @@ error:
   if (req)
     sendrecv_recv_comm_free_req(r_comm, dev_id, req, false);
 exit:
-  *base_req = NULL;
+  *base_req = nullptr;
   return ret;
 }
 
@@ -1136,7 +1140,7 @@ exit:
 static int sendrecv_recv_comm_alloc_and_reg_flush_buff(struct fid_domain *domain, struct fid_ep *ep, nccl_ofi_idpool_t *key_pool,
                                                        nccl_net_ofi_sendrecv_flush_buffer_t *flush_buff, int dev_id) {
   int ret = 0;
-  struct fid_mr *mr_handle = NULL;
+  struct fid_mr *mr_handle = nullptr;
 
   /* Verify that flush won't read more than the flush buffer size */
   assert(flush_buff->size <= system_page_size);
@@ -1179,25 +1183,25 @@ static nccl_net_ofi_sendrecv_recv_comm_t *sendrecv_recv_comm_prepare(nccl_net_of
                                                                      nccl_net_ofi_sendrecv_domain_t *domain, nccl_net_ofi_sendrecv_ep_t *ep,
                                                                      char *remote_ep_addr) {
   int ret = 0;
-  fi_addr_t remote_ep;
-  struct fid_domain *ofi_domain;
-  nccl_net_ofi_sendrecv_recv_comm_t *r_comm = NULL;
+  fi_addr_t remote_ep = 0;
+  struct fid_domain *ofi_domain = nullptr;
+  nccl_net_ofi_sendrecv_recv_comm_t *r_comm = nullptr;
   size_t req_size = sizeof(nccl_net_ofi_sendrecv_req_t);
   nccl_ofi_idpool_t *key_pool = &domain->base.mr_rkey_pool;
   int dev_id = device->base.dev_id;
 
   /* Insert remote EP address to AV */
-  ret = fi_av_insert(ep->av, (void *)remote_ep_addr, 1, &remote_ep, 0, NULL);
+  ret = fi_av_insert(ep->av, (void *)remote_ep_addr, 1, &remote_ep, 0, nullptr);
   if (ret != 1) [[unlikely]] {
     NCCL_OFI_WARN("Unable to insert remote address into address vector for device %d. RC: %s", dev_id, fi_strerror(-ret));
-    return NULL;
+    return nullptr;
   }
 
   /* Build recv_comm */
   r_comm = (nccl_net_ofi_sendrecv_recv_comm_t *)calloc(1, sizeof(nccl_net_ofi_sendrecv_recv_comm_t));
-  if (r_comm == NULL) {
+  if (r_comm == nullptr) {
     NCCL_OFI_WARN("Unable to allocate receive Comm object for device %d", dev_id);
-    return NULL;
+    return nullptr;
   }
 
   r_comm->base.base.type = NCCL_NET_OFI_RECV_COMM;
@@ -1208,7 +1212,7 @@ static nccl_net_ofi_sendrecv_recv_comm_t *sendrecv_recv_comm_prepare(nccl_net_of
   r_comm->base.recv = sendrecv_recv_comm_recv;
   r_comm->base.flush = sendrecv_recv_comm_flush;
   r_comm->base.close = sendrecv_recv_comm_close;
-  r_comm->base.read = NULL;
+  r_comm->base.read = nullptr;
   r_comm->tag = l_comm->tag;
   r_comm->local_ep = l_comm->local_ep;
   r_comm->local_ep_addr = l_comm->local_ep_addr;
@@ -1220,7 +1224,7 @@ static nccl_net_ofi_sendrecv_recv_comm_t *sendrecv_recv_comm_prepare(nccl_net_of
   if (ret != 0) [[unlikely]] {
     NCCL_OFI_WARN("Could not allocate NCCL OFI requests free list for dev %d", dev_id);
     free(r_comm);
-    return NULL;
+    return nullptr;
   }
 
   ofi_domain = sendrecv_endpoint_get_ofi_domain(ep);
@@ -1234,7 +1238,7 @@ static nccl_net_ofi_sendrecv_recv_comm_t *sendrecv_recv_comm_prepare(nccl_net_of
     ret = sendrecv_recv_comm_alloc_and_reg_flush_buff(ofi_domain, ep->ofi_ep, key_pool, &r_comm->flush_buff, dev_id);
     if (ret != 0) [[unlikely]] {
       free(r_comm);
-      return NULL;
+      return nullptr;
     }
   }
 
@@ -1244,26 +1248,26 @@ static nccl_net_ofi_sendrecv_recv_comm_t *sendrecv_recv_comm_prepare(nccl_net_of
 static int sendrecv_listen_comm_accept(nccl_net_ofi_listen_comm_t *listen_comm, nccl_net_ofi_recv_comm_t **recv_comm) {
   int ret = 0;
 
-  nccl_net_ofi_sendrecv_listen_comm_t *l_comm = (nccl_net_ofi_sendrecv_listen_comm_t *)listen_comm;
+  auto *l_comm = (nccl_net_ofi_sendrecv_listen_comm_t *)listen_comm;
 
   if (l_comm->state.stage != COMM_CONN_REQ_PENDING && l_comm->accepted) {
     NCCL_OFI_WARN("listen_comm %p object already has an active connection (%d).", listen_comm, l_comm->accepted);
     return -EINVAL;
   }
 
-  *recv_comm = NULL;
+  *recv_comm = nullptr;
 
   /* Extract communicator state from listen communicator object */
   save_comm_state_t *comm_state = &l_comm->state;
-  nccl_net_ofi_sendrecv_recv_comm_t *r_comm;
-  nccl_net_ofi_sendrecv_req_t *req = (nccl_net_ofi_sendrecv_req_t *)comm_state->req;
+  nccl_net_ofi_sendrecv_recv_comm_t *r_comm = nullptr;
+  auto *req = (nccl_net_ofi_sendrecv_req_t *)comm_state->req;
 
   /* Extract peer address from listen communicator's buffer */
   nccl_ofi_connection_info_t *conn_info = l_comm->conn_info;
 
   /* Retrieve and validate endpoint */
-  nccl_net_ofi_sendrecv_ep_t *ep = (nccl_net_ofi_sendrecv_ep_t *)l_comm->base.base.ep;
-  if (ep == NULL) [[unlikely]] {
+  auto *ep = (nccl_net_ofi_sendrecv_ep_t *)l_comm->base.base.ep;
+  if (ep == nullptr) [[unlikely]] {
     ret = -EINVAL;
     NCCL_OFI_WARN("Invalid endpoint provided");
     return ret;
@@ -1274,7 +1278,7 @@ static int sendrecv_listen_comm_accept(nccl_net_ofi_listen_comm_t *listen_comm, 
 
   /* Retrieve and validate device */
   nccl_net_ofi_sendrecv_device_t *device = sendrecv_endpoint_get_device(ep);
-  if (device == NULL) [[unlikely]] {
+  if (device == nullptr) [[unlikely]] {
     ret = -EINVAL;
     NCCL_OFI_WARN("Invalid device provided");
     return ret;
@@ -1306,7 +1310,7 @@ static int sendrecv_listen_comm_accept(nccl_net_ofi_listen_comm_t *listen_comm, 
 
     /* Prepare receive request to accept connections */
     req = sendrecv_recv_req_prepare(l_comm);
-    if (req == NULL) {
+    if (req == nullptr) {
       return -ENOMEM;
     }
 
@@ -1315,7 +1319,7 @@ static int sendrecv_listen_comm_accept(nccl_net_ofi_listen_comm_t *listen_comm, 
   case COMM_RECV_CONN:
 
     /* Allocate memory for peer address for the first time ONLY */
-    if (conn_info == NULL) {
+    if (conn_info == nullptr) {
       conn_info = (nccl_ofi_connection_info_t *)calloc(1, sizeof(nccl_ofi_connection_info_t));
     }
 
@@ -1329,7 +1333,7 @@ static int sendrecv_listen_comm_accept(nccl_net_ofi_listen_comm_t *listen_comm, 
     } else if (ret != 0) {
       free(req);
       free(conn_info);
-      l_comm->conn_info = NULL;
+      l_comm->conn_info = nullptr;
       return ret;
     }
 
@@ -1354,7 +1358,7 @@ static int sendrecv_listen_comm_accept(nccl_net_ofi_listen_comm_t *listen_comm, 
 
     if (conn_info->connect_to_self) {
       NCCL_OFI_TRACE(NCCL_NET, "Accept from self; cleaning up");
-      nccl_net_ofi_sendrecv_req_t *conn_info_req = (nccl_net_ofi_sendrecv_req_t *)conn_info->req;
+      auto *conn_info_req = (nccl_net_ofi_sendrecv_req_t *)conn_info->req;
       if (conn_info_req->state != NCCL_OFI_SENDRECV_REQ_COMPLETED) {
         l_comm->conn_info = conn_info;
         return 0;
@@ -1377,7 +1381,7 @@ static int sendrecv_listen_comm_accept(nccl_net_ofi_listen_comm_t *listen_comm, 
 
   /* Prepare receive communicator object for the received peer connection */
   r_comm = sendrecv_recv_comm_prepare(l_comm, device, domain, ep, conn_info->ep_name);
-  if (r_comm == NULL) [[unlikely]] {
+  if (r_comm == nullptr) [[unlikely]] {
     return -ENOMEM;
   }
 
@@ -1390,12 +1394,12 @@ static int sendrecv_listen_comm_accept(nccl_net_ofi_listen_comm_t *listen_comm, 
 }
 
 static int sendrecv_listen_comm_close(nccl_net_ofi_listen_comm_t *listen_comm) {
-  nccl_net_ofi_sendrecv_listen_comm_t *l_comm = (nccl_net_ofi_sendrecv_listen_comm_t *)listen_comm;
+  auto *l_comm = (nccl_net_ofi_sendrecv_listen_comm_t *)listen_comm;
   int ret = 0;
 
   /* Retrieve and validate endpoint */
   nccl_net_ofi_ep_t *base_ep = l_comm->base.base.ep;
-  if (base_ep == NULL) [[unlikely]] {
+  if (base_ep == nullptr) [[unlikely]] {
     ret = -EINVAL;
     NCCL_OFI_WARN("Invalid endpoint provided");
     goto exit;
@@ -1424,28 +1428,28 @@ static inline char *sendrecv_get_local_address(struct fid_ep *ep) {
   if (ret == -FI_ETOOSMALL) {
     NCCL_OFI_WARN("Endpoint's address length (%zu) is larger than supplied buffer length (%d)", namelen, MAX_EP_ADDR);
     free(local_ep_addr);
-    return NULL;
+    return nullptr;
   } else if (ret != 0) {
     NCCL_OFI_WARN("Call to fi_getname() failed with RC: %d, ERROR: %s", ret, fi_strerror(-ret));
     free(local_ep_addr);
-    return NULL;
+    return nullptr;
   }
 
   return local_ep_addr;
 }
 
 static int sendrecv_endpoint_listen(nccl_net_ofi_ep_t *base_ep, nccl_net_ofi_conn_handle_t *handle, nccl_net_ofi_listen_comm_t **listen_comm) {
-  char *local_ep_name = NULL;
-  fi_addr_t local_ep_addr;
-  nccl_net_ofi_sendrecv_listen_comm_t *l_comm = NULL;
-  uint64_t tag;
+  char *local_ep_name = nullptr;
+  fi_addr_t local_ep_addr = 0;
+  nccl_net_ofi_sendrecv_listen_comm_t *l_comm = nullptr;
+  uint64_t tag = 0;
   int dev_id = 0;
-  int num_addrs;
-  nccl_net_ofi_sendrecv_ep_t *ep = (nccl_net_ofi_sendrecv_ep_t *)base_ep;
+  int num_addrs = 0;
+  auto *ep = (nccl_net_ofi_sendrecv_ep_t *)base_ep;
 
   /* Retrieve and validate device */
   nccl_net_ofi_sendrecv_device_t *device = sendrecv_endpoint_get_device(ep);
-  if (device == NULL) [[unlikely]] {
+  if (device == nullptr) [[unlikely]] {
     NCCL_OFI_WARN("Invalid device provided");
     return -EINVAL;
   }
@@ -1466,7 +1470,7 @@ static int sendrecv_endpoint_listen(nccl_net_ofi_ep_t *base_ep, nccl_net_ofi_con
 
   /* Build handle */
   local_ep_name = sendrecv_get_local_address(ep->ofi_ep);
-  if (local_ep_name == NULL) {
+  if (local_ep_name == nullptr) {
     return -EINVAL;
   }
 
@@ -1474,7 +1478,7 @@ static int sendrecv_endpoint_listen(nccl_net_ofi_ep_t *base_ep, nccl_net_ofi_con
   handle->comm_id = (uint32_t)tag;
 
   /* Insert local EP address to AV. This will be used to issue local read operations */
-  num_addrs = fi_av_insert(ep->av, (void *)local_ep_name, 1, &local_ep_addr, 0, NULL);
+  num_addrs = fi_av_insert(ep->av, (void *)local_ep_name, 1, &local_ep_addr, 0, nullptr);
 
   /* Only 1 address should be inserted into the AV */
   if (num_addrs != 1) [[unlikely]] {
@@ -1484,7 +1488,7 @@ static int sendrecv_endpoint_listen(nccl_net_ofi_ep_t *base_ep, nccl_net_ofi_con
 
   /* Build listen_comm */
   l_comm = (nccl_net_ofi_sendrecv_listen_comm_t *)calloc(1, sizeof(nccl_net_ofi_sendrecv_listen_comm_t));
-  if (l_comm == NULL) [[unlikely]] {
+  if (l_comm == nullptr) [[unlikely]] {
     NCCL_OFI_WARN("Couldn't allocate listen_comm for dev %d", dev_id);
     return -ENOMEM;
   }
@@ -1506,15 +1510,15 @@ static int sendrecv_endpoint_listen(nccl_net_ofi_ep_t *base_ep, nccl_net_ofi_con
 
 static int sendrecv_send_comm_dereg_mr(nccl_net_ofi_send_comm_t *send_comm, nccl_net_ofi_mr_handle_t *mhandle) {
   /* Retrieve and validate endpoint */
-  nccl_net_ofi_sendrecv_ep_t *ep = (nccl_net_ofi_sendrecv_ep_t *)send_comm->base.ep;
-  if (ep == NULL) [[unlikely]] {
+  auto *ep = (nccl_net_ofi_sendrecv_ep_t *)send_comm->base.ep;
+  if (ep == nullptr) [[unlikely]] {
     NCCL_OFI_WARN("Invalid endpoint provided");
     return -EINVAL;
   }
 
   /* Retrieve and validate device */
   nccl_net_ofi_sendrecv_device_t *device = sendrecv_endpoint_get_device(ep);
-  if (device == NULL) [[unlikely]] {
+  if (device == nullptr) [[unlikely]] {
     NCCL_OFI_WARN("Invalid device provided");
     return -EINVAL;
   }
@@ -1522,24 +1526,24 @@ static int sendrecv_send_comm_dereg_mr(nccl_net_ofi_send_comm_t *send_comm, nccl
   nccl_net_ofi_sendrecv_domain_t *domain = sendrecv_endpoint_get_domain(ep);
   assert(domain != NULL);
 
-  struct fid_mr *mr_handle = (struct fid_mr *)mhandle;
+  auto *mr_handle = (struct fid_mr *)mhandle;
   return sendrecv_comm_mr_base_dereg(mr_handle, &domain->base.mr_rkey_pool, domain->base.mr_cache);
 }
 
 static int sendrecv_send_comm_send(nccl_net_ofi_send_comm_t *send_comm, void *data, int size, int tag, nccl_net_ofi_mr_handle_t *mhandle,
                                    nccl_net_ofi_req_t **base_req) {
   int ret = 0;
-  nccl_net_ofi_sendrecv_send_comm_t *s_comm = (nccl_net_ofi_sendrecv_send_comm_t *)send_comm;
+  auto *s_comm = (nccl_net_ofi_sendrecv_send_comm_t *)send_comm;
   ssize_t rc = 0;
-  nccl_net_ofi_sendrecv_req_t *req = NULL;
-  void *desc = NULL;
-  nccl_net_ofi_sendrecv_device_t *device = NULL;
+  nccl_net_ofi_sendrecv_req_t *req = nullptr;
+  void *desc = nullptr;
+  nccl_net_ofi_sendrecv_device_t *device = nullptr;
   int dev_id = s_comm->base.base.dev_id;
-  struct fid_mr *mr_handle = (struct fid_mr *)mhandle;
+  auto *mr_handle = (struct fid_mr *)mhandle;
 
   /* Validate endpoint */
-  nccl_net_ofi_sendrecv_ep_t *ep = (nccl_net_ofi_sendrecv_ep_t *)s_comm->base.base.ep;
-  if (ep == NULL) [[unlikely]] {
+  auto *ep = (nccl_net_ofi_sendrecv_ep_t *)s_comm->base.base.ep;
+  if (ep == nullptr) [[unlikely]] {
     ret = -EINVAL;
     NCCL_OFI_WARN("Invalid endpoint provided");
     goto error;
@@ -1547,7 +1551,7 @@ static int sendrecv_send_comm_send(nccl_net_ofi_send_comm_t *send_comm, void *da
 
   /* Retrieve and validate device */
   device = sendrecv_endpoint_get_device(ep);
-  if (device == NULL) [[unlikely]] {
+  if (device == nullptr) [[unlikely]] {
     ret = -EINVAL;
     NCCL_OFI_WARN("Invalid device provided");
     goto exit;
@@ -1569,19 +1573,19 @@ static int sendrecv_send_comm_send(nccl_net_ofi_send_comm_t *send_comm, void *da
   if (s_comm->conn_info && (s_comm->conn_info->connect_to_self == 1)) [[unlikely]] {
     nccl_ofi_connection_info_t *conn_info = s_comm->conn_info;
     assert(conn_info->req != NULL);
-    nccl_net_ofi_sendrecv_req_t *self_req = (nccl_net_ofi_sendrecv_req_t *)conn_info->req;
+    auto *self_req = (nccl_net_ofi_sendrecv_req_t *)conn_info->req;
 
     if (self_req->state == NCCL_OFI_SENDRECV_REQ_COMPLETED) {
       sendrecv_send_comm_free_req(s_comm, dev_id, self_req, false);
       free(conn_info);
-      s_comm->conn_info = NULL;
+      s_comm->conn_info = nullptr;
     } else {
       NCCL_OFI_TRACE(NCCL_INIT | NCCL_NET, "Self-connect request: %p hasn't completed. Current State: %s", self_req,
                      sendrecv_req_state_get_string(self_req->state));
 
       ret = sendrecv_cq_process(ep->cq, device->max_tag);
 
-      *base_req = NULL;
+      *base_req = nullptr;
       goto exit;
     }
   }
@@ -1593,7 +1597,7 @@ static int sendrecv_send_comm_send(nccl_net_ofi_send_comm_t *send_comm, void *da
 
   /* Allocate NCCL OFI request */
   req = sendrecv_allocate_req(s_comm->nccl_ofi_reqs_fl);
-  if (req == NULL) [[unlikely]] {
+  if (req == nullptr) [[unlikely]] {
     ret = -ENOMEM;
     NCCL_OFI_WARN("Unable to get NCCL OFI request for device %d", dev_id);
     goto error;
@@ -1603,7 +1607,7 @@ static int sendrecv_send_comm_send(nccl_net_ofi_send_comm_t *send_comm, void *da
   req->dev_id = dev_id;
   req->direction = NCCL_OFI_SENDRECV_SEND;
 
-  if (mr_handle != NULL)
+  if (mr_handle != nullptr)
     desc = fi_mr_desc(mr_handle);
 
   NCCL_OFI_TRACE_SEND_SENDRECV(req->dev_id, size, s_comm, 0, req, base_req);
@@ -1617,7 +1621,7 @@ static int sendrecv_send_comm_send(nccl_net_ofi_send_comm_t *send_comm, void *da
     /* Make progress for next try */
     ret = sendrecv_cq_process(ep->cq, device->max_tag);
     /* Return NULL request */
-    *base_req = NULL;
+    *base_req = nullptr;
     goto error;
   } else if (rc != 0) [[unlikely]] {
     NCCL_OFI_WARN("Could not send request for device %d. RC: %zd", dev_id, rc);
@@ -1643,12 +1647,12 @@ exit:
 }
 
 static int sendrecv_send_comm_close(nccl_net_ofi_send_comm_t *send_comm) {
-  nccl_net_ofi_sendrecv_send_comm_t *s_comm = (nccl_net_ofi_sendrecv_send_comm_t *)send_comm;
+  auto *s_comm = (nccl_net_ofi_sendrecv_send_comm_t *)send_comm;
   int ret = 0;
 
   /* Retrieve and validate endpoint */
   nccl_net_ofi_ep_t *base_ep = s_comm->base.base.ep;
-  if (base_ep == NULL) [[unlikely]] {
+  if (base_ep == nullptr) [[unlikely]] {
     ret = -EINVAL;
     NCCL_OFI_WARN("Invalid endpoint provided");
     goto exit;
@@ -1680,14 +1684,14 @@ static inline int sendrecv_send_comm_create(nccl_net_ofi_conn_handle_t *handle, 
   uint64_t tag = 0ULL;
   uint64_t max_tag = 0;
   size_t req_size = sizeof(nccl_net_ofi_sendrecv_req_t);
-  fi_addr_t remote_addr;
-  nccl_net_ofi_sendrecv_send_comm_t *ret_s_comm = NULL;
-  *s_comm = NULL;
+  fi_addr_t remote_addr = 0;
+  nccl_net_ofi_sendrecv_send_comm_t *ret_s_comm = nullptr;
+  *s_comm = nullptr;
   int ret = 0;
 
   /* Retrieve and validate device */
   nccl_net_ofi_sendrecv_device_t *device = sendrecv_endpoint_get_device(ep);
-  if (device == NULL) [[unlikely]] {
+  if (device == nullptr) [[unlikely]] {
     NCCL_OFI_WARN("Error accessing device.");
     return -EINVAL;
   }
@@ -1703,7 +1707,7 @@ static inline int sendrecv_send_comm_create(nccl_net_ofi_conn_handle_t *handle, 
   }
 
   /* Insert remote address into AV */
-  ret = fi_av_insert(ep->av, (void *)remote_ep_addr, 1, &remote_addr, 0, NULL);
+  ret = fi_av_insert(ep->av, (void *)remote_ep_addr, 1, &remote_addr, 0, nullptr);
   if (ret != 1) [[unlikely]] {
     NCCL_OFI_WARN("Unable to insert remote address into address vector for device %d. RC: %d", device->base.dev_id, ret);
     return -EINVAL;
@@ -1711,7 +1715,7 @@ static inline int sendrecv_send_comm_create(nccl_net_ofi_conn_handle_t *handle, 
 
   /* Allocate and initialize send_comm */
   ret_s_comm = (nccl_net_ofi_sendrecv_send_comm_t *)calloc(1, sizeof(nccl_net_ofi_sendrecv_send_comm_t));
-  if (ret_s_comm == NULL) [[unlikely]] {
+  if (ret_s_comm == nullptr) [[unlikely]] {
     NCCL_OFI_WARN("Couldn't allocate send_comm for dev %d", device->base.dev_id);
     return -ENOMEM;
   }
@@ -1723,8 +1727,8 @@ static inline int sendrecv_send_comm_create(nccl_net_ofi_conn_handle_t *handle, 
   ret_s_comm->base.deregMr = sendrecv_send_comm_dereg_mr;
   ret_s_comm->base.send = sendrecv_send_comm_send;
   ret_s_comm->base.close = sendrecv_send_comm_close;
-  ret_s_comm->base.write = NULL;
-  ret_s_comm->base.write_inline = NULL;
+  ret_s_comm->base.write = nullptr;
+  ret_s_comm->base.write_inline = nullptr;
   ret_s_comm->tag = tag;
   ret_s_comm->local_ep = ep->ofi_ep;
   ret_s_comm->remote_ep = remote_addr;
@@ -1772,16 +1776,16 @@ out:
  * 		NULL, others
  */
 static inline nccl_net_ofi_sendrecv_req_t *sendrecv_send_comm_prepare_send_req(nccl_net_ofi_sendrecv_send_comm_t *s_comm) {
-  nccl_net_ofi_sendrecv_req_t *req = NULL;
+  nccl_net_ofi_sendrecv_req_t *req = nullptr;
 
-  if (s_comm == NULL) [[unlikely]] {
-    return NULL;
+  if (s_comm == nullptr) [[unlikely]] {
+    return nullptr;
   }
 
   req = sendrecv_allocate_req(s_comm->nccl_ofi_reqs_fl);
-  if (req == NULL) [[unlikely]] {
+  if (req == nullptr) [[unlikely]] {
     NCCL_OFI_WARN("Unable to get NCCL OFI request for device %d", s_comm->base.base.dev_id);
-    return NULL;
+    return nullptr;
   }
 
   req->comm = &s_comm->base.base;
@@ -1809,9 +1813,9 @@ static ssize_t sendrecv_send_comm_send_connect_message(nccl_net_ofi_sendrecv_sen
 
   /* If connecting to self, pass along the send req so that the
      accept side can clean up the request */
-  s_comm->conn_info->req = (s_comm->conn_info->connect_to_self == 1) ? &req->base : NULL;
+  s_comm->conn_info->req = (s_comm->conn_info->connect_to_self == 1) ? &req->base : nullptr;
 
-  rc = fi_tsend(s_comm->local_ep, (void *)s_comm->conn_info, sizeof(*s_comm->conn_info), NULL, s_comm->remote_ep, s_comm->tag | (max_tag + 1), &req->ctx);
+  rc = fi_tsend(s_comm->local_ep, (void *)s_comm->conn_info, sizeof(*s_comm->conn_info), nullptr, s_comm->remote_ep, s_comm->tag | (max_tag + 1), &req->ctx);
 
   if (rc == -FI_EAGAIN) {
     /*
@@ -1831,12 +1835,12 @@ static ssize_t sendrecv_send_comm_send_connect_message(nccl_net_ofi_sendrecv_sen
 static int sendrecv_endpoint_connect(nccl_net_ofi_ep_t *base_ep, nccl_net_ofi_conn_handle_t *handle, nccl_net_ofi_send_comm_t **send_comm) {
   int ret = 0;
   ssize_t rc = 0;
-  *send_comm = NULL;
-  nccl_net_ofi_sendrecv_ep_t *ep = (nccl_net_ofi_sendrecv_ep_t *)base_ep;
+  *send_comm = nullptr;
+  auto *ep = (nccl_net_ofi_sendrecv_ep_t *)base_ep;
 
   /* Retrieve and validate devices */
   nccl_net_ofi_sendrecv_device_t *device = sendrecv_endpoint_get_device(ep);
-  if (device == NULL) [[unlikely]] {
+  if (device == nullptr) [[unlikely]] {
     NCCL_OFI_WARN("Error accessing devices array. Devices array has not been initialized.");
     return -EINVAL;
   }
@@ -1845,8 +1849,8 @@ static int sendrecv_endpoint_connect(nccl_net_ofi_ep_t *base_ep, nccl_net_ofi_co
 
   /* Extract connection state of the communicator */
   save_comm_state_t *comm_state = &(handle->state);
-  nccl_net_ofi_sendrecv_req_t *req = (nccl_net_ofi_sendrecv_req_t *)comm_state->req;
-  nccl_net_ofi_sendrecv_send_comm_t *s_comm = (nccl_net_ofi_sendrecv_send_comm_t *)comm_state->comm;
+  auto *req = (nccl_net_ofi_sendrecv_req_t *)comm_state->req;
+  auto *s_comm = (nccl_net_ofi_sendrecv_send_comm_t *)comm_state->comm;
 
   /*
    * Take appropriate actions based on connection stage of communicator.
@@ -1866,13 +1870,13 @@ static int sendrecv_endpoint_connect(nccl_net_ofi_ep_t *base_ep, nccl_net_ofi_co
 
     /* Build send_comm */
     ret = sendrecv_send_comm_create(handle, ep, &s_comm);
-    if (ret != 0 || s_comm == NULL) [[unlikely]] {
+    if (ret != 0 || s_comm == nullptr) [[unlikely]] {
       return ret;
     }
 
     /* Prepare connect request to be sent to peer */
     req = sendrecv_send_comm_prepare_send_req(s_comm);
-    if (req == NULL) [[unlikely]] {
+    if (req == nullptr) [[unlikely]] {
       free(s_comm);
       return -ENOMEM;
     }
@@ -1939,7 +1943,7 @@ static int sendrecv_endpoint_connect(nccl_net_ofi_ep_t *base_ep, nccl_net_ofi_co
   if (s_comm->conn_info->connect_to_self != 1) {
     sendrecv_send_comm_free_req(s_comm, dev_id, req, false);
     free(s_comm->conn_info);
-    s_comm->conn_info = NULL;
+    s_comm->conn_info = nullptr;
   }
 
   return ret;
@@ -1947,11 +1951,11 @@ static int sendrecv_endpoint_connect(nccl_net_ofi_ep_t *base_ep, nccl_net_ofi_co
 
 static int nccl_net_ofi_sendrecv_endpoint_free(nccl_net_ofi_ep_t *base_ep) {
   int ret = 0;
-  nccl_net_ofi_sendrecv_device_t *device = NULL;
+  nccl_net_ofi_sendrecv_device_t *device = nullptr;
 
   /* Validate device */
-  nccl_net_ofi_sendrecv_ep_t *ep = (nccl_net_ofi_sendrecv_ep_t *)base_ep;
-  if (ep == NULL) [[unlikely]] {
+  auto *ep = (nccl_net_ofi_sendrecv_ep_t *)base_ep;
+  if (ep == nullptr) [[unlikely]] {
     ret = -EINVAL;
     NCCL_OFI_WARN("Invalid endpoint provided");
     goto exit;
@@ -1959,16 +1963,16 @@ static int nccl_net_ofi_sendrecv_endpoint_free(nccl_net_ofi_ep_t *base_ep) {
 
   /* Validate device */
   device = sendrecv_endpoint_get_device(ep);
-  if (device == NULL) [[unlikely]] {
+  if (device == nullptr) [[unlikely]] {
     ret = -EINVAL;
     NCCL_OFI_WARN("Invalid device provided");
     goto exit;
   }
 
   nccl_ofi_ofiutils_ep_release(ep->ofi_ep, ep->av, ep->cq, device->base.dev_id);
-  ep->ofi_ep = NULL;
-  ep->av = NULL;
-  ep->cq = NULL;
+  ep->ofi_ep = nullptr;
+  ep->av = nullptr;
+  ep->cq = nullptr;
 
   free(ep);
 
@@ -1978,12 +1982,12 @@ exit:
 
 static int nccl_net_ofi_sendrecv_domain_create_endpoint(nccl_net_ofi_domain_t *base_domain, nccl_net_ofi_ep_t **base_ep) {
   int ret = 0;
-  nccl_net_ofi_sendrecv_ep_t *ep = NULL;
-  nccl_net_ofi_sendrecv_device_t *device;
+  nccl_net_ofi_sendrecv_ep_t *ep = nullptr;
+  nccl_net_ofi_sendrecv_device_t *device = nullptr;
 
   /* Retrieve and validate device */
-  nccl_net_ofi_sendrecv_domain_t *domain = (nccl_net_ofi_sendrecv_domain_t *)base_domain;
-  if (domain == NULL) [[unlikely]] {
+  auto *domain = (nccl_net_ofi_sendrecv_domain_t *)base_domain;
+  if (domain == nullptr) [[unlikely]] {
     NCCL_OFI_WARN("Invalid domain provided");
     return -EINVAL;
   }
@@ -2024,8 +2028,8 @@ static int nccl_net_ofi_sendrecv_domain_create_endpoint(nccl_net_ofi_domain_t *b
 }
 
 static int nccl_net_ofi_sendrecv_domain_free(nccl_net_ofi_domain_t *base_domain) {
-  int ret;
-  nccl_net_ofi_sendrecv_domain_t *domain = (nccl_net_ofi_sendrecv_domain_t *)base_domain;
+  int ret = 0;
+  auto *domain = (nccl_net_ofi_sendrecv_domain_t *)base_domain;
 
   ret = nccl_net_ofi_domain_fini(base_domain);
   if (ret != 0) {
@@ -2041,13 +2045,13 @@ static int nccl_net_ofi_sendrecv_domain_free(nccl_net_ofi_domain_t *base_domain)
 }
 
 static nccl_net_ofi_domain_t *nccl_net_ofi_sendrecv_device_create_domain(nccl_net_ofi_device_t *base_device) {
-  int ret;
-  nccl_net_ofi_sendrecv_device_t *device = (nccl_net_ofi_sendrecv_device_t *)base_device;
-  nccl_net_ofi_sendrecv_domain_t *domain = NULL;
+  int ret = 0;
+  auto *device = (nccl_net_ofi_sendrecv_device_t *)base_device;
+  nccl_net_ofi_sendrecv_domain_t *domain = nullptr;
 
   domain = (nccl_net_ofi_sendrecv_domain_t *)calloc(1, sizeof(nccl_net_ofi_sendrecv_domain_t));
-  if (domain == NULL) {
-    return NULL;
+  if (domain == nullptr) {
+    return nullptr;
   }
 
   domain->base.free = nccl_net_ofi_sendrecv_domain_free;
@@ -2059,7 +2063,7 @@ static nccl_net_ofi_domain_t *nccl_net_ofi_sendrecv_device_create_domain(nccl_ne
     goto exit;
   }
 
-  ret = fi_domain(device->fabric, device->info, &domain->domain, NULL);
+  ret = fi_domain(device->fabric, device->info, &domain->domain, nullptr);
   if (ret != 0) [[unlikely]] {
     NCCL_OFI_WARN("Couldn't open a fabric access domain. RC: %d, ERROR: %s", ret, fi_strerror(-ret));
     goto exit;
@@ -2068,7 +2072,7 @@ static nccl_net_ofi_domain_t *nccl_net_ofi_sendrecv_device_create_domain(nccl_ne
 exit:
   if (ret != 0) {
     domain->base.free(&domain->base);
-    domain = NULL;
+    domain = nullptr;
   }
 
   return (nccl_net_ofi_domain_t *)domain;
@@ -2104,10 +2108,10 @@ static int sendrecv_device_prepare_for_connection(nccl_net_ofi_sendrecv_device_t
  * Destroy an rdma device object
  */
 static int nccl_net_ofi_sendrecv_device_release(nccl_net_ofi_device_t *base_device) {
-  nccl_net_ofi_sendrecv_device_t *device = (nccl_net_ofi_sendrecv_device_t *)base_device;
-  int ret, first_error = 0;
+  auto *device = (nccl_net_ofi_sendrecv_device_t *)base_device;
+  int ret = 0, first_error = 0;
 
-  if (device == NULL) {
+  if (device == nullptr) {
     return 0;
   }
 
@@ -2120,7 +2124,7 @@ static int nccl_net_ofi_sendrecv_device_release(nccl_net_ofi_device_t *base_devi
     fi_close((fid_t)device->fabric);
   }
 
-  if (device->info != NULL) {
+  if (device->info != nullptr) {
     fi_freeinfo(device->info);
   }
 
@@ -2141,23 +2145,23 @@ static int nccl_net_ofi_sendrecv_device_release(nccl_net_ofi_device_t *base_devi
  * Create an rdma device object
  */
 static nccl_net_ofi_sendrecv_device_t *nccl_net_ofi_sendrecv_device_create(nccl_net_ofi_plugin_t *plugin, int dev_id, struct fi_info *info) {
-  int ret;
+  int ret = 0;
 
-  nccl_net_ofi_sendrecv_device_t *device = (nccl_net_ofi_sendrecv_device_t *)calloc(1, sizeof(nccl_net_ofi_sendrecv_device_t));
-  if (device == NULL) {
+  auto *device = (nccl_net_ofi_sendrecv_device_t *)calloc(1, sizeof(nccl_net_ofi_sendrecv_device_t));
+  if (device == nullptr) {
     NCCL_OFI_WARN("Unable to allocate device %d", dev_id);
-    return NULL;
+    return nullptr;
   }
 
   ret = nccl_net_ofi_device_init(&device->base, plugin, dev_id, info);
   if (ret != 0) {
     NCCL_OFI_WARN("Initializing device %i failed: %s", dev_id, strerror(-ret));
-    return NULL;
+    return nullptr;
   }
 
   device->base.get_properties = sendrecv_get_properties;
   device->base.release = nccl_net_ofi_sendrecv_device_release;
-  device->base.get_mr_key = NULL;
+  device->base.get_mr_key = nullptr;
   device->base.create_domain = nccl_net_ofi_sendrecv_device_create_domain;
 
   /* at this point, we can safely call the destructor to clean
@@ -2172,7 +2176,7 @@ static nccl_net_ofi_sendrecv_device_t *nccl_net_ofi_sendrecv_device_create(nccl_
   device->prov_name = device->info->fabric_attr->prov_name;
 
   /* Create fabric */
-  ret = fi_fabric(device->info->fabric_attr, &device->fabric, NULL);
+  ret = fi_fabric(device->info->fabric_attr, &device->fabric, nullptr);
   if (ret != 0) [[unlikely]] {
     NCCL_OFI_WARN("Couldn't open a fabric provider. RC: %d, ERROR: %s", ret, fi_strerror(-ret));
     goto error;
@@ -2189,7 +2193,7 @@ static nccl_net_ofi_sendrecv_device_t *nccl_net_ofi_sendrecv_device_create(nccl_
 error:
   device->base.release(&device->base);
 
-  return NULL;
+  return nullptr;
 }
 
 static void sendrecv_get_hints(struct fi_info *hints, int req_gdr) {
@@ -2228,10 +2232,10 @@ static void sendrecv_get_hints(struct fi_info *hints, int req_gdr) {
 }
 
 static int nccl_net_ofi_sendrecv_plugin_fini(nccl_net_ofi_plugin_t *plugin) {
-  int ret, last_error = 0;
-  nccl_net_ofi_sendrecv_plugin_t *sendrecv_plugin = (nccl_net_ofi_sendrecv_plugin_t *)plugin;
+  int ret = 0, last_error = 0;
+  auto *sendrecv_plugin = (nccl_net_ofi_sendrecv_plugin_t *)plugin;
 
-  if (sendrecv_plugin->provider_list != NULL) {
+  if (sendrecv_plugin->provider_list != nullptr) {
     fi_freeinfo(sendrecv_plugin->provider_list);
   }
 
@@ -2249,10 +2253,10 @@ static int nccl_net_ofi_sendrecv_plugin_fini(nccl_net_ofi_plugin_t *plugin) {
 }
 
 static inline int nccl_net_ofi_sendrecv_plugin_complete_init(nccl_net_ofi_plugin_t *plugin) {
-  nccl_net_ofi_sendrecv_plugin_t *sendrecv_plugin = (nccl_net_ofi_sendrecv_plugin_t *)plugin;
-  struct fi_info *info;
+  auto *sendrecv_plugin = (nccl_net_ofi_sendrecv_plugin_t *)plugin;
+  struct fi_info *info = nullptr;
   size_t dev_id = 0;
-  int ret;
+  int ret = 0;
 
   /* Allocate and initialize nccl_net devices */
   info = sendrecv_plugin->provider_list;
@@ -2263,7 +2267,7 @@ static inline int nccl_net_ofi_sendrecv_plugin_complete_init(nccl_net_ofi_plugin
     }
 
     nccl_net_ofi_sendrecv_device_t *device = nccl_net_ofi_sendrecv_device_create(plugin, (int)dev_id, info);
-    if (device == NULL) {
+    if (device == nullptr) {
       NCCL_OFI_WARN("Unable to allocate device %li", dev_id);
       return -ENOMEM;
     }
@@ -2282,11 +2286,11 @@ static inline int nccl_net_ofi_sendrecv_plugin_complete_init(nccl_net_ofi_plugin
 }
 
 static int nccl_net_ofi_sendrecv_plugin_create(size_t num_devices, struct fi_info *provider_list, nccl_net_ofi_sendrecv_plugin_t **plugin_p) {
-  int ret;
-  nccl_net_ofi_sendrecv_plugin_t *plugin = NULL;
+  int ret = 0;
+  nccl_net_ofi_sendrecv_plugin_t *plugin = nullptr;
 
   plugin = (nccl_net_ofi_sendrecv_plugin_t *)calloc(1, sizeof(nccl_net_ofi_sendrecv_plugin_t));
-  if (plugin == NULL) {
+  if (plugin == nullptr) {
     NCCL_OFI_WARN("Unable to allocate nccl_net_ofi_plugin_t");
     return -ENOMEM;
   }
@@ -2309,13 +2313,13 @@ static int nccl_net_ofi_sendrecv_plugin_create(size_t num_devices, struct fi_inf
 
 int nccl_net_ofi_sendrecv_init(const char *provider_filter, nccl_net_ofi_plugin_t **plugin_p) {
   int ret = 0;
-  struct fi_info *provider_list = NULL;
-  unsigned int num_providers;
-  nccl_net_ofi_sendrecv_plugin_t *plugin = NULL;
-  struct fi_info *hints;
+  struct fi_info *provider_list = nullptr;
+  unsigned int num_providers = 0;
+  nccl_net_ofi_sendrecv_plugin_t *plugin = nullptr;
+  struct fi_info *hints = nullptr;
 
   hints = fi_allocinfo();
-  if (hints == NULL) {
+  if (hints == nullptr) {
     NCCL_OFI_WARN("Allocation of fi_info failed");
     ret = -FI_ENOMEM;
     goto error;
@@ -2369,7 +2373,7 @@ found:
     NCCL_OFI_WARN("OFI fi_getinfo() call failed: %s", fi_strerror(ret));
     goto error;
   }
-  if (provider_list == NULL) {
+  if (provider_list == nullptr) {
     ret = -FI_ENODATA;
     goto error;
   }
@@ -2378,7 +2382,7 @@ found:
    * throughput for NICs that do not handle single QP situations
    * well. */
   if (nic_dup_conns > 1) {
-    struct fi_info *input_iter, *tmp, *output_head, *output_tail;
+    struct fi_info *input_iter = nullptr, *tmp = nullptr, *output_head = nullptr, *output_tail = nullptr;
 
     /* The goal of the next chunk of code is to make
      * provider_list contain the existing providr
@@ -2401,8 +2405,8 @@ found:
      */
     num_providers *= nic_dup_conns;
 
-    input_iter = NULL;
-    output_head = output_tail = NULL;
+    input_iter = nullptr;
+    output_head = output_tail = nullptr;
     for (size_t i = 0; i < num_providers; i++) {
       /* note that because we'll iterate through
          provider_list multiple times (because
@@ -2421,7 +2425,7 @@ found:
         goto error;
       }
       /* just in case */
-      tmp->next = NULL;
+      tmp->next = nullptr;
 
       if (!output_head)
         output_head = tmp;
@@ -2459,9 +2463,9 @@ found:
   return ret;
 
 error:
-  if (plugin != NULL) {
+  if (plugin != nullptr) {
     plugin->base.release_plugin(&plugin->base);
-    plugin = NULL;
+    plugin = nullptr;
   }
 
   return ret;

@@ -73,7 +73,7 @@ static inline int set_schedule_by_threshold(nccl_net_ofi_threshold_scheduler_t *
 
   assert(num_stripes <= num_rails);
 
-  int curr_rail_id, next_rail_id;
+  int curr_rail_id = 0, next_rail_id = 0;
   nccl_net_ofi_mutex_lock(&scheduler->rr_lock);
 
   /* Retrieve and increment multiplex-round-robin counter; wrap around if required */
@@ -136,18 +136,18 @@ void nccl_net_ofi_release_schedule(nccl_net_ofi_scheduler_t *scheduler_p, nccl_n
  *		NULL, on others
  */
 static nccl_net_ofi_schedule_t *get_threshold_schedule(nccl_net_ofi_scheduler_t *scheduler_p, size_t size, int num_rails) {
-  nccl_net_ofi_schedule_t *schedule;
-  nccl_net_ofi_threshold_scheduler_t *scheduler = (nccl_net_ofi_threshold_scheduler_t *)scheduler_p;
+  nccl_net_ofi_schedule_t *schedule = nullptr;
+  auto *scheduler = (nccl_net_ofi_threshold_scheduler_t *)scheduler_p;
   /* Align stripes to LL128 requirement */
   size_t align = 128;
-  int ret;
+  int ret = 0;
 
   assert(scheduler != NULL);
 
   nccl_ofi_freelist_elem_t *elem = nccl_ofi_freelist_entry_alloc(scheduler_p->schedule_fl);
   if (!elem) [[unlikely]] {
     NCCL_OFI_WARN("Failed to allocate schedule");
-    return NULL;
+    return nullptr;
   }
 
   schedule = (nccl_net_ofi_schedule_t *)elem->ptr;
@@ -157,7 +157,7 @@ static nccl_net_ofi_schedule_t *get_threshold_schedule(nccl_net_ofi_scheduler_t 
   ret = set_schedule_by_threshold(scheduler, size, num_rails, align, schedule);
   if (ret) [[unlikely]] {
     nccl_net_ofi_release_schedule(scheduler_p, schedule);
-    schedule = NULL;
+    schedule = nullptr;
   }
 
   return schedule;
@@ -174,7 +174,7 @@ static nccl_net_ofi_schedule_t *get_threshold_schedule(nccl_net_ofi_scheduler_t 
  *		non-zero, on others
  */
 static int scheduler_fini(nccl_net_ofi_scheduler_t *scheduler) {
-  int ret;
+  int ret = 0;
 
   assert(scheduler);
   assert(scheduler->schedule_fl);
@@ -193,7 +193,7 @@ static int scheduler_fini(nccl_net_ofi_scheduler_t *scheduler) {
  *		non-zero, on error
  */
 static int threshold_scheduler_fini(nccl_net_ofi_scheduler_t *scheduler_p) {
-  nccl_net_ofi_threshold_scheduler_t *scheduler = (nccl_net_ofi_threshold_scheduler_t *)scheduler_p;
+  auto *scheduler = (nccl_net_ofi_threshold_scheduler_t *)scheduler_p;
   int ret = 0;
 
   assert(scheduler_p);
@@ -242,8 +242,8 @@ static inline int scheduler_init(int num_rails, nccl_net_ofi_scheduler_t *schedu
 
 int nccl_net_ofi_threshold_scheduler_init(int num_rails, size_t min_stripe_size, nccl_net_ofi_scheduler_t **scheduler_p) {
   int ret = 0;
-  nccl_net_ofi_threshold_scheduler_t *scheduler = NULL;
-  *scheduler_p = NULL;
+  nccl_net_ofi_threshold_scheduler_t *scheduler = nullptr;
+  *scheduler_p = nullptr;
 
   scheduler = (nccl_net_ofi_threshold_scheduler_t *)malloc(sizeof(nccl_net_ofi_threshold_scheduler_t));
   if (!scheduler) {
@@ -262,7 +262,7 @@ int nccl_net_ofi_threshold_scheduler_init(int num_rails, size_t min_stripe_size,
   scheduler->rr_counter = 0;
   scheduler->min_stripe_size = min_stripe_size;
 
-  ret = nccl_net_ofi_mutex_init(&scheduler->rr_lock, NULL);
+  ret = nccl_net_ofi_mutex_init(&scheduler->rr_lock, nullptr);
   if (ret) {
     NCCL_OFI_WARN("Could not initialize mutex for round robin counter");
     scheduler_fini(&scheduler->base);
