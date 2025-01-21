@@ -14,7 +14,7 @@
 #include "test-common.hh"
 
 static inline int verify_xfer_info(nccl_net_ofi_xfer_info_t *xfer, nccl_net_ofi_xfer_info_t *ref_xfer, int xfer_id) {
-  int ret = ref_xfer->rail_id != xfer->rail_id || ref_xfer->offset != xfer->offset || ref_xfer->msg_size != xfer->msg_size;
+  const int ret = ref_xfer->rail_id != xfer->rail_id || ref_xfer->offset != xfer->offset || ref_xfer->msg_size != xfer->msg_size;
 
   if (ret) {
     NCCL_OFI_WARN("Expected rail_xfer_infos[%i] ={rail_id = %i, offset = %zu, msg_size = %zu}, but got {rail_id = %i, offset = %zu, msg_size = %zu}", xfer_id,
@@ -44,7 +44,7 @@ static inline int verify_schedule(nccl_net_ofi_schedule_t *schedule, nccl_net_of
 }
 
 static inline int create_ref_schedule(nccl_net_ofi_schedule_t **schedule, int num_xfer_infos) {
-  int ret = 0;
+  const int ret = 0;
   *schedule = (nccl_net_ofi_schedule_t *)malloc(sizeof(nccl_net_ofi_schedule_t) + num_xfer_infos * sizeof(nccl_net_ofi_xfer_info_t));
 
   if (!(*schedule)) {
@@ -57,7 +57,7 @@ static inline int create_ref_schedule(nccl_net_ofi_schedule_t **schedule, int nu
 }
 
 static inline int set_ref_schedule(nccl_net_ofi_schedule_t *schedule, size_t index, int rail_id, int offset, int msg_size) {
-  int ret = 0;
+  const int ret = 0;
   if (index >= schedule->num_xfer_infos) {
     NCCL_OFI_WARN("Index out of bounds");
     return -EINVAL;
@@ -101,9 +101,9 @@ static inline int test_multiplexer(nccl_net_ofi_scheduler_t *scheduler, int num_
 }
 
 static inline int test_threshold_scheduler() {
-  size_t min_stripe_size = 4096;
-  size_t align = 128;
-  std::size_t num_rails = 4;
+  const size_t min_stripe_size = 4096;
+  const size_t align = 128;
+  const std::size_t num_rails = 4;
   std::size_t num_stripes = 0;
   int ret = 0;
 
@@ -127,7 +127,7 @@ static inline int test_threshold_scheduler() {
    * round-robin. Verify that zero-sized messages is also assigned one rail and follow
    * round-robin algorithm */
   num_stripes = 1;
-  size_t msg_sizes_1[6] = {
+  const size_t msg_sizes_1[6] = {
       0, (min_stripe_size / 2) + align - 1, (min_stripe_size / 2) + align, (min_stripe_size / 2) + align + 1, min_stripe_size - 1, min_stripe_size};
   size_t msg_size_per_stripe_1[6][1] = {{msg_sizes_1[0]}, {msg_sizes_1[1]}, {msg_sizes_1[2]}, {msg_sizes_1[3]}, {msg_sizes_1[4]}, {msg_sizes_1[5]}};
   int rail_ids_1[6][1] = {{0}, {1}, {2}, {3}, {0}, {1}};   /* In round-robin for each iteration a new rail-id is used */
@@ -143,8 +143,8 @@ static inline int test_threshold_scheduler() {
   /* Verify that messages with greater than the `min_stripe_size' but less than 2x `min_stripe_size`
    * bytes are assigned 2 rail multiplexing */
   num_stripes = 2;
-  size_t msg_sizes_2[6] = {min_stripe_size + 1,         min_stripe_size + align - 1, min_stripe_size + align,
-                           min_stripe_size + align + 1, (2 * min_stripe_size) - 1,   (2 * min_stripe_size)};
+  const size_t msg_sizes_2[6] = {min_stripe_size + 1,         min_stripe_size + align - 1, min_stripe_size + align,
+                                 min_stripe_size + align + 1, (2 * min_stripe_size) - 1,   (2 * min_stripe_size)};
   size_t stripe_size[6];
   size_t remaining_stripe_size[6];
   for (int iter = 0; iter < 6; iter++) {
@@ -170,8 +170,8 @@ static inline int test_threshold_scheduler() {
   /* Verify that messages with greater than the 2x `min_stripe_size' but less than or equal to
    * 3x `min_stripe_size` bytes are also assigned 2 rail multiplexing */
   num_stripes = 2;
-  size_t msg_sizes_3[6] = {(2 * min_stripe_size) + 1,         (2 * min_stripe_size) + align - 1, (2 * min_stripe_size) + align,
-                           (2 * min_stripe_size) + align + 1, (3 * min_stripe_size) - 1,         (3 * min_stripe_size)};
+  const size_t msg_sizes_3[6] = {(2 * min_stripe_size) + 1,         (2 * min_stripe_size) + align - 1, (2 * min_stripe_size) + align,
+                                 (2 * min_stripe_size) + align + 1, (3 * min_stripe_size) - 1,         (3 * min_stripe_size)};
   for (int iter = 0; iter < 6; iter++) {
     stripe_size[iter] = aon::detail::math::div_ceil(aon::detail::math::div_ceil(msg_sizes_3[iter], num_stripes), align) * align;
     remaining_stripe_size[iter] = msg_sizes_3[iter] - (2 * stripe_size[iter]) / 2;
@@ -195,8 +195,8 @@ static inline int test_threshold_scheduler() {
 
   /* Verify that messages with greater than the 3x `min_stripe_size' are assigned 4 rail multiplexing */
   num_stripes = 4;
-  size_t msg_sizes_4[6] = {(3 * min_stripe_size) + 1,         (3 * min_stripe_size) + align - 1, (3 * min_stripe_size) + align,
-                           (3 * min_stripe_size) + align + 1, (4 * min_stripe_size) - 1,         (4 * min_stripe_size)};
+  const size_t msg_sizes_4[6] = {(3 * min_stripe_size) + 1,         (3 * min_stripe_size) + align - 1, (3 * min_stripe_size) + align,
+                                 (3 * min_stripe_size) + align + 1, (4 * min_stripe_size) - 1,         (4 * min_stripe_size)};
   for (int iter = 0; iter < 6; iter++) {
     stripe_size[iter] = aon::detail::math::div_ceil(aon::detail::math::div_ceil(msg_sizes_4[iter], num_stripes), align) * align;
     remaining_stripe_size[iter] = msg_sizes_4[iter] - (3 * stripe_size[iter]);

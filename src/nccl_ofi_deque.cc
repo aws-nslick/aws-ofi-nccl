@@ -22,7 +22,7 @@ int nccl_ofi_deque_init(nccl_ofi_deque_t **deque_p) {
   deque->head.prev = &deque->head;
   deque->head.next = &deque->head;
 
-  int ret = pthread_mutex_init(&deque->lock, nullptr);
+  const int ret = pthread_mutex_init(&deque->lock, nullptr);
   if (ret != 0) {
     NCCL_OFI_WARN("Failed to initialize deque mutex.");
     free(deque);
@@ -40,7 +40,7 @@ int nccl_ofi_deque_finalize(nccl_ofi_deque_t *deque) {
 
   /* Since user allocates all memory used for deque elements, we don't need to
      deallocate any entries here. :D */
-  int ret = pthread_mutex_destroy(&deque->lock);
+  const int ret = pthread_mutex_destroy(&deque->lock);
   if (ret != 0) {
     NCCL_OFI_WARN("Failed to destroy deque mutex.");
     return -ret;

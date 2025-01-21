@@ -17,9 +17,9 @@ int main(int argc, char *argv[]) {
   (void)ret; // Avoid unused-variable warning
   size_t sizes[] = {0, 5, 63, 64, 65, 127, 128, 129, 255};
 
-  for (unsigned long size : sizes) {
+  for (const unsigned long size : sizes) {
     /* Scale pool size to number of 64-bit uints (rounded up) */
-    size_t num_long_elements = aon::detail::math::round_up(size, sizeof(uint64_t) * 8) / (sizeof(uint64_t) * 8);
+    const size_t num_long_elements = aon::detail::math::round_up(size, sizeof(uint64_t) * 8) / (sizeof(uint64_t) * 8);
 
     auto *idpool = (nccl_ofi_idpool_t *)malloc(sizeof(nccl_ofi_idpool_t));
     assert(NULL != idpool);
@@ -50,7 +50,7 @@ int main(int argc, char *argv[]) {
 
     /* Test freeing and reallocating IDs */
     if (size) {
-      int holes[] = {(int)(size / 3), (int)(size / 2)}; // Must be in increasing order
+      const int holes[] = {(int)(size / 3), (int)(size / 2)}; // Must be in increasing order
 
       for (size_t i = 0; i < sizeof(holes) / sizeof(int); i++) {
         if (0 == i || holes[i] != holes[i - 1]) {

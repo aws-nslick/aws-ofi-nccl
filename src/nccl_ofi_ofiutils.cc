@@ -26,7 +26,7 @@
 
 static int in_list(const char *item, const char *list) {
   int ret = 0;
-  char *token = nullptr;
+  const char *token = nullptr;
   char *list_temp = strdup(list);
 
   if (list_temp == nullptr) {
@@ -148,7 +148,7 @@ int nccl_ofi_ofiutils_get_providers(const char *prov_include, uint32_t required_
                                     unsigned int *num_prov_infos) {
   int rc = 0;
   struct fi_info *providers = nullptr, *prov = nullptr, *last_prov = nullptr;
-  char *selected_prov_name = nullptr;
+  const char *selected_prov_name = nullptr;
   assert(num_prov_infos != NULL);
   *num_prov_infos = 0;
 
@@ -312,7 +312,7 @@ int nccl_ofi_ofiutils_init_connection(struct fi_info *info, struct fid_domain *d
    */
 #if HAVE_DECL_FI_OPT_SHARED_MEMORY_PERMITTED
   {
-    bool optval = false;
+    const bool optval = false;
     ret = fi_setopt(&(*ep)->fid, FI_OPT_ENDPOINT, FI_OPT_SHARED_MEMORY_PERMITTED, &optval, sizeof(optval));
     if (ret == -FI_EOPNOTSUPP || ret == -FI_ENOPROTOOPT) {
       /* One way we get here is running against
@@ -342,7 +342,7 @@ int nccl_ofi_ofiutils_init_connection(struct fi_info *info, struct fid_domain *d
    */
   if (FI_VERSION_GE(info->fabric_attr->api_version, FI_VERSION(1, 18)) && support_gdr != GDR_UNSUPPORTED) {
 #if (HAVE_CUDA && HAVE_DECL_FI_OPT_CUDA_API_PERMITTED)
-    bool optval = false;
+    const bool optval = false;
     ret = fi_setopt(&(*ep)->fid, FI_OPT_ENDPOINT, FI_OPT_CUDA_API_PERMITTED, &optval, sizeof(optval));
     if (ret == -FI_EOPNOTSUPP || ret == -FI_ENOPROTOOPT) {
       if (support_gdr == GDR_SUPPORTED) {

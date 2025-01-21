@@ -10,7 +10,7 @@
 #include "test-common.hh"
 
 static inline bool test_lookup_impl(nccl_ofi_mr_cache_t *cache, void *addr, size_t size, void *expected_val) {
-  nccl_ofi_mr_ckey_t ckey = nccl_ofi_mr_ckey_mk_vec(addr, size);
+  const nccl_ofi_mr_ckey_t ckey = nccl_ofi_mr_ckey_mk_vec(addr, size);
   ;
   void *result = nccl_ofi_mr_cache_lookup_entry(cache, &ckey);
   if (result != expected_val) {
@@ -26,8 +26,8 @@ static inline bool test_lookup_impl(nccl_ofi_mr_cache_t *cache, void *addr, size
   }
 
 static inline bool test_insert_impl(nccl_ofi_mr_cache_t *cache, void *addr, size_t size, void *handle, int expected_ret) {
-  nccl_ofi_mr_ckey_t ckey = nccl_ofi_mr_ckey_mk_vec(addr, size);
-  int ret = nccl_ofi_mr_cache_insert_entry(cache, &ckey, handle);
+  const nccl_ofi_mr_ckey_t ckey = nccl_ofi_mr_ckey_mk_vec(addr, size);
+  const int ret = nccl_ofi_mr_cache_insert_entry(cache, &ckey, handle);
   if (ret != expected_ret) {
     NCCL_OFI_WARN("nccl_ofi_mr_cache_insert_entry returned unexpected result. Expected: %d. Actual: %d", expected_ret, ret);
     return false;
@@ -41,7 +41,7 @@ static inline bool test_insert_impl(nccl_ofi_mr_cache_t *cache, void *addr, size
   }
 
 static inline bool test_delete_impl(nccl_ofi_mr_cache_t *cache, void *handle, int expected_ret) {
-  int ret = nccl_ofi_mr_cache_del_entry(cache, handle);
+  const int ret = nccl_ofi_mr_cache_del_entry(cache, handle);
   if (ret != expected_ret) {
     NCCL_OFI_WARN("nccl_ofi_mr_cache_del_entry returned unexpected result. Expected: %d. Actual: %d", expected_ret, ret);
     return false;
@@ -56,9 +56,9 @@ static inline bool test_delete_impl(nccl_ofi_mr_cache_t *cache, void *handle, in
 
 static inline bool test_make_aligned_key_impl(uintptr_t addr, size_t size, uintptr_t expected_base, size_t expected_size) {
   /* iovec only */
-  nccl_ofi_mr_ckey_t ckey = nccl_ofi_mr_ckey_mk_vec((void *)addr, size);
-  uintptr_t page_base = nccl_ofi_mr_ckey_baseaddr(&ckey);
-  size_t aligned_size = nccl_ofi_mr_ckey_len(&ckey);
+  const nccl_ofi_mr_ckey_t ckey = nccl_ofi_mr_ckey_mk_vec((void *)addr, size);
+  const uintptr_t page_base = nccl_ofi_mr_ckey_baseaddr(&ckey);
+  const size_t aligned_size = nccl_ofi_mr_ckey_len(&ckey);
   if (page_base != expected_base || aligned_size != expected_size) {
     NCCL_OFI_WARN("nccl_ofi_mr_ckey_mk_aligned returned unexpected result. Expected: [%ld, %ld]. Actual: [%ld, %ld]", expected_base, expected_size, page_base,
                   aligned_size);

@@ -34,7 +34,7 @@ int nccl_net_ofi_mutex_init(pthread_mutex_t *mutex, const pthread_mutexattr_t *a
   int ret = 0;
   const pthread_mutexattr_t *passed_attr = nullptr;
 
-  int want_errorcheck = ofi_nccl_errorcheck_mutex();
+  const int want_errorcheck = ofi_nccl_errorcheck_mutex();
 
   ret = pthread_once(&errorcheck_once, errorcheck_init);
   if (ret != 0) {

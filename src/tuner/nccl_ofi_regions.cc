@@ -64,9 +64,9 @@ static inline nccl_ofi_tuner_point_t vmadd(nccl_ofi_tuner_point_t a, long double
  */
 static int intersect(nccl_ofi_tuner_point_t x0, nccl_ofi_tuner_point_t x1, nccl_ofi_tuner_point_t y0, nccl_ofi_tuner_point_t y1, double eps,
                      nccl_ofi_tuner_point_t *sect) {
-  nccl_ofi_tuner_point_t dx = vsub(x1, x0);
-  nccl_ofi_tuner_point_t dy = vsub(y1, y0);
-  double d = vcross(dy, dx);
+  const nccl_ofi_tuner_point_t dx = vsub(x1, x0);
+  const nccl_ofi_tuner_point_t dy = vsub(y1, y0);
+  const double d = vcross(dy, dx);
   if (fabs(d) < eps) {
     return 0; /* Edges are parallel */
   }
@@ -106,7 +106,7 @@ static int intersect(nccl_ofi_tuner_point_t x0, nccl_ofi_tuner_point_t x1, nccl_
  * @return	distance or infinity if the point lies outside the segment.
  */
 static inline double distance(nccl_ofi_tuner_point_t x, nccl_ofi_tuner_point_t y0, nccl_ofi_tuner_point_t y1, double eps) {
-  nccl_ofi_tuner_point_t dy = vsub(y1, y0);
+  const nccl_ofi_tuner_point_t dy = vsub(y1, y0);
   nccl_ofi_tuner_point_t x1, s;
   int r = 0;
 
@@ -179,7 +179,7 @@ int is_inside_region(nccl_ofi_tuner_point_t point, nccl_ofi_tuner_region_t *regi
   }
 
   /* Pick a point far enough to be outside any polygon */
-  nccl_ofi_tuner_point_t e = {.x = 2.0 * TUNER_MAX_SIZE, .y = 2.0 * TUNER_MAX_RANKS};
+  const nccl_ofi_tuner_point_t e = {.x = 2.0 * TUNER_MAX_SIZE, .y = 2.0 * TUNER_MAX_RANKS};
 
   int crosses = 0;
   int intersectResult = -1;
@@ -231,9 +231,9 @@ nccl_ofi_tuner_point_t extend_region(nccl_ofi_tuner_point_t a, nccl_ofi_tuner_po
     return ret;
   }
 
-  double m = (a.y - b.y) / (a.x - b.x);
-  double c = b.y - m * b.x;
-  double projected_zy = m * z.x + c;
+  const double m = (a.y - b.y) / (a.x - b.x);
+  const double c = b.y - m * b.x;
+  const double projected_zy = m * z.x + c;
 
   if (projected_zy < z.y) {
     ret = (nccl_ofi_tuner_point_t){.x = z.x, .y = projected_zy};
@@ -250,18 +250,18 @@ nccl_ofi_tuner_point_t extend_region(nccl_ofi_tuner_point_t a, nccl_ofi_tuner_po
 static ncclResult_t region_init_internal_p5en(nccl_ofi_tuner_region_context_t *region_ctx) {
   ncclResult_t ret = ncclSuccess;
   ncclFunc_t collType;
-  size_t nRanks = region_ctx->dims.num_ranks;
-  size_t nNodes = region_ctx->dims.num_nodes;
+  const size_t nRanks = region_ctx->dims.num_ranks;
+  const size_t nNodes = region_ctx->dims.num_nodes;
 
   if (nRanks == 8 * nNodes) {
     {
       collType = ncclFuncAllReduce;
-      nccl_ofi_tuner_point_t extended_tree_ll = extend_region((nccl_ofi_tuner_point_t){262144, 192}, (nccl_ofi_tuner_point_t){262144, 1024},
-                                                              (nccl_ofi_tuner_point_t){TUNER_MAX_SIZE, TUNER_MAX_RANKS});
-      nccl_ofi_tuner_point_t extended_tree_ll128 = extend_region((nccl_ofi_tuner_point_t){150994944, 128}, (nccl_ofi_tuner_point_t){251658240, 1024},
-                                                                 (nccl_ofi_tuner_point_t){TUNER_MAX_SIZE, TUNER_MAX_RANKS});
-      nccl_ofi_tuner_point_t extended_nvlstree_simple = extend_region((nccl_ofi_tuner_point_t){6442450944, 256}, (nccl_ofi_tuner_point_t){17179869184, 768},
-                                                                      (nccl_ofi_tuner_point_t){TUNER_MAX_SIZE, TUNER_MAX_RANKS});
+      const nccl_ofi_tuner_point_t extended_tree_ll = extend_region((nccl_ofi_tuner_point_t){262144, 192}, (nccl_ofi_tuner_point_t){262144, 1024},
+                                                                    (nccl_ofi_tuner_point_t){TUNER_MAX_SIZE, TUNER_MAX_RANKS});
+      const nccl_ofi_tuner_point_t extended_tree_ll128 = extend_region((nccl_ofi_tuner_point_t){150994944, 128}, (nccl_ofi_tuner_point_t){251658240, 1024},
+                                                                       (nccl_ofi_tuner_point_t){TUNER_MAX_SIZE, TUNER_MAX_RANKS});
+      const nccl_ofi_tuner_point_t extended_nvlstree_simple = extend_region(
+          (nccl_ofi_tuner_point_t){6442450944, 256}, (nccl_ofi_tuner_point_t){17179869184, 768}, (nccl_ofi_tuner_point_t){TUNER_MAX_SIZE, TUNER_MAX_RANKS});
 
       const nccl_ofi_tuner_region_t regions[] = {
           {.algorithm = NCCL_ALGO_TREE, .protocol = NCCL_PROTO_LL, .num_vertices = 4, .vertices = {{0, 16}, {262144, 16}, {262144, 1024}, extended_tree_ll}},
@@ -296,10 +296,10 @@ static ncclResult_t region_init_internal_p5en(nccl_ofi_tuner_region_context_t *r
     }
     {
       collType = ncclFuncAllGather;
-      nccl_ofi_tuner_point_t extended_ring_ll = extend_region((nccl_ofi_tuner_point_t){8388608, 256}, (nccl_ofi_tuner_point_t){33554432, 1024},
-                                                              (nccl_ofi_tuner_point_t){TUNER_MAX_SIZE, TUNER_MAX_RANKS});
-      nccl_ofi_tuner_point_t extended_ring_ll128 = extend_region((nccl_ofi_tuner_point_t){8589934592, 512}, (nccl_ofi_tuner_point_t){17179869184, 1024},
-                                                                 (nccl_ofi_tuner_point_t){TUNER_MAX_SIZE, TUNER_MAX_RANKS});
+      const nccl_ofi_tuner_point_t extended_ring_ll = extend_region((nccl_ofi_tuner_point_t){8388608, 256}, (nccl_ofi_tuner_point_t){33554432, 1024},
+                                                                    (nccl_ofi_tuner_point_t){TUNER_MAX_SIZE, TUNER_MAX_RANKS});
+      const nccl_ofi_tuner_point_t extended_ring_ll128 = extend_region((nccl_ofi_tuner_point_t){8589934592, 512}, (nccl_ofi_tuner_point_t){17179869184, 1024},
+                                                                       (nccl_ofi_tuner_point_t){TUNER_MAX_SIZE, TUNER_MAX_RANKS});
 
       const nccl_ofi_tuner_region_t regions[] = {
           {.algorithm = NCCL_ALGO_RING,
@@ -330,10 +330,10 @@ static ncclResult_t region_init_internal_p5en(nccl_ofi_tuner_region_context_t *r
     }
     {
       collType = ncclFuncReduceScatter;
-      nccl_ofi_tuner_point_t extended_ring_ll = extend_region((nccl_ofi_tuner_point_t){8388608, 256}, (nccl_ofi_tuner_point_t){33554432, 1024},
-                                                              (nccl_ofi_tuner_point_t){TUNER_MAX_SIZE, TUNER_MAX_RANKS});
-      nccl_ofi_tuner_point_t extended_ring_ll128 = extend_region((nccl_ofi_tuner_point_t){8589934592, 512}, (nccl_ofi_tuner_point_t){17179869184, 1024},
-                                                                 (nccl_ofi_tuner_point_t){TUNER_MAX_SIZE, TUNER_MAX_RANKS});
+      const nccl_ofi_tuner_point_t extended_ring_ll = extend_region((nccl_ofi_tuner_point_t){8388608, 256}, (nccl_ofi_tuner_point_t){33554432, 1024},
+                                                                    (nccl_ofi_tuner_point_t){TUNER_MAX_SIZE, TUNER_MAX_RANKS});
+      const nccl_ofi_tuner_point_t extended_ring_ll128 = extend_region((nccl_ofi_tuner_point_t){8589934592, 512}, (nccl_ofi_tuner_point_t){17179869184, 1024},
+                                                                       (nccl_ofi_tuner_point_t){TUNER_MAX_SIZE, TUNER_MAX_RANKS});
 
       const nccl_ofi_tuner_region_t regions[] = {
           {.algorithm = NCCL_ALGO_RING,
@@ -365,12 +365,12 @@ static ncclResult_t region_init_internal_p5en(nccl_ofi_tuner_region_context_t *r
   } else if (nRanks == nNodes) {
     {
       collType = ncclFuncAllReduce;
-      nccl_ofi_tuner_point_t extended_tree_ll128 =
+      const nccl_ofi_tuner_point_t extended_tree_ll128 =
           extend_region((nccl_ofi_tuner_point_t){524288, 8}, (nccl_ofi_tuner_point_t){1048576, 96}, (nccl_ofi_tuner_point_t){TUNER_MAX_SIZE, TUNER_MAX_RANKS});
-      nccl_ofi_tuner_point_t extended_tree_simple = extend_region((nccl_ofi_tuner_point_t){8388608, 32}, (nccl_ofi_tuner_point_t){33554432, 128},
-                                                                  (nccl_ofi_tuner_point_t){TUNER_MAX_SIZE, TUNER_MAX_RANKS});
-      nccl_ofi_tuner_point_t extended_ring_ll128 = extend_region((nccl_ofi_tuner_point_t){50331648, 16}, (nccl_ofi_tuner_point_t){301989888, 128},
-                                                                 (nccl_ofi_tuner_point_t){TUNER_MAX_SIZE, TUNER_MAX_RANKS});
+      const nccl_ofi_tuner_point_t extended_tree_simple = extend_region((nccl_ofi_tuner_point_t){8388608, 32}, (nccl_ofi_tuner_point_t){33554432, 128},
+                                                                        (nccl_ofi_tuner_point_t){TUNER_MAX_SIZE, TUNER_MAX_RANKS});
+      const nccl_ofi_tuner_point_t extended_ring_ll128 = extend_region((nccl_ofi_tuner_point_t){50331648, 16}, (nccl_ofi_tuner_point_t){301989888, 128},
+                                                                       (nccl_ofi_tuner_point_t){TUNER_MAX_SIZE, TUNER_MAX_RANKS});
 
       const nccl_ofi_tuner_region_t regions[] = {
           {.algorithm = NCCL_ALGO_TREE, .protocol = NCCL_PROTO_LL, .num_vertices = 4, .vertices = {{0, 2}, {65536, 2}, {65536, 64}, {65536, TUNER_MAX_RANKS}}},
@@ -398,10 +398,10 @@ static ncclResult_t region_init_internal_p5en(nccl_ofi_tuner_region_context_t *r
     }
     {
       collType = ncclFuncAllGather;
-      nccl_ofi_tuner_point_t extended_pat_simple = extend_region((nccl_ofi_tuner_point_t){50331648, 64}, (nccl_ofi_tuner_point_t){117440512, 128},
-                                                                 (nccl_ofi_tuner_point_t){TUNER_MAX_SIZE, TUNER_MAX_RANKS});
-      nccl_ofi_tuner_point_t extended_ring_ll128 = extend_region((nccl_ofi_tuner_point_t){50331648, 16}, (nccl_ofi_tuner_point_t){301989888, 128},
-                                                                 (nccl_ofi_tuner_point_t){TUNER_MAX_SIZE, TUNER_MAX_RANKS});
+      const nccl_ofi_tuner_point_t extended_pat_simple = extend_region((nccl_ofi_tuner_point_t){50331648, 64}, (nccl_ofi_tuner_point_t){117440512, 128},
+                                                                       (nccl_ofi_tuner_point_t){TUNER_MAX_SIZE, TUNER_MAX_RANKS});
+      const nccl_ofi_tuner_point_t extended_ring_ll128 = extend_region((nccl_ofi_tuner_point_t){50331648, 16}, (nccl_ofi_tuner_point_t){301989888, 128},
+                                                                       (nccl_ofi_tuner_point_t){TUNER_MAX_SIZE, TUNER_MAX_RANKS});
 
       const nccl_ofi_tuner_region_t regions[] = {{.algorithm = NCCL_ALGO_PAT,
                                                   .protocol = NCCL_PROTO_SIMPLE,
@@ -439,10 +439,10 @@ static ncclResult_t region_init_internal_p5en(nccl_ofi_tuner_region_context_t *r
     }
     {
       collType = ncclFuncReduceScatter;
-      nccl_ofi_tuner_point_t extended_pat_simple = extend_region((nccl_ofi_tuner_point_t){50331648, 64}, (nccl_ofi_tuner_point_t){117440512, 128},
-                                                                 (nccl_ofi_tuner_point_t){TUNER_MAX_SIZE, TUNER_MAX_RANKS});
-      nccl_ofi_tuner_point_t extended_ring_ll128 = extend_region((nccl_ofi_tuner_point_t){50331648, 16}, (nccl_ofi_tuner_point_t){301989888, 128},
-                                                                 (nccl_ofi_tuner_point_t){TUNER_MAX_SIZE, TUNER_MAX_RANKS});
+      const nccl_ofi_tuner_point_t extended_pat_simple = extend_region((nccl_ofi_tuner_point_t){50331648, 64}, (nccl_ofi_tuner_point_t){117440512, 128},
+                                                                       (nccl_ofi_tuner_point_t){TUNER_MAX_SIZE, TUNER_MAX_RANKS});
+      const nccl_ofi_tuner_point_t extended_ring_ll128 = extend_region((nccl_ofi_tuner_point_t){50331648, 16}, (nccl_ofi_tuner_point_t){301989888, 128},
+                                                                       (nccl_ofi_tuner_point_t){TUNER_MAX_SIZE, TUNER_MAX_RANKS});
       const nccl_ofi_tuner_region_t regions[] = {{.algorithm = NCCL_ALGO_PAT,
                                                   .protocol = NCCL_PROTO_SIMPLE,
                                                   .num_vertices = 10,
@@ -488,23 +488,23 @@ exit:
 static ncclResult_t region_init_internal_p5_p5e(nccl_ofi_tuner_region_context_t *region_ctx) {
   ncclResult_t ret = ncclSuccess;
   ncclFunc_t collType;
-  size_t nRanks = region_ctx->dims.num_ranks;
-  size_t nNodes = region_ctx->dims.num_nodes;
+  const size_t nRanks = region_ctx->dims.num_ranks;
+  const size_t nNodes = region_ctx->dims.num_nodes;
 
   if (nRanks == 8 * nNodes) {
     {
       collType = ncclFuncAllReduce;
-      nccl_ofi_tuner_point_t extended_tree_ll128 = extend_region((nccl_ofi_tuner_point_t){402653184, 2048}, (nccl_ofi_tuner_point_t){402653184, 4096},
-                                                                 (nccl_ofi_tuner_point_t){TUNER_MAX_SIZE, TUNER_MAX_RANKS});
+      const nccl_ofi_tuner_point_t extended_tree_ll128 = extend_region((nccl_ofi_tuner_point_t){402653184, 2048}, (nccl_ofi_tuner_point_t){402653184, 4096},
+                                                                       (nccl_ofi_tuner_point_t){TUNER_MAX_SIZE, TUNER_MAX_RANKS});
 
-      nccl_ofi_tuner_point_t extended_nvlstree_simple_1 = extend_region((nccl_ofi_tuner_point_t){8053063680, 160}, (nccl_ofi_tuner_point_t){9663676416, 192},
+      const nccl_ofi_tuner_point_t extended_nvlstree_simple_1 = extend_region(
+          (nccl_ofi_tuner_point_t){8053063680, 160}, (nccl_ofi_tuner_point_t){9663676416, 192}, (nccl_ofi_tuner_point_t){TUNER_MAX_SIZE, TUNER_MAX_RANKS});
+
+      const nccl_ofi_tuner_point_t extended_nvlstree_simple_2 = extend_region(
+          (nccl_ofi_tuner_point_t){402653184, 2048}, (nccl_ofi_tuner_point_t){402653184, 4096}, (nccl_ofi_tuner_point_t){TUNER_MAX_SIZE, TUNER_MAX_RANKS});
+
+      const nccl_ofi_tuner_point_t extended_ring_simple = extend_region((nccl_ofi_tuner_point_t){8053063680, 160}, (nccl_ofi_tuner_point_t){9663676416, 192},
                                                                         (nccl_ofi_tuner_point_t){TUNER_MAX_SIZE, TUNER_MAX_RANKS});
-
-      nccl_ofi_tuner_point_t extended_nvlstree_simple_2 = extend_region((nccl_ofi_tuner_point_t){402653184, 2048}, (nccl_ofi_tuner_point_t){402653184, 4096},
-                                                                        (nccl_ofi_tuner_point_t){TUNER_MAX_SIZE, TUNER_MAX_RANKS});
-
-      nccl_ofi_tuner_point_t extended_ring_simple = extend_region((nccl_ofi_tuner_point_t){8053063680, 160}, (nccl_ofi_tuner_point_t){9663676416, 192},
-                                                                  (nccl_ofi_tuner_point_t){TUNER_MAX_SIZE, TUNER_MAX_RANKS});
 
       const nccl_ofi_tuner_region_t regions[] = {{.algorithm = NCCL_ALGO_TREE,
                                                   .protocol = NCCL_PROTO_LL128,
@@ -578,17 +578,17 @@ static ncclResult_t region_init_internal_p5_p5e(nccl_ofi_tuner_region_context_t 
   } else if (nRanks == 2 * nNodes) {
     {
       collType = ncclFuncAllReduce;
-      nccl_ofi_tuner_point_t extended_tree_ll128 = extend_region((nccl_ofi_tuner_point_t){88160256, 128}, (nccl_ofi_tuner_point_t){178163712, 256},
-                                                                 (nccl_ofi_tuner_point_t){TUNER_MAX_SIZE, TUNER_MAX_RANKS});
+      const nccl_ofi_tuner_point_t extended_tree_ll128 = extend_region((nccl_ofi_tuner_point_t){88160256, 128}, (nccl_ofi_tuner_point_t){178163712, 256},
+                                                                       (nccl_ofi_tuner_point_t){TUNER_MAX_SIZE, TUNER_MAX_RANKS});
 
-      nccl_ofi_tuner_point_t extended_tree_simple_1 = extend_region((nccl_ofi_tuner_point_t){787480576, 128}, (nccl_ofi_tuner_point_t){1073741824, 256},
-                                                                    (nccl_ofi_tuner_point_t){TUNER_MAX_SIZE, TUNER_MAX_RANKS});
+      const nccl_ofi_tuner_point_t extended_tree_simple_1 = extend_region((nccl_ofi_tuner_point_t){787480576, 128}, (nccl_ofi_tuner_point_t){1073741824, 256},
+                                                                          (nccl_ofi_tuner_point_t){TUNER_MAX_SIZE, TUNER_MAX_RANKS});
 
-      nccl_ofi_tuner_point_t extended_tree_simple_2 = extend_region((nccl_ofi_tuner_point_t){257114112, 128}, (nccl_ofi_tuner_point_t){269484032, 256},
-                                                                    (nccl_ofi_tuner_point_t){TUNER_MAX_SIZE, TUNER_MAX_RANKS});
+      const nccl_ofi_tuner_point_t extended_tree_simple_2 = extend_region((nccl_ofi_tuner_point_t){257114112, 128}, (nccl_ofi_tuner_point_t){269484032, 256},
+                                                                          (nccl_ofi_tuner_point_t){TUNER_MAX_SIZE, TUNER_MAX_RANKS});
 
-      nccl_ofi_tuner_point_t extended_nvlstree_simple = extend_region((nccl_ofi_tuner_point_t){787480576, 128}, (nccl_ofi_tuner_point_t){1073741824, 256},
-                                                                      (nccl_ofi_tuner_point_t){TUNER_MAX_SIZE, TUNER_MAX_RANKS});
+      const nccl_ofi_tuner_point_t extended_nvlstree_simple = extend_region((nccl_ofi_tuner_point_t){787480576, 128}, (nccl_ofi_tuner_point_t){1073741824, 256},
+                                                                            (nccl_ofi_tuner_point_t){TUNER_MAX_SIZE, TUNER_MAX_RANKS});
 
       const nccl_ofi_tuner_region_t regions[] = {
           {.algorithm = NCCL_ALGO_TREE,
@@ -659,10 +659,10 @@ static ncclResult_t region_init_internal_p5_p5e(nccl_ofi_tuner_region_context_t 
   } else if (nRanks == nNodes) {
     {
       collType = ncclFuncAllReduce;
-      nccl_ofi_tuner_point_t extended_tree_ll128 = extend_region((nccl_ofi_tuner_point_t){9999360, 64}, (nccl_ofi_tuner_point_t){119477248, 128},
-                                                                 (nccl_ofi_tuner_point_t){TUNER_MAX_SIZE, TUNER_MAX_RANKS});
-      nccl_ofi_tuner_point_t extended_ring_ll128 = extend_region((nccl_ofi_tuner_point_t){4736000, 2}, (nccl_ofi_tuner_point_t){269484032, 128},
-                                                                 (nccl_ofi_tuner_point_t){TUNER_MAX_SIZE, TUNER_MAX_RANKS});
+      const nccl_ofi_tuner_point_t extended_tree_ll128 = extend_region((nccl_ofi_tuner_point_t){9999360, 64}, (nccl_ofi_tuner_point_t){119477248, 128},
+                                                                       (nccl_ofi_tuner_point_t){TUNER_MAX_SIZE, TUNER_MAX_RANKS});
+      const nccl_ofi_tuner_point_t extended_ring_ll128 = extend_region((nccl_ofi_tuner_point_t){4736000, 2}, (nccl_ofi_tuner_point_t){269484032, 128},
+                                                                       (nccl_ofi_tuner_point_t){TUNER_MAX_SIZE, TUNER_MAX_RANKS});
 
       const nccl_ofi_tuner_region_t regions[] = {
           {.algorithm = NCCL_ALGO_TREE,
@@ -686,8 +686,8 @@ static ncclResult_t region_init_internal_p5_p5e(nccl_ofi_tuner_region_context_t 
     }
     {
       collType = ncclFuncAllGather;
-      nccl_ofi_tuner_point_t extended_ring_simple = extend_region((nccl_ofi_tuner_point_t){4194304, 2}, (nccl_ofi_tuner_point_t){8589934592, 2048},
-                                                                  (nccl_ofi_tuner_point_t){TUNER_MAX_SIZE, TUNER_MAX_RANKS});
+      const nccl_ofi_tuner_point_t extended_ring_simple = extend_region((nccl_ofi_tuner_point_t){4194304, 2}, (nccl_ofi_tuner_point_t){8589934592, 2048},
+                                                                        (nccl_ofi_tuner_point_t){TUNER_MAX_SIZE, TUNER_MAX_RANKS});
 
       const nccl_ofi_tuner_region_t regions[] = {{.algorithm = NCCL_ALGO_RING,
                                                   .protocol = NCCL_PROTO_SIMPLE,
@@ -701,8 +701,8 @@ static ncclResult_t region_init_internal_p5_p5e(nccl_ofi_tuner_region_context_t 
     }
     {
       collType = ncclFuncReduceScatter;
-      nccl_ofi_tuner_point_t extended_ring_simple = extend_region((nccl_ofi_tuner_point_t){8388608, 2}, (nccl_ofi_tuner_point_t){4294967296, 1024},
-                                                                  (nccl_ofi_tuner_point_t){TUNER_MAX_SIZE, TUNER_MAX_RANKS});
+      const nccl_ofi_tuner_point_t extended_ring_simple = extend_region((nccl_ofi_tuner_point_t){8388608, 2}, (nccl_ofi_tuner_point_t){4294967296, 1024},
+                                                                        (nccl_ofi_tuner_point_t){TUNER_MAX_SIZE, TUNER_MAX_RANKS});
 
       const nccl_ofi_tuner_region_t regions[] = {{.algorithm = NCCL_ALGO_RING,
                                                   .protocol = NCCL_PROTO_SIMPLE,
@@ -739,7 +739,7 @@ bool is_region_supported(enum nccl_ofi_tuner_platform platform, size_t nRanks, s
 ncclResult_t region_get_coll_info_internal_v2(nccl_ofi_tuner_context_t *ctx, ncclFunc_t collType, size_t nBytes, int collNetSupport, int nvlsSupport,
                                               int numPipeOps, int *algorithm, int *protocol, int *nChannels) {
   ncclResult_t ret = ncclSuccess;
-  auto *region_ctx = (nccl_ofi_tuner_region_context_t *)ctx->type_ctx;
+  const auto *region_ctx = (nccl_ofi_tuner_region_context_t *)ctx->type_ctx;
   int in_out = -1;
   nccl_ofi_tuner_point_t p;
 
@@ -784,7 +784,7 @@ exit:
 ncclResult_t region_get_coll_info_internal_v3(nccl_ofi_tuner_context_t *ctx, ncclFunc_t collType, size_t nBytes, int numPipeOps, float **collCostTable,
                                               int numAlgo, int numProto, int *nChannels) {
   ncclResult_t ret = ncclSuccess;
-  auto *region_ctx = (nccl_ofi_tuner_region_context_t *)ctx->type_ctx;
+  const auto *region_ctx = (nccl_ofi_tuner_region_context_t *)ctx->type_ctx;
   auto *table = (float(*)[NCCL_NUM_PROTOCOLS])collCostTable;
   int in_out = -1;
   int algorithm = NCCL_ALGO_UNDEF;
@@ -832,7 +832,7 @@ ncclResult_t region_destroy_internal(nccl_ofi_tuner_context_t *ctx) {
   auto *region_ctx = (nccl_ofi_tuner_region_context_t *)ctx->type_ctx;
 
   if (region_ctx != nullptr) {
-    for (auto &region : region_ctx->regions) {
+    for (const auto &region : region_ctx->regions) {
       if (region != nullptr) {
         free(region);
       }

@@ -64,7 +64,7 @@ static size_t get_num_stripes(nccl_net_ofi_threshold_scheduler_t *scheduler_p, s
  */
 static inline int set_schedule_by_threshold(nccl_net_ofi_threshold_scheduler_t *scheduler, size_t size, int num_rails, size_t align,
                                             nccl_net_ofi_schedule_t *schedule) {
-  int ret = 0;
+  const int ret = 0;
   size_t num_stripes = 0;
 
   assert(num_rails > 0);
@@ -90,13 +90,13 @@ static inline int set_schedule_by_threshold(nccl_net_ofi_threshold_scheduler_t *
 
   /* Calculate max stripe size as a multiple of 128 for alignment.
    * Split message size across stripes, ensuring each stripe is within max_stripe_size and LL128 aligned */
-  size_t max_stripe_size = aon::detail::math::div_ceil(aon::detail::math::div_ceil(size, num_stripes), align) * align;
+  const size_t max_stripe_size = aon::detail::math::div_ceil(aon::detail::math::div_ceil(size, num_stripes), align) * align;
 
   schedule->num_xfer_infos = num_stripes;
 
   /* Compute stripes and assign to rails */
   for (int stripe_idx = 0; stripe_idx < num_stripes; ++stripe_idx) {
-    size_t stripe_size = std::min(left, max_stripe_size);
+    const size_t stripe_size = std::min(left, max_stripe_size);
 
     schedule->rail_xfer_infos[stripe_idx].rail_id = curr_rail_id;
     schedule->rail_xfer_infos[stripe_idx].offset = offset;
@@ -139,7 +139,7 @@ static nccl_net_ofi_schedule_t *get_threshold_schedule(nccl_net_ofi_scheduler_t 
   nccl_net_ofi_schedule_t *schedule = nullptr;
   auto *scheduler = (nccl_net_ofi_threshold_scheduler_t *)scheduler_p;
   /* Align stripes to LL128 requirement */
-  size_t align = 128;
+  const size_t align = 128;
   int ret = 0;
 
   assert(scheduler != NULL);

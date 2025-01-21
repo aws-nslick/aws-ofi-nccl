@@ -103,7 +103,7 @@ static ncclResult_t nccl_net_ofi_retval_translate_impl(int retval) {
 
 static void nccl_net_ofi_fini() {
   if (plugin != nullptr) {
-    int ret = plugin->release_plugin(plugin);
+    const int ret = plugin->release_plugin(plugin);
     if (ret != 0) {
       NCCL_OFI_INFO(NCCL_NET, "Failure in plugin cleanup");
     }
@@ -168,7 +168,7 @@ ncclResult_t nccl_net_ofi_get_properties(int dev_id, nccl_ofi_properties_t *ofi_
     return check_return(ncclInternalError);
   }
 
-  int ret = device->get_properties(device, ofi_properties);
+  const int ret = device->get_properties(device, ofi_properties);
   return nccl_net_ofi_retval_translate(ret);
 }
 
@@ -259,7 +259,7 @@ ncclResult_t nccl_net_ofi_connect(int dev_id, void *handle, void **sComm) {
   }
 
   /* Retrieve and validate Handle */
-  auto *ofi_handle = (nccl_net_ofi_conn_handle_t *)handle;
+  const auto *ofi_handle = (nccl_net_ofi_conn_handle_t *)handle;
   if (ofi_handle == nullptr) [[unlikely]] {
     NCCL_OFI_WARN("Provided handle is NULL");
     return check_return(ncclInvalidArgument);
@@ -274,7 +274,7 @@ ncclResult_t nccl_net_ofi_connect(int dev_id, void *handle, void **sComm) {
       return check_return(ncclInternalError);
     }
 
-    int ret = device->get_ep(device, &base_ep);
+    const int ret = device->get_ep(device, &base_ep);
     if (ret != 0) [[unlikely]] {
       return nccl_net_ofi_retval_translate(ret);
     }
@@ -289,7 +289,7 @@ ncclResult_t nccl_net_ofi_connect(int dev_id, void *handle, void **sComm) {
 
   /* Connect */
   auto **send_comm = (nccl_net_ofi_send_comm_t **)sComm;
-  int ret = base_ep->connect(base_ep, (nccl_net_ofi_conn_handle_t *)handle, send_comm);
+  const int ret = base_ep->connect(base_ep, (nccl_net_ofi_conn_handle_t *)handle, send_comm);
 
   if (ret != 0) {
     base_ep->release_ep(base_ep);
@@ -521,7 +521,7 @@ ncclResult_t nccl_net_ofi_isend(void *sComm, void *data, int size, int tag, void
     return check_return(ncclInternalError);
   }
 
-  int ret = send_comm->send(send_comm, data, size, tag, handle, base_req);
+  const int ret = send_comm->send(send_comm, data, size, tag, handle, base_req);
   return nccl_net_ofi_retval_translate(ret);
 }
 
@@ -545,7 +545,7 @@ ncclResult_t nccl_net_ofi_iwrite(void *sComm, void *src, size_t size, void *mhan
     return check_return(ncclInternalError);
   }
 
-  int ret = send_comm->write(send_comm, src, size, mhandle, dest, mr_key, base_req);
+  const int ret = send_comm->write(send_comm, src, size, mhandle, dest, mr_key, base_req);
   return nccl_net_ofi_retval_translate(ret);
 }
 
@@ -569,7 +569,7 @@ ncclResult_t nccl_net_ofi_iwrite_inline(void *sComm, void *src, size_t size, uin
     return check_return(ncclInternalError);
   }
 
-  int ret = send_comm->write_inline(send_comm, src, size, dest, mr_key, base_req);
+  const int ret = send_comm->write_inline(send_comm, src, size, dest, mr_key, base_req);
   return nccl_net_ofi_retval_translate(ret);
 }
 
@@ -622,7 +622,7 @@ ncclResult_t nccl_net_ofi_iread(void *rComm, void *dest, size_t size, void *mhan
     return check_return(ncclInternalError);
   }
 
-  int ret = recv_comm->read(recv_comm, dest, size, mhandle, src, mr_key, base_req);
+  const int ret = recv_comm->read(recv_comm, dest, size, mhandle, src, mr_key, base_req);
   return nccl_net_ofi_retval_translate(ret);
 }
 
@@ -661,7 +661,7 @@ ncclResult_t nccl_net_ofi_irecv(void *rComm, int n, void **buffers, int *sizes, 
     return check_return(ncclInternalError);
   }
 
-  int ret = recv_comm->recv(recv_comm, n, buffers, sizes, tags, handles, base_req);
+  const int ret = recv_comm->recv(recv_comm, n, buffers, sizes, tags, handles, base_req);
   return nccl_net_ofi_retval_translate(ret);
 }
 
@@ -678,7 +678,7 @@ ncclResult_t nccl_net_ofi_test(void *req, int *done, int *size) {
   }
 
   auto *base_req = (nccl_net_ofi_req_t *)req;
-  int ret = base_req->test(base_req, done, size);
+  const int ret = base_req->test(base_req, done, size);
   return nccl_net_ofi_retval_translate(ret);
 }
 
@@ -713,7 +713,7 @@ ncclResult_t nccl_net_ofi_iflush(void *rComm, int n, void **buffers, int *sizes,
     return check_return(ncclInternalError);
   }
 
-  int ret = recv_comm->flush(recv_comm, n, buffers, sizes, handles, base_req);
+  const int ret = recv_comm->flush(recv_comm, n, buffers, sizes, handles, base_req);
   return nccl_net_ofi_retval_translate(ret);
 }
 
@@ -761,7 +761,7 @@ ncclResult_t nccl_net_ofi_closeSend(void *sComm) {
     return check_return(ncclInternalError);
   }
 
-  int ret = send_comm->close(send_comm);
+  const int ret = send_comm->close(send_comm);
 
   return nccl_net_ofi_retval_translate(ret);
 }
@@ -786,7 +786,7 @@ ncclResult_t nccl_net_ofi_closeRecv(void *rComm) {
     return check_return(ncclInternalError);
   }
 
-  int ret = recv_comm->close(recv_comm);
+  const int ret = recv_comm->close(recv_comm);
 
   return nccl_net_ofi_retval_translate(ret);
 }
@@ -808,6 +808,6 @@ ncclResult_t nccl_net_ofi_closeListen(void *lComm) {
     return check_return(ncclInternalError);
   }
 
-  int ret = listen_comm->close(listen_comm);
+  const int ret = listen_comm->close(listen_comm);
   return nccl_net_ofi_retval_translate(ret);
 }

@@ -275,7 +275,7 @@ static int configure_nccl_proto() {
 static int configure_ep_inorder(struct fid_ep *ep, int optname, const char *optname_name, bool *have_ordering) {
 #if HAVE_DECL_FI_OPT_EFA_WRITE_IN_ORDER_ALIGNED_128_BYTES
   int ret = 0;
-  bool optval = true;
+  const bool optval = true;
 
   *have_ordering = false;
 
@@ -309,7 +309,7 @@ static int configure_ep_max_msg_size(struct fid_ep *ep) {
 
 #if HAVE_DECL_FI_OPT_MAX_MSG_SIZE
   auto eager_max_size = (size_t)ofi_nccl_eager_max_size();
-  size_t optval = std::max({sizeof(nccl_net_ofi_rdma_ctrl_msg_t), eager_max_size, sizeof(nccl_ofi_rdma_connection_info_t)});
+  const size_t optval = std::max({sizeof(nccl_net_ofi_rdma_ctrl_msg_t), eager_max_size, sizeof(nccl_ofi_rdma_connection_info_t)});
 
   ret = fi_setopt(&ep->fid, FI_OPT_ENDPOINT, FI_OPT_MAX_MSG_SIZE, &optval, sizeof(optval));
 
@@ -382,9 +382,9 @@ static int configure_nvls_option() {
  */
 int platform_init(const char **provider_filter) {
   int ret = ncclSuccess;
-  struct ec2_platform_data *platform_data = nullptr;
+  const struct ec2_platform_data *platform_data = nullptr;
   bool select_efa = false;
-  char *fi_provider = nullptr;
+  const char *fi_provider = nullptr;
 
   NCCL_OFI_INFO(NCCL_INIT, "Configuring AWS-specific options");
 
@@ -433,7 +433,7 @@ int platform_init(const char **provider_filter) {
    * environment variable on Neuron platforms, so we only do
    * this for Nvidia platforms.
    */
-  uint32_t libversion = fi_version();
+  const uint32_t libversion = fi_version();
   const char *fork_safe_var_name =
       (FI_MAJOR(libversion) > 1 || (FI_MAJOR(libversion) == 1 && FI_MINOR(libversion) >= 13)) ? "FI_EFA_FORK_SAFE" : "RDMAV_FORK_SAFE";
   if (!getenv(fork_safe_var_name)) {
@@ -580,7 +580,7 @@ int platform_config_endpoint(struct fi_info *info, struct fid_ep *endpoint) {
 
   if (ofi_nccl_disable_gdr_required_check() == 0) {
     /* Ensure GDR is enabled on GDR-supported instances */
-    struct ec2_platform_data *platform_data = get_platform_data();
+    const struct ec2_platform_data *platform_data = get_platform_data();
     if (platform_data && platform_data->gdr_required && support_gdr != GDR_SUPPORTED) {
       NCCL_OFI_WARN("GDR disabled on GDR-supported instance type %s", platform_data->name);
       ret = -EINVAL;
@@ -770,7 +770,7 @@ cleanup:
  */
 void platform_sort_rails(struct fi_info **info_list, size_t num_rails, size_t num_groups) {
   struct fi_info **info_array = nullptr;
-  struct fi_info *info_iter = nullptr;
+  const struct fi_info *info_iter = nullptr;
   size_t *vf_array = nullptr;
   struct fi_info *output_info_list = nullptr;
   struct fi_info *output_info_end = nullptr;
@@ -810,7 +810,7 @@ void platform_sort_rails(struct fi_info **info_list, size_t num_rails, size_t nu
     }
     info_iter = info_iter->next;
 
-    int ret = get_rail_vf_idx(info_array[info_count]);
+    const int ret = get_rail_vf_idx(info_array[info_count]);
     if (ret < 0) {
       NCCL_OFI_WARN("lookup of rail for index %lu failed: %s", info_count, strerror(-ret));
       goto cleanup;
@@ -882,7 +882,7 @@ cleanup:
 }
 
 bool platform_default_domain_per_thread() {
-  struct ec2_platform_data *platform_data = get_platform_data();
+  const struct ec2_platform_data *platform_data = get_platform_data();
   if (platform_data != nullptr && platform_data->domain_per_thread != 0) {
     return true;
   }

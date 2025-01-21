@@ -9,7 +9,7 @@
 
 static ncclResult_t getProperties_v8(int dev_id, ncclNetProperties_v8_t *props) {
   nccl_ofi_properties_t ofi_properties;
-  ncclResult_t ret = nccl_net_ofi_get_properties(dev_id, &ofi_properties);
+  const ncclResult_t ret = nccl_net_ofi_get_properties(dev_id, &ofi_properties);
   if (ret != ncclSuccess) {
     return ret;
   }
@@ -59,7 +59,7 @@ static ncclResult_t getProperties_v8(int dev_id, ncclNetProperties_v8_t *props) 
 
 static ncclResult_t getProperties_v7(int dev_id, ncclNetProperties_v7_t *props) {
   nccl_ofi_properties_t ofi_properties;
-  ncclResult_t ret = nccl_net_ofi_get_properties(dev_id, &ofi_properties);
+  const ncclResult_t ret = nccl_net_ofi_get_properties(dev_id, &ofi_properties);
   if (ret != ncclSuccess) {
     return ret;
   }
@@ -87,7 +87,7 @@ static ncclResult_t getProperties_v7(int dev_id, ncclNetProperties_v7_t *props) 
 
 static ncclResult_t getProperties_v6(int dev_id, ncclNetProperties_v6_t *props) {
   nccl_ofi_properties_t ofi_properties;
-  ncclResult_t ret = nccl_net_ofi_get_properties(dev_id, &ofi_properties);
+  const ncclResult_t ret = nccl_net_ofi_get_properties(dev_id, &ofi_properties);
   if (ret != ncclSuccess) {
     return ret;
   }
@@ -114,7 +114,7 @@ static ncclResult_t getProperties_v6(int dev_id, ncclNetProperties_v6_t *props) 
 
 static ncclResult_t getProperties_v4(int dev_id, ncclNetProperties_v4_t *props) {
   ncclNetProperties_v6_t props_v6;
-  ncclResult_t ret = getProperties_v6(dev_id, &props_v6);
+  const ncclResult_t ret = getProperties_v6(dev_id, &props_v6);
   if (ret != ncclSuccess) {
     return ret;
   }
@@ -132,7 +132,7 @@ static ncclResult_t getProperties_v4(int dev_id, ncclNetProperties_v4_t *props) 
 
 static ncclResult_t pciPath_v2(int dev_id, char **path) {
   ncclNetProperties_v6_t props_v6;
-  ncclResult_t ret = getProperties_v6(dev_id, &props_v6);
+  const ncclResult_t ret = getProperties_v6(dev_id, &props_v6);
   if (ret != ncclSuccess) {
     return ret;
   }
@@ -144,7 +144,7 @@ static ncclResult_t pciPath_v2(int dev_id, char **path) {
 
 static ncclResult_t ptrSupport_v2(int dev_id, int *supportedTypes) {
   ncclNetProperties_v6_t props_v6;
-  ncclResult_t ret = getProperties_v6(dev_id, &props_v6);
+  const ncclResult_t ret = getProperties_v6(dev_id, &props_v6);
   if (ret != ncclSuccess) {
     return ret;
   }
@@ -310,7 +310,7 @@ NCCL_OFI_EXPORT_SYMBOL ncclNet_v8_t ncclNetPlugin_v8 = {
  * "Libfabric" vs. "OFI" confusion.
  */
 __attribute__((constructor)) static void nvidia_plugin_name_fixup() {
-  char *net_env = getenv("NCCL_NET");
+  const char *net_env = getenv("NCCL_NET");
   if (net_env != nullptr && 0 == strcasecmp(net_env, "AWS Libfabric")) {
     ncclNetPlugin_v2.name = "AWS Libfabric";
     ncclNetPlugin_v3.name = "AWS Libfabric";

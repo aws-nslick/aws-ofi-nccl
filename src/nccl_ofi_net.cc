@@ -139,10 +139,10 @@ int nccl_net_ofi_create_plugin(nccl_net_ofi_plugin_t **plugin_p) {
   NCCL_OFI_INFO(NCCL_INIT | NCCL_NET, "Initializing " PACKAGE_STRING);
 
   /* Print Libfabric version */
-  uint32_t fab_version = fi_version();
+  const uint32_t fab_version = fi_version();
   NCCL_OFI_INFO(NCCL_INIT | NCCL_NET, "Using Libfabric version %u.%u", FI_MAJOR(fab_version), FI_MINOR(fab_version));
 
-  long int system_page_size_sysconf = sysconf(_SC_PAGESIZE);
+  const long int system_page_size_sysconf = sysconf(_SC_PAGESIZE);
   if (system_page_size_sysconf == -1) [[unlikely]] {
     NCCL_OFI_WARN("Failed to get system page size (%d %s)", errno, strerror(errno));
     ret = -ENOTSUP;
@@ -333,7 +333,7 @@ exit:
 
 static int get_device_pci_path(struct fid_nic *nic_info, char **path) {
   int ret = 0;
-  struct fi_pci_attr *pci = nullptr;
+  const struct fi_pci_attr *pci = nullptr;
   char *device_path = nullptr;
 
   if (nic_info->bus_attr->bus_type != FI_BUS_PCI) {
@@ -490,8 +490,8 @@ int nccl_net_ofi_info_properties(nccl_net_ofi_plugin_t *plugin, struct fi_info *
 
   if (nic_dup_conns > 1) {
 #if HAVE_CUDA
-    int num_gpus_visible = nccl_net_ofi_cuda_get_num_devices();
-    int active_cuda_device = nccl_net_ofi_cuda_get_active_device_idx();
+    const int num_gpus_visible = nccl_net_ofi_cuda_get_num_devices();
+    const int active_cuda_device = nccl_net_ofi_cuda_get_active_device_idx();
     int gpus_per_conn = -1;
     int c = 0;
 

@@ -11,7 +11,7 @@
 
 /* check that we get the expected response for all our known platforms */
 static int check_value(struct ec2_platform_data *platform_data_list, size_t len, const char *platform_type, const char *expected_value) {
-  struct ec2_platform_data *entry = platform_aws_get_platform_entry(platform_type, platform_data_list, len);
+  const struct ec2_platform_data *entry = platform_aws_get_platform_entry(platform_type, platform_data_list, len);
 
   if (nullptr == entry && expected_value != nullptr) {
     printf("Got NULL reply, expected %s\n", expected_value);

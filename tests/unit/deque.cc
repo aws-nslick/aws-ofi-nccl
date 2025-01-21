@@ -69,13 +69,13 @@ int main(int argc, char *argv[]) {
 
   /* Test remove_front */
   for (i = 0; i < num_elem; ++i) {
-    int expected = (i == 0 ? elems[num_elem - 1].v : elems[i - 1].v);
+    const int expected = (i == 0 ? elems[num_elem - 1].v : elems[i - 1].v);
     ret = nccl_ofi_deque_remove_front(deque, &deque_elem);
     if (ret || deque_elem == nullptr) {
       NCCL_OFI_WARN("remove_front unexpectedly failed: %d", ret);
       exit(1);
     }
-    int v = container_of(deque_elem, struct elem_t, de)->v;
+    const int v = container_of(deque_elem, struct elem_t, de)->v;
     if (v != expected) {
       NCCL_OFI_WARN("remove_front bad result; expected %d but got %d", expected, v);
       exit(1);
@@ -109,7 +109,7 @@ int main(int argc, char *argv[]) {
       continue; /* We removed these */
     }
 
-    int expected = elems[i].v;
+    const int expected = elems[i].v;
     /* Test prediction from previous */
     if (exp_next != -2 && exp_next != expected) {
       NCCL_OFI_WARN("Result from get_next did not match expected; expected %d but got %d", expected, exp_next);
@@ -124,7 +124,7 @@ int main(int argc, char *argv[]) {
       exit(1);
     }
 
-    int v = container_of(deque_elem, struct elem_t, de)->v;
+    const int v = container_of(deque_elem, struct elem_t, de)->v;
     if (v != expected) {
       NCCL_OFI_WARN("remove_front bad result after remove; expected %d but got %d", expected, v);
       exit(1);

@@ -42,7 +42,7 @@ static void insert_addresses(nccl_ofi_ep_addr_list_t *ep_addr_list, size_t num_a
 
 static int get_ep_for_addr(nccl_ofi_ep_addr_list_t *ep_addr_list, int addr_val) {
   nccl_net_ofi_ep_t *ep = nullptr;
-  int ret = nccl_ofi_ep_addr_list_get(ep_addr_list, &addr_val, sizeof(addr_val), &ep);
+  const int ret = nccl_ofi_ep_addr_list_get(ep_addr_list, &addr_val, sizeof(addr_val), &ep);
   if (ret) {
     NCCL_OFI_WARN("nccl_ofi_ep_addr_list_get failed");
     exit(1);
@@ -87,7 +87,7 @@ int main(int argc, char *argv[]) {
 
   /** Make sure eps 1 and 3 are still present */
   {
-    int addr = num_addr;
+    const int addr = num_addr;
     int ep = get_ep_for_addr(ep_addr_list, addr);
     if (ep != 1 && ep != 3) {
       NCCL_OFI_WARN("Unexpected ep from get_ep_for_addr");
@@ -115,7 +115,7 @@ int main(int argc, char *argv[]) {
 
   /** Make sure ep 3 is still present */
   {
-    int addr = num_addr + 1;
+    const int addr = num_addr + 1;
     int ep = get_ep_for_addr(ep_addr_list, addr);
     if (ep != 3) {
       NCCL_OFI_WARN("Unexpected ep from get_ep_for_addr");
@@ -138,8 +138,8 @@ int main(int argc, char *argv[]) {
 
   /** Make sure get_ep_for_addr fails since there are no more endpoints **/
   {
-    int addr = num_addr + 2;
-    int ep = get_ep_for_addr(ep_addr_list, addr);
+    const int addr = num_addr + 2;
+    const int ep = get_ep_for_addr(ep_addr_list, addr);
     if (ep != 0) {
       NCCL_OFI_WARN("Unexpected non-NULL ep");
       exit(1);

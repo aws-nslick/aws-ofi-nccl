@@ -74,11 +74,11 @@ static int test_extend_region() {
 |                                                        |
 */
 static int test_is_inside_region() {
-  nccl_ofi_tuner_point_t p1_288M_128 = {288.0 * 1024 * 1024, 128};
-  nccl_ofi_tuner_point_t p2_38M_16 = {48.0 * 1024 * 1024, 16};
-  nccl_ofi_tuner_point_t p3_4M_2 = {4.0 * 1024 * 1024, 2};
-  nccl_ofi_tuner_point_t p5_maxM_2 = {TUNER_MAX_SIZE, 2};
-  nccl_ofi_tuner_point_t e_48M_16_288M_128 =
+  const nccl_ofi_tuner_point_t p1_288M_128 = {288.0 * 1024 * 1024, 128};
+  const nccl_ofi_tuner_point_t p2_38M_16 = {48.0 * 1024 * 1024, 16};
+  const nccl_ofi_tuner_point_t p3_4M_2 = {4.0 * 1024 * 1024, 2};
+  const nccl_ofi_tuner_point_t p5_maxM_2 = {TUNER_MAX_SIZE, 2};
+  const nccl_ofi_tuner_point_t e_48M_16_288M_128 =
       extend_region((nccl_ofi_tuner_point_t){(double)48.0 * 1024 * 1024, 16}, (nccl_ofi_tuner_point_t){(double)288.0 * 1024 * 1024, 128},
                     (nccl_ofi_tuner_point_t){TUNER_MAX_SIZE, TUNER_MAX_RANKS});
 
@@ -108,11 +108,11 @@ static int test_is_inside_region() {
   3. Using the equation y = mx + c, get multiple points on the line in powers of 2.
   */
   for (size_t i = 0; i < region.num_vertices; i++) {
-    size_t k = (i + 1) % region.num_vertices;
-    double slope = (region.vertices[k].y - region.vertices[i].y) / (region.vertices[k].x - region.vertices[i].x);
-    double c = region.vertices[k].y - (slope * (region.vertices[i].x));
+    const size_t k = (i + 1) % region.num_vertices;
+    const double slope = (region.vertices[k].y - region.vertices[i].y) / (region.vertices[k].x - region.vertices[i].x);
+    const double c = region.vertices[k].y - (slope * (region.vertices[i].x));
     for (double x = region.vertices[i].x; x < region.vertices[k].x; x = x * 2) {
-      double y = (slope * x) + c;
+      const double y = (slope * x) + c;
       if (is_inside_region((nccl_ofi_tuner_point_t){x, y}, &region) != 0)
         return -1;
       // printf(" Is (%.10f, %.10f) inside the region : %d\n", x, y, is_inside_region(
@@ -122,7 +122,7 @@ static int test_is_inside_region() {
 
   printf("All points on the edges of the polygon are detected correctly\n");
 
-  size_t num_points = 20;
+  const size_t num_points = 20;
   const nccl_ofi_tuner_point_t inside_vertices[] = {{16.0 * 1024 * 1024, 4},          {128.0 * 1024 * 1024, 4},
                                                     {1.0 * 1024 * 1024 * 1024, 4},    {4.0 * 1024 * 1024 * 1024, 4},
                                                     {16.0 * 1024 * 1024 * 1024, 4},   {32.0 * 1024 * 1024 * 1024, 4},

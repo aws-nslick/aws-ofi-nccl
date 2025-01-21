@@ -129,7 +129,7 @@ int main(int argc, char *argv[]) {
     NCCL_OFI_WARN("freelist_init failed: %d", ret);
     exit(1);
   }
-  char *last_buff = nullptr;
+  const char *last_buff = nullptr;
   for (i = 0; i < 8; i++) {
     entry = nccl_ofi_freelist_entry_alloc(freelist);
     if (!entry) {
@@ -163,7 +163,7 @@ int main(int argc, char *argv[]) {
     exit(1);
   }
   for (i = 0; i < 8; i++) {
-    nccl_ofi_freelist_elem_t *item = nccl_ofi_freelist_entry_alloc(freelist);
+    const nccl_ofi_freelist_elem_t *item = nccl_ofi_freelist_entry_alloc(freelist);
     if (!item) {
       NCCL_OFI_WARN("allocation unexpectedly failed");
       exit(1);

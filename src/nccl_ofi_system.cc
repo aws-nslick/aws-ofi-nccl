@@ -21,12 +21,12 @@ const char *nccl_net_ofi_get_product_name() {
   FILE *fd = nullptr;
   char ch = 0;
   size_t len = 0;
-  size_t product_name_len = 64;
+  const size_t product_name_len = 64;
   static bool init = false;
   static char *product_name = nullptr;
   static pthread_mutex_t product_name_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-  char *forced_on = getenv("OFI_NCCL_FORCE_PRODUCT_NAME");
+  const char *forced_on = getenv("OFI_NCCL_FORCE_PRODUCT_NAME");
   if (forced_on != nullptr) {
     return forced_on;
   }

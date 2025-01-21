@@ -113,7 +113,7 @@ static struct fi_pci_attr *ofi_info_get_pci_attr(struct fi_info *info) {
 
   struct fi_pci_attr *pci_addr = nullptr;
   struct fi_bus_attr *bus = nullptr;
-  struct fid_nic *nic = info->nic;
+  const struct fid_nic *nic = info->nic;
 
   if (!nic) {
     return nullptr;
@@ -172,7 +172,7 @@ void nccl_ofi_topo_free(nccl_ofi_topo_t *topo) {
     nccl_ofi_topo_set_to_begin(topo, &data_iter);
 
     /* Free libfabric NIC info lists */
-    nccl_ofi_topo_data_t *data = nccl_ofi_get_user_data(&data_iter);
+    const nccl_ofi_topo_data_t *data = nccl_ofi_get_user_data(&data_iter);
     nccl_ofi_inc_user_data_iter(&data_iter);
     while (data) {
       nccl_ofi_ofiutils_free_info_list(data->info_list);
@@ -221,7 +221,7 @@ static void enable_hwloc_io_types(hwloc_topology_t topo) {
    * hwloc_topology_set_io_types_filter() with HWLOC_TYPE_FILTER_KEEP_ALL
    * or HWLOC_TYPE_FILTER_KEEP_IMPORTANT
    */
-  enum hwloc_type_filter_e filter = HWLOC_TYPE_FILTER_KEEP_ALL;
+  const enum hwloc_type_filter_e filter = HWLOC_TYPE_FILTER_KEEP_ALL;
   hwloc_topology_set_io_types_filter(topo, filter);
 #else
   unsigned long flags = hwloc_topology_get_flags(topo);
@@ -258,7 +258,7 @@ static int get_hwloc_pcidev_by_fi_info(hwloc_topology_t topo, struct fi_info *in
   *obj = nullptr;
   hwloc_obj_t ret_obj = nullptr;
 
-  struct fi_pci_attr *attr = ofi_info_get_pci_attr(info);
+  const struct fi_pci_attr *attr = ofi_info_get_pci_attr(info);
   if (!attr) {
     NCCL_OFI_WARN("Failed to retrieve PCI attributes from NIC");
     return -EINVAL;
@@ -298,7 +298,7 @@ static int get_hwloc_pcidev_by_fi_info(hwloc_topology_t topo, struct fi_info *in
  */
 static int get_info_for_node(hwloc_obj_t node, struct fi_info *info_list, struct fi_info **ret_info) {
   *ret_info = nullptr;
-  union hwloc_obj_attr_u *node_attr = nullptr;
+  const union hwloc_obj_attr_u *node_attr = nullptr;
   struct fi_info *next = nullptr;
 
   if (!info_list) {
@@ -322,7 +322,7 @@ static int get_info_for_node(hwloc_obj_t node, struct fi_info *info_list, struct
     struct fi_info *info = next;
     next = info->next;
 
-    struct fi_pci_attr *attr = ofi_info_get_pci_attr(info);
+    const struct fi_pci_attr *attr = ofi_info_get_pci_attr(info);
     if (!attr) {
       NCCL_OFI_WARN("Failed to retrieve PCI attributes from NIC");
       return -EINVAL;
@@ -567,7 +567,7 @@ error:
  */
 static int mark_topo_nodes_with_ofi_info_subtree(nccl_ofi_topo_t *topo) {
   int status = 0;
-  nccl_ofi_topo_data_t *data = nullptr;
+  const nccl_ofi_topo_data_t *data = nullptr;
 
   /* Iterate over user data that stores libfabric NIC info structs */
   nccl_ofi_topo_data_iterator_t data_iter;
@@ -880,13 +880,13 @@ static int create_groups_from_info_lists(nccl_ofi_topo_t *topo) {
 
     struct fi_info *info_list = data->info_list;
     data->info_list = nullptr;
-    int info_list_len = data->info_list_len;
+    const int info_list_len = data->info_list_len;
     data->info_list_len = 0;
-    int num_groups = data->num_groups;
+    const int num_groups = data->num_groups;
     data->num_groups = 0;
 
     /* Create groups from list */
-    int ret = create_groups_from_info_list(topo, &info_list, info_list_len, data->gpu_group_node, num_groups);
+    const int ret = create_groups_from_info_list(topo, &info_list, info_list_len, data->gpu_group_node, num_groups);
     if (ret != 0) {
       data->info_list = info_list;
       return ret;
@@ -900,7 +900,7 @@ static int create_groups_from_info_lists(nccl_ofi_topo_t *topo) {
  * @brief	Print libfabric NIC info lists stored in user data of topology nodes
  */
 static void print_nic_groups(nccl_ofi_topo_t *topo) {
-  nccl_ofi_topo_data_t *data = nullptr;
+  const nccl_ofi_topo_data_t *data = nullptr;
   nccl_ofi_topo_data_iterator_t data_iter = {};
   nccl_ofi_topo_set_to_begin(topo, &data_iter);
 
@@ -914,7 +914,7 @@ static void print_nic_groups(nccl_ofi_topo_t *topo) {
     struct fi_info *info = data->info_list;
     int info_idx = 0;
     while (info) {
-      struct fi_pci_attr *attr = ofi_info_get_pci_attr(info);
+      const struct fi_pci_attr *attr = ofi_info_get_pci_attr(info);
       if (attr) {
         NCCL_OFI_INFO(NCCL_INIT,
                       "NIC group %i device #%i "
@@ -974,7 +974,7 @@ static hwloc_obj_t get_numa_mem_child(hwloc_obj_t node) {
   if (node->memory_arity > 0) {
     child = node->memory_first_child;
     while (child != nullptr) {
-      auto *topo_data = (nccl_ofi_topo_data_t *)child->userdata;
+      const auto *topo_data = (nccl_ofi_topo_data_t *)child->userdata;
       if (child->type == HWLOC_OBJ_NUMANODE && topo_data == nullptr) {
         break;
       }
@@ -1040,7 +1040,7 @@ static int get_device_property(unsigned domain, unsigned bus, unsigned dev, unsi
 
   /* Open file and read property */
   if ((file = fopen(path, "r")) != nullptr) {
-    char *rc = fgets(prop, MAX_DEV_PROPERTY_LENGTH + 1, file);
+    const char *rc = fgets(prop, MAX_DEV_PROPERTY_LENGTH + 1, file);
     if (feof(file) && !rc) {
       /* No bytes has been read. Let caller decide
        * whether this is an error or not. */
@@ -1165,7 +1165,7 @@ static int get_pci_device_speed(hwloc_obj_t node, bool is_nic, size_t *speed_idx
  */
 static int get_pci_device_min_speed(hwloc_obj_t node, bool is_nic, size_t *speed_idx, size_t *width) {
   int ret = 0;
-  hwloc_obj_t parent_node = node->parent;
+  const hwloc_obj_t parent_node = node->parent;
 
   size_t device_width = 0, port_width = 0;
   size_t device_speed_idx = 0, port_speed_idx = 0;
@@ -1246,13 +1246,13 @@ static int write_cpu_closing_tag(FILE *file, int indent) {
  *		link width
  */
 static int write_pci_tag(FILE *file, int indent, union hwloc_obj_attr_u *attr, size_t speed_idx, size_t width) {
-  int rc = fprintf(file,
-                   "%*s"
-                   "<pci "
-                   "busid=\"%04x:%02x:%02x.%01x\" "
-                   "link_speed=\"%s GT/s PCIe/s\" "
-                   "link_width=\"%zu\"/>\n",
-                   indent, "", attr->pcidev.domain, attr->pcidev.bus, attr->pcidev.dev, attr->pcidev.func, pcie_gen[speed_idx], width);
+  const int rc = fprintf(file,
+                         "%*s"
+                         "<pci "
+                         "busid=\"%04x:%02x:%02x.%01x\" "
+                         "link_speed=\"%s GT/s PCIe/s\" "
+                         "link_width=\"%zu\"/>\n",
+                         indent, "", attr->pcidev.domain, attr->pcidev.bus, attr->pcidev.dev, attr->pcidev.func, pcie_gen[speed_idx], width);
 
   if (rc < 0) {
     NCCL_OFI_WARN("Failed to print PCI tag. ERROR: %s", strerror(errno));
@@ -1277,7 +1277,7 @@ static int write_nic(hwloc_obj_t node, FILE *file, int indent) {
   int ret = 0;
   size_t width = 0;
   size_t speed_idx = 0;
-  auto *userdata = (nccl_ofi_topo_data_t *)node->userdata;
+  const auto *userdata = (nccl_ofi_topo_data_t *)node->userdata;
   int group_size = userdata->info_list_len;
   union hwloc_obj_attr_u *attr = node->attr;
 
@@ -1291,7 +1291,7 @@ static int write_nic(hwloc_obj_t node, FILE *file, int indent) {
    * NICs are grouped, GPU topology node is attached to the NIC
    * topology node. */
   if (group_size > 1) {
-    hwloc_obj_t gpu = userdata->gpu_group_node;
+    const hwloc_obj_t gpu = userdata->gpu_group_node;
     size_t gpu_width = 0;
     size_t gpu_speed_idx = 0;
     assert(gpu);
@@ -1336,12 +1336,12 @@ static int write_nic(hwloc_obj_t node, FILE *file, int indent) {
  *		Indentation
  */
 static int write_pci_opening_tag(FILE *file, hwloc_obj_t node, int indent) {
-  int rc = fprintf(file,
-                   "%*s"
-                   "<pci "
-                   "busid=\"%04x:%02x:%02x.%01x\">\n",
-                   indent, "", node->attr->bridge.upstream.pci.domain, node->attr->bridge.upstream.pci.bus, node->attr->bridge.upstream.pci.dev,
-                   node->attr->bridge.upstream.pci.func);
+  const int rc = fprintf(file,
+                         "%*s"
+                         "<pci "
+                         "busid=\"%04x:%02x:%02x.%01x\">\n",
+                         indent, "", node->attr->bridge.upstream.pci.domain, node->attr->bridge.upstream.pci.bus, node->attr->bridge.upstream.pci.dev,
+                         node->attr->bridge.upstream.pci.func);
   if (rc < 0) {
     NCCL_OFI_WARN("Failed to print opening PCI tag. ERROR: %s", strerror(errno));
     return -errno;
@@ -1405,12 +1405,12 @@ static int write_pci_closing_tag(FILE *file, int indent) {
  */
 static int write_nccl_topo_rec(hwloc_topology_t topo, hwloc_obj_t node, FILE *file, int indent, int bridge_depth) {
   int ret = 0;
-  int indent_offset = 2;
+  const int indent_offset = 2;
   bool close_numanode = false;
   bool close_bridge = false;
   hwloc_obj_t numa_mem_child = nullptr;
   hwloc_obj_t child = nullptr;
-  auto *topo_data = (nccl_ofi_topo_data_t *)node->userdata;
+  const auto *topo_data = (nccl_ofi_topo_data_t *)node->userdata;
 
   /* Only nodes with NICs or Nvidia GPUs in its subtree store
    * store userdata. Use this information to avoid printing
@@ -1489,8 +1489,8 @@ static int write_nccl_topo_rec(hwloc_topology_t topo, hwloc_obj_t node, FILE *fi
 
 int nccl_ofi_topo_write(nccl_ofi_topo_t *topo, FILE *file) {
   int ret = 0;
-  int bridge_depth = 0;
-  int indent = 2;
+  const int bridge_depth = 0;
+  const int indent = 2;
 
   if (fprintf(file, "<system version=\"1\">\n") < 0) {
     NCCL_OFI_WARN("Failed to write topology to NCCL topology file. ERROR: %s", strerror(errno));
@@ -1517,7 +1517,7 @@ int nccl_ofi_topo_num_info_lists(nccl_ofi_topo_t *topo, int *num_lists) {
     return -EINVAL;
   }
 
-  nccl_ofi_topo_data_t *data = nullptr;
+  const nccl_ofi_topo_data_t *data = nullptr;
   nccl_ofi_topo_data_iterator_t data_iter;
   nccl_ofi_topo_set_to_begin(topo, &data_iter);
 
@@ -1535,7 +1535,7 @@ struct fi_info *nccl_ofi_topo_next_info_list(nccl_ofi_topo_data_iterator_t *iter
     return nullptr;
 
   struct fi_info *info_list = nullptr;
-  nccl_ofi_topo_data_t *data = nullptr;
+  const nccl_ofi_topo_data_t *data = nullptr;
 
   while ((data = nccl_ofi_get_user_data(iter))) {
     nccl_ofi_inc_user_data_iter(iter);

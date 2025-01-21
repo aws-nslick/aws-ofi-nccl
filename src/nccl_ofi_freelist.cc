@@ -22,7 +22,7 @@
  * to cover full memory pages, the size is rounded up to page size.
  */
 static inline size_t freelist_buffer_mem_size_full_pages(size_t entry_size, size_t entry_count) {
-  size_t buffer_mem_size = (entry_size * entry_count);
+  const size_t buffer_mem_size = (entry_size * entry_count);
   return aon::detail::math::round_up(buffer_mem_size, system_page_size);
 }
 
@@ -39,7 +39,7 @@ static inline size_t freelist_buffer_mem_size_full_pages(size_t entry_size, size
  */
 static inline size_t freelist_page_padded_entry_count(size_t entry_size, size_t entry_count) {
   assert(entry_size > 0);
-  size_t covered_pages_size = freelist_buffer_mem_size_full_pages(entry_size, entry_count);
+  const size_t covered_pages_size = freelist_buffer_mem_size_full_pages(entry_size, entry_count);
   return (covered_pages_size / entry_size);
 }
 
@@ -120,7 +120,7 @@ int nccl_ofi_freelist_fini(nccl_ofi_freelist_t *freelist) {
     struct nccl_ofi_freelist_block_t *block = freelist->blocks;
     nccl_net_ofi_mem_defined(block, sizeof(struct nccl_ofi_freelist_block_t));
     void *memory = block->memory;
-    size_t size = block->memory_size;
+    const size_t size = block->memory_size;
     freelist->blocks = block->next;
 
     /* note: the base of the allocation and the memory
@@ -229,7 +229,7 @@ int nccl_ofi_freelist_add(nccl_ofi_freelist_t *freelist, size_t num_entries) {
   for (size_t i = 0; i < allocation_count; ++i) {
     nccl_ofi_freelist_elem_t *entry = &block->entries[i];
 
-    size_t user_entry_size = freelist->entry_size - freelist->memcheck_redzone_size;
+    const size_t user_entry_size = freelist->entry_size - freelist->memcheck_redzone_size;
 
     /* Add redzone before entry */
     nccl_net_ofi_mem_noaccess(buffer, freelist->memcheck_redzone_size);
