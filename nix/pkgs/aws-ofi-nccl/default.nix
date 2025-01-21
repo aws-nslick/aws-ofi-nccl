@@ -62,6 +62,7 @@ let
   };
 in
 effectiveStdenv.mkDerivation {
+  __contentAddressed = true;
   name = "aws-ofi-nccl";
   pname = lib.concatStringsSep "" [
     "lib"
@@ -191,66 +192,73 @@ effectiveStdenv.mkDerivation {
     };
   };
 
-  passthru.clangdFile = writeTextFile {
-    name = "clangd-config";
-    text = lib.generators.toYAML { } {
-      CompileFlags = {
-        Add = [
-          "-Wall"
-          "-Wextra"
-          "-Wformat"
-          "-xc++"
-          "-std=c++20"
-          "-isystem${glibc_multi.dev}/include/"
-          "-isystem${hwloc.dev}/include/"
-          "-isystem${uthash}/include/"
-          "-isystem${gtest.dev}/include/"
-          "-isystem${cudaPackages.cuda_cudart.dev}/include/"
-          "-isystem${cudaPackages.cuda_nvtx.dev}/include/"
-          "-isystem${libfabric.dev}/include/"
-          "-isystem${openmpi.dev}/include/"
-          "-isystem${cleanSrc}/3rd-party/nccl/cuda/include/"
-          "-isystem${cleanSrc}/3rd-party/expected/tl/include/"
-          #"-I${config.packages.default}/nix-support/generated-headers/include/"
-          "-I${cleanSrc}/include/"
-        ];
-      };
-      Diagnostics = {
-        ClangTidy = {
-          CheckOptions = {
-            "cppcoreguidelines-avoid-magic-numbers.IgnoreTypeAliases" = true;
-            "readability-magic-numbers.IgnoreTypeAliases" = true;
-          };
-        };
-        Includes = {
-          IgnoreHeader = [
-            "hwloc.h"
-            "config.hh"
+  passthru.make-clangd-file =
+    { workdir, aws-ofi-nccl }:
+    writeTextFile {
+      name = "clangd-config";
+      text = lib.generators.toYAML { } {
+        CompileFlags = {
+          CompilationDatabase = "${workdir}";
+          Add = [
+            "-Wall"
+            "-Wextra"
+            "-Wformat"
+            "-xc++"
+            "-std=c++20"
+            "-isystem${glibc_multi.dev}/include/"
+            "-isystem${hwloc.dev}/include/"
+            "-isystem${uthash}/include/"
+            "-isystem${gtest.dev}/include/"
+            "-isystem${cudaPackages.cuda_cudart.dev}/include/"
+            "-isystem${cudaPackages.cuda_nvtx.dev}/include/"
+            "-isystem${libfabric.dev}/include/"
+            "-isystem${openmpi.dev}/include/"
+            "-isystem${workdir}/3rd-party/nccl/cuda/include/"
+            "-isystem${workdir}/3rd-party/expected/tl/include/"
+            "-I${workdir}/include/"
+            "-I${aws-ofi-nccl.dev}/nix-support/generated-headers/include"
           ];
+        };
+        Diagnostics = {
+          ClangTidy = {
+            CheckOptions = {
+              "cppcoreguidelines-avoid-magic-numbers.IgnoreTypeAliases" = true;
+              "readability-magic-numbers.IgnoreTypeAliases" = true;
+            };
+          };
+          Includes = {
+            IgnoreHeader = [
+              "hwloc.h"
+              "config.hh"
+            ];
+          };
         };
       };
     };
-  };
 
-  passthru.cclsFile = writeTextFile {
-    name = "ccls-config";
-    text = ''
-      clang++
-      %cpp -std=c++20
-      -isystem${glibc_multi.dev}/include/
-      -isystem${hwloc.dev}/include/
-      -isystem${uthash}/include/
-      -isystem${gtest.dev}/include/
-      -isystem${cudaPackages.cuda_cudart.dev}/include/
-      -isystem${cudaPackages.cuda_nvtx.dev}/include/
-      -isystem${libfabric.dev}/include/
-      -isystem${openmpi.dev}/include/
-      -isystem${cleanSrc}/3rd-party/nccl/cuda/include/
-      -isystem${cleanSrc}/3rd-party/expected/tl/include/
-      -I${cleanSrc}/include/
-      -I${cleanSrc}/3rd-party/nccl/cuda/include/
-    '';
-  };
+  passthru.make-ccls-file =
+    { workdir, aws-ofi-nccl }:
+    writeTextFile {
+      name = "ccls-config";
+      text = ''
+        %compile_commands.json
+        clang++
+        %cpp -std=c++20
+        -isystem${glibc_multi.dev}/include/
+        -isystem${hwloc.dev}/include/
+        -isystem${uthash}/include/
+        -isystem${gtest.dev}/include/
+        -isystem${cudaPackages.cuda_cudart.dev}/include/
+        -isystem${cudaPackages.cuda_nvtx.dev}/include/
+        -isystem${libfabric.dev}/include/
+        -isystem${openmpi.dev}/include/
+        -isystem${workdir}/3rd-party/nccl/cuda/include/
+        -isystem${workdir}/3rd-party/expected/tl/include/
+        -I${aws-ofi-nccl.dev}/nix-support/generated-headers/include
+        -I${workdir}/include/
+        -I${workdir}/3rd-party/nccl/cuda/include/
+      '';
+    };
 
   passthru.clangFormatFile = writeTextFile {
     name = "clang-format-config";
