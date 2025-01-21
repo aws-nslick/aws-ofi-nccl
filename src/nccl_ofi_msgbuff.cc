@@ -58,7 +58,7 @@ error:
   return nullptr;
 }
 
-static inline uint16_t distance(const nccl_ofi_msgbuff_t *msgbuff, const uint16_t front, const uint16_t back) {
+static uint16_t distance(const nccl_ofi_msgbuff_t *msgbuff, const uint16_t front, const uint16_t back) {
   return (front < back ? msgbuff->field_size : 0) + front - back;
 }
 
@@ -85,7 +85,7 @@ static uint16_t nccl_ofi_msgbuff_num_inflight(const nccl_ofi_msgbuff_t *msgbuff)
   return distance(msgbuff, msgbuff->msg_next, msgbuff->msg_last_incomplete);
 }
 
-static inline nccl_ofi_msgbuff_elem_t *buff_idx(const nccl_ofi_msgbuff_t *msgbuff, uint16_t idx) { return &msgbuff->buff[idx % msgbuff->max_inprogress]; }
+static nccl_ofi_msgbuff_elem_t *buff_idx(const nccl_ofi_msgbuff_t *msgbuff, uint16_t idx) { return &msgbuff->buff[idx % msgbuff->max_inprogress]; }
 
 /**
  * Given a msg buffer and an index, returns message status

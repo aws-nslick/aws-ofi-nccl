@@ -14,7 +14,7 @@ void *simple_base;
 size_t simple_size;
 void *simple_handle;
 
-static inline int regmr_simple(void *opaque, void *data, size_t size, void **handle) {
+static int regmr_simple(void *opaque, void *data, size_t size, void **handle) {
   *handle = simple_handle = opaque;
   simple_base = data;
   simple_size = size;
@@ -26,7 +26,7 @@ static inline int regmr_simple(void *opaque, void *data, size_t size, void **han
   return ncclSuccess;
 }
 
-static inline int deregmr_simple(void *handle) {
+static int deregmr_simple(void *handle) {
   if (simple_handle != handle)
     return ncclSystemError;
 
@@ -43,7 +43,7 @@ struct random_freelisted_item {
 };
 
 int main(int argc, char *argv[]) {
-  struct nccl_ofi_freelist_t *freelist = nullptr;
+  nccl_ofi_freelist_t *freelist = nullptr;
   nccl_ofi_freelist_elem_t *entry = nullptr;
   int ret = 0;
   size_t i = 0;

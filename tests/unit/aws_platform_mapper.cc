@@ -10,8 +10,8 @@
 #include <cstring>
 
 /* check that we get the expected response for all our known platforms */
-static int check_value(struct ec2_platform_data *platform_data_list, size_t len, const char *platform_type, const char *expected_value) {
-  const struct ec2_platform_data *entry = platform_aws_get_platform_entry(platform_type, platform_data_list, len);
+static int check_value(ec2_platform_data *platform_data_list, size_t len, const char *platform_type, const char *expected_value) {
+  const ec2_platform_data *entry = platform_aws_get_platform_entry(platform_type, platform_data_list, len);
 
   if (nullptr == entry && expected_value != nullptr) {
     printf("Got NULL reply, expected %s\n", expected_value);
@@ -30,7 +30,7 @@ static int check_value(struct ec2_platform_data *platform_data_list, size_t len,
 }
 
 static int check_known_platforms() {
-  struct ec2_platform_data *platform_data_list = nullptr;
+  ec2_platform_data *platform_data_list = nullptr;
   size_t len = 0;
   int ret = 0;
 

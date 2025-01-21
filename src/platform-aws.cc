@@ -121,7 +121,7 @@ std::array platform_data_map = {
     },
 };
 
-struct ec2_platform_data *platform_aws_get_platform_map(size_t *len) {
+ec2_platform_data *platform_aws_get_platform_map(size_t *len) {
   *len = platform_data_map.size();
   return platform_data_map.data();
 }
@@ -132,8 +132,8 @@ struct ec2_platform_data *platform_aws_get_platform_map(size_t *len) {
  * platform_Aws_get_platform_data() so that you get caching and all
  * that niceness.
  */
-struct ec2_platform_data *platform_aws_get_platform_entry(const char *platform_type, struct ec2_platform_data *platform_data_list, size_t platform_data_len) {
-  struct ec2_platform_data *response = nullptr;
+ec2_platform_data *platform_aws_get_platform_entry(const char *platform_type, ec2_platform_data *platform_data_list, size_t platform_data_len) {
+  ec2_platform_data *response = nullptr;
   regex_t regex;
   int ret = 0;
 
@@ -178,12 +178,12 @@ done:
  * @return	NULL, if no entry found
  * 		platform data, if match found
  */
-static struct ec2_platform_data *get_platform_data() {
+static ec2_platform_data *get_platform_data() {
   static bool init = false;
   static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-  static struct ec2_platform_data *platform_data = nullptr;
+  static ec2_platform_data *platform_data = nullptr;
   const char *platform_type = nullptr;
-  struct ec2_platform_data *platform_data_list = nullptr;
+  ec2_platform_data *platform_data_list = nullptr;
   size_t platform_data_len = 0;
 
   nccl_net_ofi_mutex_lock(&mutex);
@@ -215,7 +215,7 @@ done:
  * validate that EFA is using RDMA write natively and not in an
  * emulated fashion.
  */
-static int validate_rdma_write(struct fid_ep *ep) {
+static int validate_rdma_write(fid_ep *ep) {
   int ret = 0;
 #if HAVE_DECL_FI_OPT_EFA_EMULATED_WRITE
   bool optval = false;
@@ -272,7 +272,7 @@ static int configure_nccl_proto() {
  * Returns 0 on success (ie, have_ordering is in a sane state) or
  * -error code on unexpected failure.
  */
-static int configure_ep_inorder(struct fid_ep *ep, int optname, const char *optname_name, bool *have_ordering) {
+static int configure_ep_inorder(fid_ep *ep, int optname, const char *optname_name, bool *have_ordering) {
 #if HAVE_DECL_FI_OPT_EFA_WRITE_IN_ORDER_ALIGNED_128_BYTES
   int ret = 0;
   const bool optval = true;
@@ -304,7 +304,7 @@ static int configure_ep_inorder(struct fid_ep *ep, int optname, const char *optn
  *
  * Returns 0 on success or -error code on unexpected failure.
  */
-static int configure_ep_max_msg_size(struct fid_ep *ep) {
+static int configure_ep_max_msg_size(fid_ep *ep) {
   int ret = 0;
 
 #if HAVE_DECL_FI_OPT_MAX_MSG_SIZE
@@ -382,7 +382,7 @@ static int configure_nvls_option() {
  */
 int platform_init(const char **provider_filter) {
   int ret = ncclSuccess;
-  const struct ec2_platform_data *platform_data = nullptr;
+  const ec2_platform_data *platform_data = nullptr;
   bool select_efa = false;
   const char *fi_provider = nullptr;
 
@@ -559,7 +559,7 @@ exit:
   return ret;
 }
 
-int platform_config_endpoint(struct fi_info *info, struct fid_ep *endpoint) {
+int platform_config_endpoint(fi_info *info, fid_ep *endpoint) {
   int ret = 0;
 #if HAVE_CUDA
   const char *optname_name = "none";
@@ -580,7 +580,7 @@ int platform_config_endpoint(struct fi_info *info, struct fid_ep *endpoint) {
 
   if (ofi_nccl_disable_gdr_required_check() == 0) {
     /* Ensure GDR is enabled on GDR-supported instances */
-    const struct ec2_platform_data *platform_data = get_platform_data();
+    const ec2_platform_data *platform_data = get_platform_data();
     if (platform_data && platform_data->gdr_required && support_gdr != GDR_SUPPORTED) {
       NCCL_OFI_WARN("GDR disabled on GDR-supported instance type %s", platform_data->name);
       ret = -EINVAL;
@@ -711,7 +711,7 @@ exit:
   return ret;
 }
 
-static int get_rail_vf_idx(struct fi_info *info) {
+static int get_rail_vf_idx(fi_info *info) {
   char *node_guid_filename = nullptr;
   FILE *fp = nullptr;
   int vf_idx = 0;
@@ -768,12 +768,12 @@ cleanup:
  * that there is an alternating of the 0th pair index and then the 1st
  * pair index, and so on.
  */
-void platform_sort_rails(struct fi_info **info_list, size_t num_rails, size_t num_groups) {
-  struct fi_info **info_array = nullptr;
-  const struct fi_info *info_iter = nullptr;
+void platform_sort_rails(fi_info **info_list, size_t num_rails, size_t num_groups) {
+  fi_info **info_array = nullptr;
+  const fi_info *info_iter = nullptr;
   size_t *vf_array = nullptr;
-  struct fi_info *output_info_list = nullptr;
-  struct fi_info *output_info_end = nullptr;
+  fi_info *output_info_list = nullptr;
+  fi_info *output_info_end = nullptr;
   size_t highest_vf_idx = 0;
   size_t next_vf_idx = 0;
   size_t info_count = 0;
@@ -785,7 +785,7 @@ void platform_sort_rails(struct fi_info **info_list, size_t num_rails, size_t nu
     return;
   }
 
-  info_array = (struct fi_info **)calloc(num_rails, sizeof(struct fi_info *));
+  info_array = (fi_info **)calloc(num_rails, sizeof(fi_info *));
   if (info_array == nullptr) {
     NCCL_OFI_WARN("Did not reorder arrays due to calloc failure");
     goto cleanup;
@@ -882,7 +882,7 @@ cleanup:
 }
 
 bool platform_default_domain_per_thread() {
-  const struct ec2_platform_data *platform_data = get_platform_data();
+  const ec2_platform_data *platform_data = get_platform_data();
   if (platform_data != nullptr && platform_data->domain_per_thread != 0) {
     return true;
   }

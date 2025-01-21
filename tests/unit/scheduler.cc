@@ -13,7 +13,7 @@
 #include "nccl_ofi_scheduler.hh"
 #include "test-common.hh"
 
-static inline int verify_xfer_info(nccl_net_ofi_xfer_info_t *xfer, nccl_net_ofi_xfer_info_t *ref_xfer, int xfer_id) {
+static int verify_xfer_info(nccl_net_ofi_xfer_info_t *xfer, nccl_net_ofi_xfer_info_t *ref_xfer, int xfer_id) {
   const int ret = ref_xfer->rail_id != xfer->rail_id || ref_xfer->offset != xfer->offset || ref_xfer->msg_size != xfer->msg_size;
 
   if (ret) {
@@ -23,7 +23,7 @@ static inline int verify_xfer_info(nccl_net_ofi_xfer_info_t *xfer, nccl_net_ofi_
   return ret;
 }
 
-static inline int verify_schedule(nccl_net_ofi_schedule_t *schedule, nccl_net_ofi_schedule_t *ref_schedule) {
+static int verify_schedule(nccl_net_ofi_schedule_t *schedule, nccl_net_ofi_schedule_t *ref_schedule) {
   int ret = 0;
 
   if (!schedule) {
@@ -43,7 +43,7 @@ static inline int verify_schedule(nccl_net_ofi_schedule_t *schedule, nccl_net_of
   return ret;
 }
 
-static inline int create_ref_schedule(nccl_net_ofi_schedule_t **schedule, int num_xfer_infos) {
+static int create_ref_schedule(nccl_net_ofi_schedule_t **schedule, int num_xfer_infos) {
   const int ret = 0;
   *schedule = (nccl_net_ofi_schedule_t *)malloc(sizeof(nccl_net_ofi_schedule_t) + num_xfer_infos * sizeof(nccl_net_ofi_xfer_info_t));
 
@@ -56,7 +56,7 @@ static inline int create_ref_schedule(nccl_net_ofi_schedule_t **schedule, int nu
   return ret;
 }
 
-static inline int set_ref_schedule(nccl_net_ofi_schedule_t *schedule, size_t index, int rail_id, int offset, int msg_size) {
+static int set_ref_schedule(nccl_net_ofi_schedule_t *schedule, size_t index, int rail_id, int offset, int msg_size) {
   const int ret = 0;
   if (index >= schedule->num_xfer_infos) {
     NCCL_OFI_WARN("Index out of bounds");
@@ -70,8 +70,8 @@ static inline int set_ref_schedule(nccl_net_ofi_schedule_t *schedule, size_t ind
   return ret;
 }
 
-static inline int test_multiplexer(nccl_net_ofi_scheduler_t *scheduler, int num_rails, size_t msg_size, size_t num_stripes, int *rail_id, size_t *offset,
-                                   size_t *msg_size_per_stripe) {
+static int test_multiplexer(nccl_net_ofi_scheduler_t *scheduler, int num_rails, size_t msg_size, size_t num_stripes, int *rail_id, size_t *offset,
+                            size_t *msg_size_per_stripe) {
   int ret = 0;
   nccl_net_ofi_schedule_t *ref_schedule = nullptr;
   nccl_net_ofi_schedule_t *schedule = nullptr;
@@ -100,7 +100,7 @@ static inline int test_multiplexer(nccl_net_ofi_scheduler_t *scheduler, int num_
   return ret;
 }
 
-static inline int test_threshold_scheduler() {
+static int test_threshold_scheduler() {
   const size_t min_stripe_size = 4096;
   const size_t align = 128;
   const std::size_t num_rails = 4;

@@ -9,7 +9,7 @@
 #include "nccl_ofi_mr.hh"
 #include "test-common.hh"
 
-static inline bool test_lookup_impl(nccl_ofi_mr_cache_t *cache, void *addr, size_t size, void *expected_val) {
+static bool test_lookup_impl(nccl_ofi_mr_cache_t *cache, void *addr, size_t size, void *expected_val) {
   const nccl_ofi_mr_ckey_t ckey = nccl_ofi_mr_ckey_mk_vec(addr, size);
   ;
   void *result = nccl_ofi_mr_cache_lookup_entry(cache, &ckey);
@@ -25,7 +25,7 @@ static inline bool test_lookup_impl(nccl_ofi_mr_cache_t *cache, void *addr, size
     exit(1);                                                                                                                                                   \
   }
 
-static inline bool test_insert_impl(nccl_ofi_mr_cache_t *cache, void *addr, size_t size, void *handle, int expected_ret) {
+static bool test_insert_impl(nccl_ofi_mr_cache_t *cache, void *addr, size_t size, void *handle, int expected_ret) {
   const nccl_ofi_mr_ckey_t ckey = nccl_ofi_mr_ckey_mk_vec(addr, size);
   const int ret = nccl_ofi_mr_cache_insert_entry(cache, &ckey, handle);
   if (ret != expected_ret) {
@@ -40,7 +40,7 @@ static inline bool test_insert_impl(nccl_ofi_mr_cache_t *cache, void *addr, size
     exit(1);                                                                                                                                                   \
   }
 
-static inline bool test_delete_impl(nccl_ofi_mr_cache_t *cache, void *handle, int expected_ret) {
+static bool test_delete_impl(nccl_ofi_mr_cache_t *cache, void *handle, int expected_ret) {
   const int ret = nccl_ofi_mr_cache_del_entry(cache, handle);
   if (ret != expected_ret) {
     NCCL_OFI_WARN("nccl_ofi_mr_cache_del_entry returned unexpected result. Expected: %d. Actual: %d", expected_ret, ret);
@@ -54,7 +54,7 @@ static inline bool test_delete_impl(nccl_ofi_mr_cache_t *cache, void *handle, in
     exit(1);                                                                                                                                                   \
   }
 
-static inline bool test_make_aligned_key_impl(uintptr_t addr, size_t size, uintptr_t expected_base, size_t expected_size) {
+static bool test_make_aligned_key_impl(uintptr_t addr, size_t size, uintptr_t expected_base, size_t expected_size) {
   /* iovec only */
   const nccl_ofi_mr_ckey_t ckey = nccl_ofi_mr_ckey_mk_vec((void *)addr, size);
   const uintptr_t page_base = nccl_ofi_mr_ckey_baseaddr(&ckey);

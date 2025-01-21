@@ -97,7 +97,7 @@ int nccl_net_ofi_cuda_get_active_device_idx() {
 }
 
 int nccl_net_ofi_get_cuda_device_for_addr(void *data, int *dev_id) {
-  struct cudaPointerAttributes attrs = {};
+  cudaPointerAttributes attrs = {};
   cudaError_t res = cudaPointerGetAttributes(&attrs, data);
   if (res != cudaSuccess) {
     return -EINVAL;

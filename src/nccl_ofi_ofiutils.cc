@@ -92,9 +92,9 @@ static bool match_prov_info(char *name, uint32_t addr_format, uint64_t mem_tag_f
  * @param	num_infos
  *		Number of NICs represented in info_list
  */
-static void filter_tcp_info_list(struct fi_info **info_list, unsigned int *num_infos) {
-  struct fi_info *prev = nullptr, *curr = nullptr;
-  struct fi_info *delete_info = nullptr;
+static void filter_tcp_info_list(fi_info **info_list, unsigned int *num_infos) {
+  fi_info *prev = nullptr, *curr = nullptr;
+  fi_info *delete_info = nullptr;
   bool delete_prov = false;
   uint64_t expected_mem_tag_format = 0;
 
@@ -144,10 +144,10 @@ static void filter_tcp_info_list(struct fi_info **info_list, unsigned int *num_i
   }
 }
 
-int nccl_ofi_ofiutils_get_providers(const char *prov_include, uint32_t required_version, struct fi_info *hints, struct fi_info **prov_info_list,
+int nccl_ofi_ofiutils_get_providers(const char *prov_include, uint32_t required_version, fi_info *hints, fi_info **prov_info_list,
                                     unsigned int *num_prov_infos) {
   int rc = 0;
-  struct fi_info *providers = nullptr, *prov = nullptr, *last_prov = nullptr;
+  fi_info *providers = nullptr, *prov = nullptr, *last_prov = nullptr;
   const char *selected_prov_name = nullptr;
   assert(num_prov_infos != NULL);
   *num_prov_infos = 0;
@@ -188,7 +188,7 @@ int nccl_ofi_ofiutils_get_providers(const char *prov_include, uint32_t required_
   providers = nullptr;
   last_prov = nullptr;
   while (prov != nullptr) {
-    struct fi_info *prov_next = prov->next;
+    fi_info *prov_next = prov->next;
     prov->next = nullptr;
 
     if (strcmp(selected_prov_name, prov->fabric_attr->prov_name) != 0) {
@@ -248,10 +248,10 @@ error:
   return rc;
 }
 
-int nccl_ofi_ofiutils_init_connection(struct fi_info *info, struct fid_domain *domain, struct fid_ep **ep, struct fid_av **av, struct fid_cq **cq) {
+int nccl_ofi_ofiutils_init_connection(fi_info *info, fid_domain *domain, fid_ep **ep, fid_av **av, fid_cq **cq) {
   int ret = 0;
-  struct fi_av_attr av_attr = {};
-  struct fi_cq_attr cq_attr = {};
+  fi_av_attr av_attr = {};
+  fi_cq_attr cq_attr = {};
 
   /* Create transport level communication endpoint(s) */
   ret = fi_endpoint(domain, info, ep, nullptr);
@@ -420,7 +420,7 @@ error:
 /*
  * @brief	Release libfabric endpoint, address vector, and completion queue
  */
-void nccl_ofi_ofiutils_ep_release(struct fid_ep *ep, struct fid_av *av, struct fid_cq *cq, int dev_id) {
+void nccl_ofi_ofiutils_ep_release(fid_ep *ep, fid_av *av, fid_cq *cq, int dev_id) {
   if (ep)
     fi_close((fid_t)ep);
 
@@ -436,7 +436,7 @@ void nccl_ofi_ofiutils_ep_release(struct fid_ep *ep, struct fid_av *av, struct f
 /*
  * @brief Check if provider selects memory registration keys
  */
-int nccl_ofi_mr_keys_need_own_key(struct fi_info *provider, bool *provide_own_mr_key) {
+int nccl_ofi_mr_keys_need_own_key(fi_info *provider, bool *provide_own_mr_key) {
   if (!(provider->caps & FI_RMA)) {
     /* When FI_RMA is not requested, Libfabric considers
        memory registrations to be local only, and
@@ -472,12 +472,12 @@ int nccl_ofi_mr_keys_need_own_key(struct fi_info *provider, bool *provide_own_mr
  * This function frees all elements of the input list. The input list
  * may be a circular list.
  */
-void nccl_ofi_ofiutils_free_info_list(struct fi_info *info_list) {
+void nccl_ofi_ofiutils_free_info_list(fi_info *info_list) {
   if (!info_list)
     return;
 
-  struct fi_info *info = info_list;
-  struct fi_info *next = nullptr;
+  fi_info *info = info_list;
+  fi_info *next = nullptr;
   while (info) {
     next = info->next;
     info->next = nullptr;

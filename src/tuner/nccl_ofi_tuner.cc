@@ -50,7 +50,7 @@ static ncclResult_t nccl_ofi_tuner_init(size_t nRanks, size_t nNodes, ncclDebugL
   nccl_ofi_tuner_context_t *ctx = nullptr;
   bool region_support = false, model_support = false;
   int is_force_type_model = 0;
-  enum nccl_ofi_tuner_platform tuner_platform;
+  nccl_ofi_tuner_platform tuner_platform;
 
   ofi_log_function = logFunction;
 

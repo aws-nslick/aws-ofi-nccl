@@ -32,7 +32,7 @@
 #include "nccl_ofi_topo.hh"
 
 /* Indicates if GPUDirect is supported by libfabric provider */
-enum gdr_support_level_t support_gdr = GDR_UNKNOWN;
+gdr_support_level_t support_gdr = GDR_UNKNOWN;
 
 /* Indicates if the cudaDeviceFlushGPUDirectRDMAWrites function should be used
  * to flush data to the GPU. Note, CUDA flush support is not supported on all
@@ -331,9 +331,9 @@ exit:
   return ret;
 }
 
-static int get_device_pci_path(struct fid_nic *nic_info, char **path) {
+static int get_device_pci_path(fid_nic *nic_info, char **path) {
   int ret = 0;
-  const struct fi_pci_attr *pci = nullptr;
+  const fi_pci_attr *pci = nullptr;
   char *device_path = nullptr;
 
   if (nic_info->bus_attr->bus_type != FI_BUS_PCI) {
@@ -371,7 +371,7 @@ exit:
 /*
  * @brief	Set default properties for libfabric NIC info.
  */
-static int set_nic_props_default(int dev_id, struct fi_info *nic_prov, nccl_ofi_properties_t *props) {
+static int set_nic_props_default(int dev_id, fi_info *nic_prov, nccl_ofi_properties_t *props) {
   props->name = strdup(nic_prov->domain_attr->name);
 
   /*
@@ -414,9 +414,9 @@ static int set_nic_props_default(int dev_id, struct fi_info *nic_prov, nccl_ofi_
  *
  * @return	Populated props structure
  */
-int nccl_net_ofi_info_properties(nccl_net_ofi_plugin_t *plugin, struct fi_info *nic_prov, int dev_id, int num_devices, nccl_ofi_properties_t *props) {
+int nccl_net_ofi_info_properties(nccl_net_ofi_plugin_t *plugin, fi_info *nic_prov, int dev_id, int num_devices, nccl_ofi_properties_t *props) {
   int ret = 0;
-  struct fid_nic *nic_info = nullptr;
+  fid_nic *nic_info = nullptr;
   const char *platform_type = nullptr;
 
   memset(props, 0, sizeof(*props));
@@ -427,7 +427,7 @@ int nccl_net_ofi_info_properties(nccl_net_ofi_plugin_t *plugin, struct fi_info *
   }
 
   /* Change default values as set by NIC attributes */
-  nic_info = (struct fid_nic *)nic_prov->nic;
+  nic_info = (fid_nic *)nic_prov->nic;
   if (nic_info == nullptr) {
     NCCL_OFI_INFO(NCCL_INIT | NCCL_NET, "No NIC info for dev %d. Supplying default values for NIC properties.", dev_id);
     ret = 0;
@@ -566,7 +566,7 @@ exit:
   return ret;
 }
 
-int nccl_net_ofi_query_provider_capabilities(const struct fi_info *selected_provider, unsigned int num_providers) {
+int nccl_net_ofi_query_provider_capabilities(const fi_info *selected_provider, unsigned int num_providers) {
   NCCL_OFI_INFO(NCCL_INIT | NCCL_NET, "Selected Provider is %s (found %d nics)", selected_provider->fabric_attr->prov_name, num_providers);
 
   if (strncmp("efa", selected_provider->fabric_attr->prov_name, strlen("efa")) == 0) {
@@ -725,7 +725,7 @@ unlock:
   return ret;
 }
 
-int nccl_net_ofi_device_init(nccl_net_ofi_device_t *device, nccl_net_ofi_plugin_t *plugin, int device_index, struct fi_info *ofi_info) {
+int nccl_net_ofi_device_init(nccl_net_ofi_device_t *device, nccl_net_ofi_plugin_t *plugin, int device_index, fi_info *ofi_info) {
   int ret = 0;
 
   device->plugin = plugin;
@@ -951,7 +951,7 @@ int nccl_net_ofi_endpoint_fini(nccl_net_ofi_ep_t *ep) {
   return 0;
 }
 
-int get_inject_rma_size_opt(struct fid_ep *ofi_ep, size_t *max_write_inline_size) {
+int get_inject_rma_size_opt(fid_ep *ofi_ep, size_t *max_write_inline_size) {
 #if HAVE_DECL_FI_OPT_INJECT_RMA_SIZE
   int ret = 0;
   size_t optlen = sizeof(size_t);

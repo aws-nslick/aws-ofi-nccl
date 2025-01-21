@@ -92,7 +92,7 @@ out:
   return ret;
 }
 
-static inline void compute_page_address(uintptr_t addr, size_t size, uintptr_t system_page_size, uintptr_t *page_addr, size_t *pages) {
+static void compute_page_address(uintptr_t addr, size_t size, uintptr_t system_page_size, uintptr_t *page_addr, size_t *pages) {
   *page_addr = addr & -system_page_size;                                           /* start of page of data */
   *pages = (addr + size - (*page_addr) + system_page_size - 1) / system_page_size; /* Number of pages in buffer */
 }

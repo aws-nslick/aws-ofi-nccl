@@ -17,14 +17,14 @@
 struct nccl_ofi_freelist_elem_t {
   void *ptr;
   void *mr_handle;
-  struct nccl_ofi_freelist_elem *next;
+  nccl_ofi_freelist_elem_t *next;
 };
 
 /*
  * Internal: tracking data for blocks of allocated memory
  */
 struct nccl_ofi_freelist_block_t {
-  struct nccl_ofi_freelist_block_t *next;
+  nccl_ofi_freelist_block_t *next;
   void *memory;
   size_t memory_size;
   void *mr_handle;

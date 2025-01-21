@@ -10,7 +10,7 @@
 #include "nccl_ofi_param.hh"
 #include "tuner/nccl_ofi_tuner_model.hh"
 
-static struct nccl_ofi_tuner_model_params model_platform_params[NCCL_OFI_TUNER_PLATFORM_MAX] = {
+static nccl_ofi_tuner_model_params model_platform_params[NCCL_OFI_TUNER_PLATFORM_MAX] = {
     {
         /* P5 & P5e platform */
         .net_lat = 20.0,
@@ -47,8 +47,8 @@ static struct nccl_ofi_tuner_model_params model_platform_params[NCCL_OFI_TUNER_P
     },
 };
 
-static float nccl_ofi_tuner_compute_cost(struct nccl_ofi_tuner_model_params *params, struct nccl_ofi_tuner_model_dims *dims, ncclFunc_t func, int algo,
-                                         int proto, int pipe_ops, size_t size) {
+static float nccl_ofi_tuner_compute_cost(nccl_ofi_tuner_model_params *params, nccl_ofi_tuner_model_dims *dims, ncclFunc_t func, int algo, int proto,
+                                         int pipe_ops, size_t size) {
   float cost = -1;
   float latency = 0;
   float bw = 0;
@@ -123,7 +123,7 @@ static float nccl_ofi_tuner_compute_cost(struct nccl_ofi_tuner_model_params *par
  *         functions that are called by common tuner code start here
  *****************************************************************************
  *****************************************************************************/
-bool is_model_supported(enum nccl_ofi_tuner_platform platform, size_t nRanks, size_t nNodes) {
+bool is_model_supported(nccl_ofi_tuner_platform platform, size_t nRanks, size_t nNodes) {
   if (platform == NCCL_OFI_TUNER_P5_P5E || platform == NCCL_OFI_TUNER_P5EN) {
     return true;
   }
@@ -282,7 +282,7 @@ ncclResult_t model_destroy_internal(nccl_ofi_tuner_context_t *ctx) {
   return ncclSuccess;
 }
 
-ncclResult_t model_init_internal(nccl_ofi_tuner_context_t *ctx, enum nccl_ofi_tuner_platform platform, size_t nRanks, size_t nNodes) {
+ncclResult_t model_init_internal(nccl_ofi_tuner_context_t *ctx, nccl_ofi_tuner_platform platform, size_t nRanks, size_t nNodes) {
   ncclResult_t ret = ncclSuccess;
   auto *model_ctx = (nccl_ofi_tuner_model_context_t *)calloc(1, sizeof(nccl_ofi_tuner_model_context_t));
 

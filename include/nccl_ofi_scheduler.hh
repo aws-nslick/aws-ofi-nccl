@@ -43,9 +43,6 @@ struct nccl_net_ofi_schedule_t {
   nccl_net_ofi_xfer_info_t rail_xfer_infos[];
 };
 
-struct nccl_net_ofi_scheduler;
-typedef struct nccl_net_ofi_scheduler nccl_net_ofi_scheduler_t;
-
 /*
  * @brief	Base scheduler struct
  */

@@ -18,25 +18,23 @@ using nccl_ofi_tuner_region_dims_t = struct nccl_ofi_tuner_region_dims {
 };
 
 using nccl_ofi_tuner_region_context_t = struct nccl_ofi_tuner_region_context {
-  enum nccl_ofi_tuner_platform platform;
-  struct nccl_ofi_tuner_region_dims dims;
+  nccl_ofi_tuner_platform platform;
+  nccl_ofi_tuner_region_dims dims;
   size_t num_regions[NCCL_NUM_FUNCTIONS];
   nccl_ofi_tuner_region_t *regions[NCCL_NUM_FUNCTIONS];
 };
 
 /* Vector subtraction */
-static inline nccl_ofi_tuner_point_t vsub(nccl_ofi_tuner_point_t a, nccl_ofi_tuner_point_t b) {
-  return (nccl_ofi_tuner_point_t){.x = a.x - b.x, .y = a.y - b.y};
-}
+static nccl_ofi_tuner_point_t vsub(nccl_ofi_tuner_point_t a, nccl_ofi_tuner_point_t b) { return (nccl_ofi_tuner_point_t){.x = a.x - b.x, .y = a.y - b.y}; }
 
 /* Vector dot product */
-static inline double vdot(nccl_ofi_tuner_point_t a, nccl_ofi_tuner_point_t b) { return a.x * b.x + a.y * b.y; }
+static double vdot(nccl_ofi_tuner_point_t a, nccl_ofi_tuner_point_t b) { return a.x * b.x + a.y * b.y; }
 
 /* Magnitude of the cross product */
-static inline double vcross(nccl_ofi_tuner_point_t a, nccl_ofi_tuner_point_t b) { return a.x * b.y - a.y * b.x; }
+static double vcross(nccl_ofi_tuner_point_t a, nccl_ofi_tuner_point_t b) { return a.x * b.y - a.y * b.x; }
 
 /* Returns a + s * b */
-static inline nccl_ofi_tuner_point_t vmadd(nccl_ofi_tuner_point_t a, long double s, nccl_ofi_tuner_point_t b) {
+static nccl_ofi_tuner_point_t vmadd(nccl_ofi_tuner_point_t a, long double s, nccl_ofi_tuner_point_t b) {
   nccl_ofi_tuner_point_t c;
   c.x = a.x + s * b.x;
   c.y = a.y + s * b.y;
@@ -105,7 +103,7 @@ static int intersect(nccl_ofi_tuner_point_t x0, nccl_ofi_tuner_point_t x1, nccl_
  *
  * @return	distance or infinity if the point lies outside the segment.
  */
-static inline double distance(nccl_ofi_tuner_point_t x, nccl_ofi_tuner_point_t y0, nccl_ofi_tuner_point_t y1, double eps) {
+static double distance(nccl_ofi_tuner_point_t x, nccl_ofi_tuner_point_t y0, nccl_ofi_tuner_point_t y1, double eps) {
   const nccl_ofi_tuner_point_t dy = vsub(y1, y0);
   nccl_ofi_tuner_point_t x1, s;
   int r = 0;
@@ -728,7 +726,7 @@ exit:
  *****************************************************************************
  *****************************************************************************/
 
-bool is_region_supported(enum nccl_ofi_tuner_platform platform, size_t nRanks, size_t nNodes) {
+bool is_region_supported(nccl_ofi_tuner_platform platform, size_t nRanks, size_t nNodes) {
   if (platform == NCCL_OFI_TUNER_P5_P5E || platform == NCCL_OFI_TUNER_P5EN) {
     return true;
   }
@@ -843,7 +841,7 @@ ncclResult_t region_destroy_internal(nccl_ofi_tuner_context_t *ctx) {
   return ncclSuccess;
 }
 
-ncclResult_t region_init_internal(nccl_ofi_tuner_context_t *ctx, enum nccl_ofi_tuner_platform platform, size_t nRanks, size_t nNodes) {
+ncclResult_t region_init_internal(nccl_ofi_tuner_context_t *ctx, nccl_ofi_tuner_platform platform, size_t nRanks, size_t nNodes) {
   ncclResult_t ret = ncclSuccess;
 
   auto *region_ctx = (nccl_ofi_tuner_region_context_t *)calloc(1, sizeof(nccl_ofi_tuner_region_context_t));

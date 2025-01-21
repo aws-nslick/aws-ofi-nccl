@@ -16,7 +16,7 @@
 /*
  * @brief	Size of s schedule struct capable to store `num_rails' xfer info objects
  */
-static inline size_t sizeof_schedule(int num_rails) { return sizeof(nccl_net_ofi_schedule_t) + num_rails * sizeof(nccl_net_ofi_xfer_info_t); }
+static size_t sizeof_schedule(int num_rails) { return sizeof(nccl_net_ofi_schedule_t) + num_rails * sizeof(nccl_net_ofi_xfer_info_t); }
 
 /*
  * @brief  This function calculates the optimal number of stripes
@@ -62,8 +62,8 @@ static size_t get_num_stripes(nccl_net_ofi_threshold_scheduler_t *scheduler_p, s
  * data. The number of rails are calculated based on the ratio of
  * (`data_size` / `min_stripe_size`)
  */
-static inline int set_schedule_by_threshold(nccl_net_ofi_threshold_scheduler_t *scheduler, size_t size, int num_rails, size_t align,
-                                            nccl_net_ofi_schedule_t *schedule) {
+static int set_schedule_by_threshold(nccl_net_ofi_threshold_scheduler_t *scheduler, size_t size, int num_rails, size_t align,
+                                     nccl_net_ofi_schedule_t *schedule) {
   const int ret = 0;
   size_t num_stripes = 0;
 
@@ -228,7 +228,7 @@ static int threshold_scheduler_fini(nccl_net_ofi_scheduler_t *scheduler_p) {
  * @return	0, on success
  *		non-zero, on others
  */
-static inline int scheduler_init(int num_rails, nccl_net_ofi_scheduler_t *scheduler) {
+static int scheduler_init(int num_rails, nccl_net_ofi_scheduler_t *scheduler) {
   int ret = 0;
 
   ret = nccl_ofi_freelist_init(sizeof_schedule(num_rails), 16, 16, 0, &scheduler->schedule_fl);

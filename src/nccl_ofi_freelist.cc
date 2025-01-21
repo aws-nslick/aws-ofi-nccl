@@ -21,7 +21,7 @@
  * The buffer memory stores entry_count entries. Since the buffer memory needs
  * to cover full memory pages, the size is rounded up to page size.
  */
-static inline size_t freelist_buffer_mem_size_full_pages(size_t entry_size, size_t entry_count) {
+static size_t freelist_buffer_mem_size_full_pages(size_t entry_size, size_t entry_count) {
   const size_t buffer_mem_size = (entry_size * entry_count);
   return aon::detail::math::round_up(buffer_mem_size, system_page_size);
 }
@@ -37,7 +37,7 @@ static inline size_t freelist_buffer_mem_size_full_pages(size_t entry_size, size
  *
  * @return	Maximum number of entries
  */
-static inline size_t freelist_page_padded_entry_count(size_t entry_size, size_t entry_count) {
+static size_t freelist_page_padded_entry_count(size_t entry_size, size_t entry_count) {
   assert(entry_size > 0);
   const size_t covered_pages_size = freelist_buffer_mem_size_full_pages(entry_size, entry_count);
   return (covered_pages_size / entry_size);
@@ -117,8 +117,8 @@ int nccl_ofi_freelist_fini(nccl_ofi_freelist_t *freelist) {
   assert(freelist);
 
   while (freelist->blocks) {
-    struct nccl_ofi_freelist_block_t *block = freelist->blocks;
-    nccl_net_ofi_mem_defined(block, sizeof(struct nccl_ofi_freelist_block_t));
+    nccl_ofi_freelist_block_t *block = freelist->blocks;
+    nccl_net_ofi_mem_defined(block, sizeof(nccl_ofi_freelist_block_t));
     void *memory = block->memory;
     const size_t size = block->memory_size;
     freelist->blocks = block->next;
@@ -166,7 +166,7 @@ int nccl_ofi_freelist_add(nccl_ofi_freelist_t *freelist, size_t num_entries) {
   size_t allocation_count = num_entries;
   size_t block_mem_size = 0;
   char *buffer = nullptr;
-  struct nccl_ofi_freelist_block_t *block = nullptr;
+  nccl_ofi_freelist_block_t *block = nullptr;
   char *b_end = nullptr;
   char *b_end_aligned = nullptr;
 
@@ -192,7 +192,7 @@ int nccl_ofi_freelist_add(nccl_ofi_freelist_t *freelist, size_t num_entries) {
     return ret;
   }
 
-  block = (struct nccl_ofi_freelist_block_t *)calloc(1, sizeof(struct nccl_ofi_freelist_block_t));
+  block = (nccl_ofi_freelist_block_t *)calloc(1, sizeof(nccl_ofi_freelist_block_t));
   if (block == nullptr) {
     NCCL_OFI_WARN("Failed to allocate freelist block metadata");
     goto error;
@@ -252,7 +252,7 @@ int nccl_ofi_freelist_add(nccl_ofi_freelist_t *freelist, size_t num_entries) {
   }
 
   /* Block structure will not be accessed until freelist is destroyed */
-  nccl_net_ofi_mem_noaccess(block, sizeof(struct nccl_ofi_freelist_block_t));
+  nccl_net_ofi_mem_noaccess(block, sizeof(nccl_ofi_freelist_block_t));
 
   return 0;
 
