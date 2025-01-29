@@ -2,13 +2,13 @@
  * Copyright (c) 2024 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#include "config.h"
+#include "config.hh"
 
 #include <stdio.h>
 
-#include "test-common.h"
-#include "nccl_ofi_idpool.h"
-#include "nccl_ofi_math.h"
+#include "test-common.hh"
+#include "nccl_ofi_idpool.hh"
+#include "nccl_ofi_math.hh"
 
 int main(int argc, char *argv[]) {
 

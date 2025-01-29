@@ -2,15 +2,15 @@
  * Copyright (c) 2024 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#include "config.h"
+#include "config.hh"
 
 #include <errno.h>
 #include <stdbool.h>
 #include <stdlib.h>
 
-#include "nccl_ofi_idpool.h"
-#include "nccl_ofi_math.h"
-#include "nccl_ofi_pthread.h"
+#include "nccl_ofi_idpool.hh"
+#include "nccl_ofi_math.hh"
+#include "nccl_ofi_pthread.hh"
 
 /*
  * @brief	Initialize pool of IDs

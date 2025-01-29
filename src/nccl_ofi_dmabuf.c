@@ -2,18 +2,18 @@
  * Copyright (c) 2024 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#include "config.h"
+#include "config.hh"
 
 #include <errno.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <sys/utsname.h>
 
-#include "nccl_ofi_dmabuf.h"
-#include "nccl_ofi_log.h"
-#include "nccl_ofi_param.h"
+#include "nccl_ofi_dmabuf.hh"
+#include "nccl_ofi_log.hh"
+#include "nccl_ofi_param.hh"
 #if HAVE_CUDA
-#include "nccl_ofi_cuda.h"
+#include "nccl_ofi_cuda.hh"
 #endif
 
 /*

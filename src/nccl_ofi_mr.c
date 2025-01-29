@@ -2,13 +2,13 @@
  * Copyright (c) 2024 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#include "config.h"
+#include "config.hh"
 
 #include <errno.h>
 #include <stdlib.h>
 
-#include "nccl_ofi_mr.h"
-#include "nccl_ofi_pthread.h"
+#include "nccl_ofi_mr.hh"
+#include "nccl_ofi_pthread.hh"
 
 nccl_ofi_mr_cache_t *nccl_ofi_mr_cache_init(size_t init_num_entries,
 					    size_t mr_cache_page_size)

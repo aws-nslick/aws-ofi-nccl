@@ -2,14 +2,14 @@
  * Copyright (c) 2023 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#include "config.h"
+#include "config.hh"
 
 #include <assert.h>
 #include <errno.h>
 #include <pthread.h>
 
-#include "nccl_ofi_deque.h"
-#include "nccl_ofi_log.h"
+#include "nccl_ofi_deque.hh"
+#include "nccl_ofi_log.hh"
 
 int nccl_ofi_deque_init(nccl_ofi_deque_t **deque_p)
 {

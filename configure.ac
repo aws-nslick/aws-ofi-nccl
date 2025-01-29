@@ -8,9 +8,9 @@
 # Initialization
 AC_INIT([aws-ofi-nccl], [GitHub-dev], [al-ofi-nccl-team@amazon.com], , [http://github.com/aws/aws-ofi-nccl])
 AC_PREREQ([2.69])
-AC_CONFIG_SRCDIR([src/nccl_ofi_net.c])
+AC_CONFIG_SRCDIR([src/nccl_ofi_net.cc])
 AC_CONFIG_AUX_DIR([build-aux])
-AC_CONFIG_HEADERS([include/config.h])
+AC_CONFIG_HEADERS([include/config.hh])
 AC_CONFIG_MACRO_DIRS([m4])
 
 AM_INIT_AUTOMAKE([-Wall -Werror foreign subdir-objects tar-pax])
@@ -25,7 +25,7 @@ AH_TOP([/*
 
 ])
 AH_BOTTOM([
-#include "nccl_ofi_config_bottom.h"
+#include "nccl_ofi_config_bottom.hh"
 #endif /* NCCL_OFI_CONFIG_H */
 ])
 

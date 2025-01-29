@@ -6,7 +6,7 @@
 #define LTTNG_UST_TRACEPOINT_PROVIDER nccl_ofi_plugin
 
 #undef LTTNG_UST_TRACEPOINT_INCLUDE
-#define LTTNG_UST_TRACEPOINT_INCLUDE "tracing_impl/lttng.h"
+#define LTTNG_UST_TRACEPOINT_INCLUDE "tracing_impl/lttng.hh"
 
 /*
  * To add a tracepoint at the nccl_ofi_plugin layer:
@@ -28,7 +28,7 @@
  * tracing output, and arguments <arg1> and <arg2> with <name1> and
  * <name2> will appear in that trace as data.
  *
- * Add a macro to the top level nccl_ofi_tracepoint.h
+ * Add a macro to the top level nccl_ofi_tracepoint.hh
  *
  */
 
@@ -36,7 +36,7 @@
 
 /*
  * LTTNG_UST_TRACEPOINT_HEADER_MULTI_READ must be included so that the tracepoints
- * can be defined and compiled from tracepoint.c, and so they can be referenced
+ * can be defined and compiled from tracepoint.cc, and so they can be referenced
  * from any other files.
  *
  * Sample header syntax: https://lttng.org/man/3/lttng-ust/v2.13/#doc-creating-tp

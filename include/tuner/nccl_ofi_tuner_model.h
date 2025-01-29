@@ -2,7 +2,7 @@
 #define NCCL_OFI_TUNER_MODEL_H_
 
 #include <stdbool.h>
-#include "tuner/nccl_ofi_tuner_common.h"
+#include "tuner/nccl_ofi_tuner_common.hh"
 
 typedef struct nccl_ofi_tuner_model_params {
 	float net_lat; /* 2 nodes, 8B RDMA w/imm lat */

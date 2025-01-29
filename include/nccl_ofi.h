@@ -22,10 +22,10 @@ extern "C" {
 #include <nccl/net.h>
 #include <uthash/uthash.h>
 
-#include "nccl_ofi_log.h"
-#include "nccl_ofi_topo.h"
-#include "nccl_ofi_idpool.h"
-#include "nccl_ofi_mr.h"
+#include "nccl_ofi_log.hh"
+#include "nccl_ofi_topo.hh"
+#include "nccl_ofi_idpool.hh"
+#include "nccl_ofi_mr.hh"
 
 /*
  * NCCL_NET_HANDLE_MAXSIZE is a limited resource (and defined in NCCL).

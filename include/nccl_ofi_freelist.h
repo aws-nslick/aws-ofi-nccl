@@ -15,9 +15,9 @@ extern "C" {
 #include <stdlib.h>
 #include <pthread.h>
 
-#include "nccl_ofi_log.h"
-#include "nccl_ofi_memcheck.h"
-#include "nccl_ofi_pthread.h"
+#include "nccl_ofi_log.hh"
+#include "nccl_ofi_memcheck.hh"
+#include "nccl_ofi_pthread.hh"
 
 /*
  * Freelist element structure

@@ -3,16 +3,16 @@
  * Copyright (c) 2015-2018, NVIDIA CORPORATION. All rights reserved.
  */
 
-#include "config.h"
+#include "config.hh"
 
 #include <errno.h>
 #include <cudaTypedefs.h>
 #include <cuda_runtime_api.h>
 
-#include "nccl_ofi.h"
-#include "nccl_ofi_cuda.h"
-#include "nccl_ofi_log.h"
-#include "nccl_ofi_param.h"
+#include "nccl_ofi.hh"
+#include "nccl_ofi_cuda.hh"
+#include "nccl_ofi_log.hh"
+#include "nccl_ofi_param.hh"
 
 #define QUOTE(x)                        #x
 #define DECLARE_CUDA_FUNCTION(function) static PFN_##function pfn_##function = NULL

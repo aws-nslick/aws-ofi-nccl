@@ -2,12 +2,12 @@
  * Copyright (c) 2023 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#include "config.h"
+#include "config.hh"
 
 #include <stdio.h>
 
-#include "test-common.h"
-#include "nccl_ofi_deque.h"
+#include "test-common.hh"
+#include "nccl_ofi_deque.hh"
 
 #define test_get_front(deque, expected) \
 { \

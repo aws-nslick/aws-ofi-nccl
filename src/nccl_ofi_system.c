@@ -3,14 +3,14 @@
  * Copyright (c) 2015-2018, NVIDIA CORPORATION. All rights reserved.
  */
 
-#include "config.h"
+#include "config.hh"
 
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "nccl_ofi.h"
-#include "nccl_ofi_pthread.h"
-#include "nccl_ofi_system.h"
+#include "nccl_ofi.hh"
+#include "nccl_ofi_pthread.hh"
+#include "nccl_ofi_system.hh"
 
 #ifndef SYSFS_PRODUCT_NAME_STR
 #define SYSFS_PRODUCT_NAME_STR "/sys/devices/virtual/dmi/id/product_name"

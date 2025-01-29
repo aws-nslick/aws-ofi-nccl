@@ -2,7 +2,7 @@
  * Copyright (c) 2023-2024 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#include "config.h"
+#include "config.hh"
 
 #include <stdbool.h>
 #include <string.h>
@@ -12,11 +12,11 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#include "nccl_ofi_log.h"
-#include "nccl_ofi_topo.h"
-#include "nccl_ofi_math.h"
-#include "nccl_ofi_ofiutils.h"
-#include "nccl_ofi_platform.h"
+#include "nccl_ofi_log.hh"
+#include "nccl_ofi_topo.hh"
+#include "nccl_ofi_math.hh"
+#include "nccl_ofi_ofiutils.hh"
+#include "nccl_ofi_platform.hh"
 
 static const uint8_t target_class_id = 0x03;		/* Display controller class */
 static const unsigned short target_vendor_id = 0x10de;	/* NVIDIA */

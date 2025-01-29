@@ -2,12 +2,12 @@
  * Copyright (c) 2023 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#include "config.h"
+#include "config.hh"
 
 #include <stdio.h>
 
-#include "test-common.h"
-#include "nccl_ofi_freelist.h"
+#include "test-common.hh"
+#include "nccl_ofi_freelist.hh"
 
 void *simple_base;
 size_t simple_size;

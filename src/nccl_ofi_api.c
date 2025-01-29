@@ -3,13 +3,13 @@
  * Copyright (c) 2015-2018, NVIDIA CORPORATION. All rights reserved.
  */
 
-#include "config.h"
+#include "config.hh"
 
 #include <stdlib.h>
 
-#include "nccl_ofi.h"
-#include "nccl_ofi_api.h"
-#include "nccl_ofi_param.h"
+#include "nccl_ofi.hh"
+#include "nccl_ofi_api.hh"
+#include "nccl_ofi_param.hh"
 
 
 static_assert(sizeof(nccl_net_ofi_conn_handle_t) <= NCCL_NET_HANDLE_MAXSIZE,

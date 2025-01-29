@@ -2,16 +2,16 @@
  * Copyright (c) 2023 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#include "config.h"
+#include "config.hh"
 
 #include <assert.h>
 #include <errno.h>
 #include <pthread.h>
 #include <stdbool.h>
 
-#include "nccl_ofi_scheduler.h"
-#include "nccl_ofi_math.h"
-#include "nccl_ofi_pthread.h"
+#include "nccl_ofi_scheduler.hh"
+#include "nccl_ofi_math.hh"
+#include "nccl_ofi_pthread.hh"
 
 /*
  * @brief	Size of s schedule struct capable to store `num_rails' xfer info objects

@@ -2,16 +2,16 @@
  * Copyright (c) 2023 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#include "config.h"
+#include "config.hh"
 
 #include <assert.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <inttypes.h>
 
-#include "nccl_ofi_msgbuff.h"
-#include "nccl_ofi_log.h"
-#include "nccl_ofi_pthread.h"
+#include "nccl_ofi_msgbuff.hh"
+#include "nccl_ofi_log.hh"
+#include "nccl_ofi_pthread.hh"
 
 nccl_ofi_msgbuff_t *nccl_ofi_msgbuff_init(uint16_t max_inprogress, uint16_t bit_width)
 {

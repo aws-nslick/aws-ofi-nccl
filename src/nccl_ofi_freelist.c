@@ -2,17 +2,17 @@
  * Copyright (c) 2023 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#include "config.h"
+#include "config.hh"
 
 #include <assert.h>
 #include <errno.h>
 #include <pthread.h>
 #include <stdlib.h>
 
-#include "nccl_ofi.h"
-#include "nccl_ofi_freelist.h"
-#include "nccl_ofi_log.h"
-#include "nccl_ofi_math.h"
+#include "nccl_ofi.hh"
+#include "nccl_ofi_freelist.hh"
+#include "nccl_ofi_log.hh"
+#include "nccl_ofi_math.hh"
 
 /*
  * @brief	Returns size of buffer memory

@@ -2,12 +2,12 @@
  * Copyright (c) 2023 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#include "config.h"
+#include "config.hh"
 
 #include <stdio.h>
 
-#include "test-common.h"
-#include "nccl_ofi_ep_addr_list.h"
+#include "test-common.hh"
+#include "nccl_ofi_ep_addr_list.hh"
 
 static void insert_addresses(nccl_ofi_ep_addr_list_t *ep_addr_list, size_t num_addr, int ep_num)
 {

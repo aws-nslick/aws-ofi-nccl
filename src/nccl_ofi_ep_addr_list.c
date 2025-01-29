@@ -2,14 +2,14 @@
  * Copyright (c) 2024 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#include "config.h"
+#include "config.hh"
 
 #include <uthash/uthash.h>
 #include <uthash/utlist.h>
 
-#include "nccl_ofi.h"
-#include "nccl_ofi_pthread.h"
-#include "nccl_ofi_ep_addr_list.h"
+#include "nccl_ofi.hh"
+#include "nccl_ofi_pthread.hh"
+#include "nccl_ofi_ep_addr_list.hh"
 
 /**
  * A Libfabric address, stored in a form hashable by uthash

@@ -2,7 +2,7 @@
  * Copyright (c) 2024 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#include "config.h"
+#include "config.hh"
 
 #include <errno.h>
 #include <pthread.h>
@@ -12,16 +12,16 @@
 
 #include <nccl/tuner.h>
 
-#include "internal/tuner/nccl_defaults.h"
-#include "nccl_ofi_log.h"
-#include "nccl_ofi_math.h"
-#include "nccl_ofi_pthread.h"
-#include "nccl_ofi_system.h"
-#include "nccl_ofi_param.h"
+#include "internal/tuner/nccl_defaults.hh"
+#include "nccl_ofi_log.hh"
+#include "nccl_ofi_math.hh"
+#include "nccl_ofi_pthread.hh"
+#include "nccl_ofi_system.hh"
+#include "nccl_ofi_param.hh"
 
-#include "tuner/nccl_ofi_tuner_region.h"
-#include "tuner/nccl_ofi_tuner_model.h"
-#include "tuner/nccl_ofi_tuner.h"
+#include "tuner/nccl_ofi_tuner_region.hh"
+#include "tuner/nccl_ofi_tuner_model.hh"
+#include "tuner/nccl_ofi_tuner.hh"
 
 pthread_mutex_t nccl_ofi_tuner_ctx_lock = PTHREAD_MUTEX_INITIALIZER;
 ncclDebugLogger_t ofi_log_function = NULL;

@@ -2,13 +2,13 @@
  * Copyright (c) 2024 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#include "config.h"
+#include "config.hh"
 
-#include "test-common.h"
+#include "test-common.hh"
 #include <stdio.h>
 #include <string.h>
 
-#include "platform-aws.h"
+#include "platform-aws.hh"
 
 
 /* check that we get the expected response for all our known platforms */

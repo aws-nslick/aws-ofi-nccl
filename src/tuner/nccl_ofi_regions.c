@@ -2,12 +2,12 @@
  * Copyright (c) 2024 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#include "config.h"
+#include "config.hh"
 
 #include <math.h>
 
-#include "tuner/nccl_ofi_tuner_region.h"
-#include "nccl_ofi_param.h"
+#include "tuner/nccl_ofi_tuner_region.hh"
+#include "nccl_ofi_param.hh"
 
 
 typedef struct nccl_ofi_tuner_region_dims {

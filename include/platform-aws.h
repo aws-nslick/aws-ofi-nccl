@@ -3,7 +3,7 @@
  *
  * Access helper functions from platform-aws specifically for unit
  * tests.  You do not want to include this file outside of
- * platform-aws.c or a unit test, or you'll break linking on non-AWS
+ * platform-aws.cc or a unit test, or you'll break linking on non-AWS
  * platforms.
  */
 

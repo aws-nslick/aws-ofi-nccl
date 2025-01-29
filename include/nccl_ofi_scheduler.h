@@ -12,7 +12,7 @@ extern "C" {
 #include <stdint.h>
 #include <pthread.h>
 
-#include "nccl_ofi_freelist.h"
+#include "nccl_ofi_freelist.hh"
 
 /*
  * @brief	Transfer information for a rail.

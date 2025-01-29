@@ -7,7 +7,7 @@
 
 #include <stdbool.h>
 #include <stddef.h>
-#include "tuner/nccl_ofi_tuner_common.h"
+#include "tuner/nccl_ofi_tuner_common.hh"
 
 /**
  * check if "Region" base tuner supports the given platform, nRanks and nNodes.

@@ -9,7 +9,7 @@
 extern "C" {
 #endif
 
-#include "nccl_ofi_math.h"
+#include "nccl_ofi_math.hh"
 
 /**
  * Memory access tracing requires memory areas to be 8-byte aligned
@@ -18,11 +18,11 @@ extern "C" {
 #define MEMCHECK_GRANULARITY (8)
 
 #if ENABLE_VALGRIND
-#include "nccl_ofi_memcheck_valgrind.h"
+#include "nccl_ofi_memcheck_valgrind.hh"
 #elif ENABLE_ASAN
-#include "nccl_ofi_memcheck_asan.h"
+#include "nccl_ofi_memcheck_asan.hh"
 #else
-#include "nccl_ofi_memcheck_nop.h"
+#include "nccl_ofi_memcheck_nop.hh"
 #endif
 
 /**

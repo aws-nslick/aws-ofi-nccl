@@ -1,13 +1,13 @@
-#include "config.h"
+#include "config.hh"
 
 #include <stdlib.h>
 #include <math.h>
 #include <float.h>
 
-#include "tuner/nccl_ofi_tuner_model.h"
-#include "nccl_ofi_log.h"
-#include "nccl_ofi_math.h"
-#include "nccl_ofi_param.h"
+#include "tuner/nccl_ofi_tuner_model.hh"
+#include "nccl_ofi_log.hh"
+#include "nccl_ofi_math.hh"
+#include "nccl_ofi_param.hh"
 
 static struct nccl_ofi_tuner_model_params model_platform_params[NCCL_OFI_TUNER_PLATFORM_MAX] = {
 	{ /* P5 & P5e platform */
