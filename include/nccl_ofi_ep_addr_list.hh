@@ -8,12 +8,10 @@
 extern "C" {
 #endif
 
-struct nccl_ofi_ep_addr_list;
-typedef struct nccl_ofi_ep_addr_list nccl_ofi_ep_addr_list_t;
+struct nccl_ofi_ep_addr_list_t;
 
 /* Endpoint structure used by plugin code */
-struct nccl_net_ofi_ep;
-typedef struct nccl_net_ofi_ep nccl_net_ofi_ep_t;
+struct nccl_net_ofi_ep_t;
 
 /**
  * Initialize an endpoint-address-set pair list. This function allocates memory

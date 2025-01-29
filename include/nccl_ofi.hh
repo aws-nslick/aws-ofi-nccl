@@ -127,27 +127,16 @@ extern float net_latency;
 /* Size of system memory pages */
 extern size_t system_page_size;
 
-struct nccl_net_ofi_plugin;
-struct nccl_net_ofi_device;
-struct nccl_net_ofi_domain;
-struct nccl_net_ofi_ep;
-struct nccl_net_ofi_req;
-struct nccl_net_ofi_mr_handle;
-struct nccl_net_ofi_comm;
-struct nccl_net_ofi_listen_comm;
-struct nccl_net_ofi_send_comm;
-struct nccl_net_ofi_recv_comm;
-
-typedef struct nccl_net_ofi_plugin nccl_net_ofi_plugin_t;
-typedef struct nccl_net_ofi_device nccl_net_ofi_device_t;
-typedef struct nccl_net_ofi_domain nccl_net_ofi_domain_t;
-typedef struct nccl_net_ofi_ep nccl_net_ofi_ep_t;
-typedef struct nccl_net_ofi_req nccl_net_ofi_req_t;
-typedef struct nccl_net_ofi_mr_handle nccl_net_ofi_mr_handle_t;
-typedef struct nccl_net_ofi_comm nccl_net_ofi_comm_t;
-typedef struct nccl_net_ofi_listen_comm nccl_net_ofi_listen_comm_t;
-typedef struct nccl_net_ofi_send_comm nccl_net_ofi_send_comm_t;
-typedef struct nccl_net_ofi_recv_comm nccl_net_ofi_recv_comm_t;
+struct nccl_net_ofi_plugin_t;
+struct nccl_net_ofi_device_t;
+struct nccl_net_ofi_domain_t;
+struct nccl_net_ofi_ep_t;
+struct nccl_net_ofi_req_t;
+struct nccl_net_ofi_mr_handle_t;
+struct nccl_net_ofi_comm_t;
+struct nccl_net_ofi_listen_comm_t;
+struct nccl_net_ofi_send_comm_t;
+struct nccl_net_ofi_recv_comm_t;
 
 /**
  * Request - handle for an outstanding non-blocking communication
@@ -157,46 +146,47 @@ typedef struct nccl_net_ofi_recv_comm nccl_net_ofi_recv_comm_t;
  * or flush, and will be freed by the callee of test when the request
  * is complete.
  */
-struct nccl_net_ofi_req {
+struct nccl_net_ofi_req_t {
   int (*test)(nccl_net_ofi_req_t *req, int *done, int *size);
 };
 
 /* Various stages of connection establishment */
-typedef enum nccl_ofi_comm_stage {
+enum nccl_ofi_comm_stage_t {
   COMM_CREATE_START = 0,
   COMM_SEND_CONN,
   COMM_RECV_CONN,
   COMM_CONN_REQ_PENDING,
   COMM_CONN_RESP_REQ_PENDING,
   COMM_CONNECTED,
-} nccl_ofi_comm_stage_t;
+};
 
-typedef struct save_comm_state {
+struct save_comm_state_t {
   nccl_net_ofi_comm_t *comm;
   nccl_net_ofi_req_t *req;
   nccl_ofi_comm_stage_t stage;
-} save_comm_state_t;
+};
 
-typedef struct nccl_ofi_connection_info {
+struct nccl_ofi_connection_info_t {
   char ep_name[MAX_EP_ADDR];
   uint64_t ep_namelen;
   uint64_t connect_to_self;
   nccl_net_ofi_req_t *req;
-} nccl_ofi_connection_info_t;
+};
+
 /* Since this is a message on the wire, check that it has the expected size */
 static_assert(sizeof(nccl_ofi_connection_info_t) == 80, "Wrong size for SENDRECV connect message");
 
-typedef struct nccl_net_ofi_conn_handle {
+struct nccl_net_ofi_conn_handle_t {
   char ep_name[MAX_EP_ADDR];
   uint32_t comm_id;
   /* Save temporary communicator state when creating send communicator */
   save_comm_state_t state;
-} nccl_net_ofi_conn_handle_t;
+};
 
 /**
  * Properties structure
  */
-typedef struct nccl_ofi_properties {
+struct nccl_ofi_properties_t {
   char *name;
   /** Path to the device in /sys */
   char *pci_path;
@@ -225,7 +215,7 @@ typedef struct nccl_ofi_properties {
   size_t max_mr_key_size;
   /** Indicator whether RMA operations of NCCL Net API are supported **/
   int rma_supported;
-} nccl_ofi_properties_t;
+};
 
 /**
  * Device Data
@@ -234,8 +224,8 @@ typedef struct nccl_ofi_properties {
  * group.  The device is the unit of bandwidth sharing and general NIC
  * propoeries, and accessing domains (ie, groups of NIC resources).
  */
-struct nccl_net_ofi_device {
-  struct nccl_net_ofi_plugin *plugin;
+struct nccl_net_ofi_device_t {
+  struct nccl_net_ofi_plugin_t *plugin;
 
   /* this device's index in the plugin's devices array */
   int dev_id;
@@ -299,7 +289,7 @@ struct nccl_net_ofi_device {
  * generally it is expected that calls into resources that share the
  * same domain will share the same lock.
  */
-struct nccl_net_ofi_domain {
+struct nccl_net_ofi_domain_t {
   /* Backpointer to the device associated with this domain. */
   nccl_net_ofi_device_t *device;
 
@@ -368,7 +358,7 @@ struct nccl_net_ofi_domain {
  * call to get_ep() or during initialization is left to the
  * implementation.
  */
-struct nccl_net_ofi_ep {
+struct nccl_net_ofi_ep_t {
   /* Backpointer to the domain associated with this ep. */
   nccl_net_ofi_domain_t *domain;
 
@@ -450,7 +440,7 @@ enum nccl_net_ofi_comm_type_t {
  * but instead underlying transports should extend the listen, send,
  * and recv communicators.
  */
-struct nccl_net_ofi_comm {
+struct nccl_net_ofi_comm_t {
   enum nccl_net_ofi_comm_type_t type;
   nccl_net_ofi_ep_t *ep;
   int dev_id;
@@ -459,14 +449,14 @@ struct nccl_net_ofi_comm {
 /**
  * Listen Communicator - Communicator for a listen/accept pairing
  */
-struct nccl_net_ofi_listen_comm {
+struct nccl_net_ofi_listen_comm_t {
   nccl_net_ofi_comm_t base;
 
   int (*accept)(nccl_net_ofi_listen_comm_t *listen_comm, nccl_net_ofi_recv_comm_t **recv_comm);
   int (*close)(nccl_net_ofi_listen_comm_t *listen_comm);
 };
 
-struct nccl_net_ofi_send_comm {
+struct nccl_net_ofi_send_comm_t {
   nccl_net_ofi_comm_t base;
 
   /*
@@ -495,7 +485,7 @@ struct nccl_net_ofi_send_comm {
   int (*write_inline)(nccl_net_ofi_send_comm_t *, void *src, size_t size, uint64_t dest, uint64_t mr_key, nccl_net_ofi_req_t **request);
 };
 
-struct nccl_net_ofi_recv_comm {
+struct nccl_net_ofi_recv_comm_t {
   nccl_net_ofi_comm_t base;
 
   /*
@@ -534,7 +524,7 @@ struct nccl_net_ofi_recv_comm {
  * named nccl_net_ofi_plugin, which is valid after NCCL calls init()
  * on the plugin.
  */
-struct nccl_net_ofi_plugin {
+struct nccl_net_ofi_plugin_t {
   /* public */
 
   /**

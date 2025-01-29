@@ -14,7 +14,7 @@ extern "C" {
 /*
  * Pool of IDs, used to keep track of communicator IDs and MR keys.
  */
-typedef struct nccl_ofi_idpool {
+struct nccl_ofi_idpool_t {
   /* Size of the id pool (number of IDs) */
   size_t size;
 
@@ -24,7 +24,7 @@ typedef struct nccl_ofi_idpool {
 
   /* Lock for concurrency */
   pthread_mutex_t lock;
-} nccl_ofi_idpool_t;
+};
 
 /*
  * @brief	Initialize pool of IDs

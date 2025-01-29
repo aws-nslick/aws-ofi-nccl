@@ -12,11 +12,11 @@ extern "C" {
 #include <nccl/err.h>
 #include <nccl/net.h>
 
-struct nccl_ofi_properties;
+struct nccl_ofi_properties_t;
 
 ncclResult_t nccl_net_ofi_init(ncclDebugLogger_t logFunction);
 ncclResult_t nccl_net_ofi_devices(int *ndev);
-ncclResult_t nccl_net_ofi_get_properties(int dev, struct nccl_ofi_properties *ofi_properties);
+ncclResult_t nccl_net_ofi_get_properties(int dev, struct nccl_ofi_properties_t *ofi_properties);
 ncclResult_t nccl_net_ofi_listen(int dev, void *handle, void **listenComm);
 ncclResult_t nccl_net_ofi_listen_v4(int dev, void *handle, void **listenComm);
 ncclResult_t nccl_net_ofi_connect(int dev, void *handle, void **sendComm);

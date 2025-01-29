@@ -27,7 +27,6 @@ struct nccl_ofi_deque_elem_t {
   /* Pointer to next element */
   struct nccl_ofi_deque_elem_t *next;
 };
-typedef struct nccl_ofi_deque_elem_t nccl_ofi_deque_elem_t;
 
 /*
  * Deque (doubly-ended queue) structure
@@ -48,7 +47,6 @@ struct nccl_ofi_deque_t {
   /* Lock for deque operations */
   pthread_mutex_t lock;
 };
-typedef struct nccl_ofi_deque_t nccl_ofi_deque_t;
 
 /*
  * Initialize deque structure.

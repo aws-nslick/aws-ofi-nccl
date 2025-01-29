@@ -2904,10 +2904,10 @@ static int reg_mr_recv_comm(nccl_net_ofi_recv_comm_t *recv_comm, nccl_ofi_mr_cke
   return reg_mr_ep(ep, ckey, type, domain->base.mr_cache, (nccl_net_ofi_rdma_mr_handle_t **)mhandle);
 }
 
-typedef struct {
+struct freelist_regmr_fn_handle_t {
   nccl_net_ofi_rdma_mr_handle_t *mr_handle;
   nccl_ofi_idpool_t *key_pool;
-} freelist_regmr_fn_handle_t;
+};
 
 /**
  * Register host memory for use with the given communicator

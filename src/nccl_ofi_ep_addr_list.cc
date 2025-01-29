@@ -14,25 +14,25 @@
 /**
  * A Libfabric address, stored in a form hashable by uthash
  */
-typedef struct {
+struct hashed_addr_t {
   UT_hash_handle hh;
   char addr[];
-} hashed_addr_t;
+};
 
 /**
  * A linked list of pairs of (ep, HashSet<addr>).
  */
-typedef struct ep_pair_list_elem {
+struct ep_pair_list_elem_t {
   nccl_net_ofi_ep_t *ep;
   hashed_addr_t *addr_set;
-  struct ep_pair_list_elem *prev;
-  struct ep_pair_list_elem *next;
-} ep_pair_list_elem_t;
+  struct ep_pair_list_elem_t *prev;
+  struct ep_pair_list_elem_t *next;
+};
 
 /**
  * Outer structure storing the ep list and a mutex to protect access
  */
-struct nccl_ofi_ep_addr_list {
+struct nccl_ofi_ep_addr_list_t {
   ep_pair_list_elem_t *ep_pair_list;
   size_t max_addr_size;
   pthread_mutex_t mutex;

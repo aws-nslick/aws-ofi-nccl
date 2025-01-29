@@ -9,7 +9,7 @@
 #include "nccl_ofi_param.hh"
 #include "tuner/nccl_ofi_tuner_model.hh"
 
-static struct nccl_ofi_tuner_model_params model_platform_params[NCCL_OFI_TUNER_PLATFORM_MAX] = {
+static struct nccl_ofi_tuner_model_params_t model_platform_params[NCCL_OFI_TUNER_PLATFORM_MAX] = {
     {
         /* P5 & P5e platform */
         .net_lat = 20.0,
@@ -46,7 +46,7 @@ static struct nccl_ofi_tuner_model_params model_platform_params[NCCL_OFI_TUNER_P
     },
 };
 
-static float nccl_ofi_tuner_compute_cost(struct nccl_ofi_tuner_model_params *params, struct nccl_ofi_tuner_model_dims *dims, ncclFunc_t func, int algo,
+static float nccl_ofi_tuner_compute_cost(struct nccl_ofi_tuner_model_params_t *params, struct nccl_ofi_tuner_model_dims_t *dims, ncclFunc_t func, int algo,
                                          int proto, int pipe_ops, size_t size) {
   float cost = -1;
   float latency = 0;

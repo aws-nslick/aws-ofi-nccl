@@ -9,15 +9,13 @@
 #include <nccl/tuner.h>
 #include <linux/limits.h>
 
-typedef struct nccl_ofi_tuner_context nccl_ofi_tuner_context_t;
-
 /* region base vs. model base */
 enum nccl_ofi_tuner_type { NCCL_OFI_TUNER_TYPE_REGION = 0, NCCL_OFI_TUNER_TYPE_MODEL };
 
 /* platform type for tuner respective */
 enum nccl_ofi_tuner_platform { NCCL_OFI_TUNER_P5_P5E = 0, NCCL_OFI_TUNER_P5EN, NCCL_OFI_TUNER_UNKNOWN, NCCL_OFI_TUNER_PLATFORM_MAX = NCCL_OFI_TUNER_UNKNOWN };
 
-struct nccl_ofi_tuner_context {
+struct nccl_ofi_tuner_context_t {
   enum nccl_ofi_tuner_type type;
   /* pointer to tuner type ("Region" or "Model") specific context data */
   void *type_ctx;

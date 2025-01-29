@@ -155,17 +155,17 @@ static inline void nccl_ofi_mr_ckey_fill_mr_attrs(nccl_ofi_mr_ckey_ref ckey, str
 /**
  * A memory registration cache entry
  */
-typedef struct nccl_ofi_reg_entry {
+struct nccl_ofi_reg_entry_t {
   uintptr_t addr;
   size_t pages;
   int refcnt;
   void *handle;
-} nccl_ofi_reg_entry_t;
+};
 
 /**
  * Device-specific memory registration cache.
  */
-typedef struct nccl_ofi_mr_cache {
+struct nccl_ofi_mr_cache_t {
   nccl_ofi_reg_entry_t **slots;
   size_t system_page_size;
   size_t size;
@@ -173,7 +173,7 @@ typedef struct nccl_ofi_mr_cache {
   uint32_t hit_count;
   uint32_t miss_count;
   pthread_mutex_t lock;
-} nccl_ofi_mr_cache_t;
+};
 
 /**
  * Create a new mr cache. Both then initial number of entries and the system

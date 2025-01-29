@@ -9,18 +9,18 @@
 #include "nccl_ofi_param.hh"
 #include "tuner/nccl_ofi_tuner_region.hh"
 
-typedef struct nccl_ofi_tuner_region_dims {
+struct nccl_ofi_tuner_region_dims_t {
   /* communicator size */
   size_t num_ranks;
   size_t num_nodes;
-} nccl_ofi_tuner_region_dims_t;
+};
 
-typedef struct nccl_ofi_tuner_region_context {
+struct nccl_ofi_tuner_region_context_t {
   enum nccl_ofi_tuner_platform platform;
-  struct nccl_ofi_tuner_region_dims dims;
+  struct nccl_ofi_tuner_region_dims_t dims;
   size_t num_regions[NCCL_NUM_FUNCTIONS];
   nccl_ofi_tuner_region_t *regions[NCCL_NUM_FUNCTIONS];
-} nccl_ofi_tuner_region_context_t;
+};
 
 /* Vector subtraction */
 static inline nccl_ofi_tuner_point_t vsub(nccl_ofi_tuner_point_t a, nccl_ofi_tuner_point_t b) {

@@ -14,20 +14,20 @@ extern "C" {
 #include "nccl_ofi_freelist.hh"
 #include "nccl_ofi_log.hh"
 
-typedef enum nccl_net_ofi_sendrecv_req_state {
+enum nccl_net_ofi_sendrecv_req_state_t {
   NCCL_OFI_SENDRECV_REQ_CREATED = 0,
   NCCL_OFI_SENDRECV_REQ_PENDING,
   NCCL_OFI_SENDRECV_REQ_COMPLETED,
   NCCL_OFI_SENDRECV_REQ_ERROR,
-} nccl_net_ofi_sendrecv_req_state_t;
+};
 
-typedef enum nccl_net_ofi_sendrecv_req_direction {
+enum nccl_net_ofi_sendrecv_req_direction_t {
   NCCL_OFI_SENDRECV_INVALID_DIRECTION = 0,
   NCCL_OFI_SENDRECV_SEND = 1,
   NCCL_OFI_SENDRECV_RECV,
-} nccl_net_ofi_sendrecv_req_direction_t;
+};
 
-typedef struct nccl_net_ofi_sendrecv_listen_comm {
+struct nccl_net_ofi_sendrecv_listen_comm_t {
   /* This base listen communicator must be the first member of
    * this struct. This allows casting between pointers of this
    * struct and its base struct. */
@@ -41,9 +41,9 @@ typedef struct nccl_net_ofi_sendrecv_listen_comm {
   save_comm_state_t state;
   /* Saves peer address information */
   nccl_ofi_connection_info_t *conn_info;
-} nccl_net_ofi_sendrecv_listen_comm_t;
+};
 
-typedef struct nccl_net_ofi_sendrecv_send_comm {
+struct nccl_net_ofi_sendrecv_send_comm_t {
   /* This base send communicator must be the first member of this
    * struct. This allows casting between pointers of this struct
    * and its base struct. */
@@ -58,17 +58,17 @@ typedef struct nccl_net_ofi_sendrecv_send_comm {
   struct fid_ep *local_ep;
 
   nccl_ofi_connection_info_t *conn_info;
-} nccl_net_ofi_sendrecv_send_comm_t;
+};
 
 /* Metadata about dummy flush buffer */
-typedef struct nccl_net_ofi_sendrecv_flush_buffer {
+struct nccl_net_ofi_sendrecv_flush_buffer_t {
   void *host_buffer;
   size_t size;
   /* Memory registration handle of the local buffer */
   struct fid_mr *mr_handle;
-} nccl_net_ofi_sendrecv_flush_buffer_t;
+};
 
-typedef struct nccl_net_ofi_sendrecv_recv_comm {
+struct nccl_net_ofi_sendrecv_recv_comm_t {
   /* This base receive communicator must be the first member of
    * this struct. This allows casting between pointers of this
    * struct and its base struct. */
@@ -83,7 +83,7 @@ typedef struct nccl_net_ofi_sendrecv_recv_comm {
   struct fid_ep *local_ep;
 
   nccl_net_ofi_sendrecv_flush_buffer_t flush_buff;
-} nccl_net_ofi_sendrecv_recv_comm_t;
+};
 
 /**
  * @brief	Sendrecv Endpoint
@@ -92,7 +92,7 @@ typedef struct nccl_net_ofi_sendrecv_recv_comm {
  * for the sendrecv protocol that uses libfabric's fi_tsend and
  * fi_trecv for communication.
  */
-typedef struct nccl_net_ofi_sendrecv_ep {
+struct nccl_net_ofi_sendrecv_ep_t {
   /* This base endpoint interface struct provides access to the
    * sendrecv endpoint's functions such as sendrecv_listen() and
    * sendrecv_connect(). At construction time of this endpoint,
@@ -118,19 +118,19 @@ typedef struct nccl_net_ofi_sendrecv_ep {
 
   /* Completion Queue handle */
   struct fid_cq *cq;
-} nccl_net_ofi_sendrecv_ep_t;
+};
 
 /*
  * Domain - container for the libfabric domain, which is the threading
  * boundary for most Libfabric providers, given how the util cq
  * implementation works.
  */
-typedef struct nccl_net_ofi_sendrecv_domain {
+struct nccl_net_ofi_sendrecv_domain_t {
   nccl_net_ofi_domain_t base;
 
   /* Access Domain handle */
   struct fid_domain *domain;
-} nccl_net_ofi_sendrecv_domain_t;
+};
 
 /**
  * @brief	Sendrecv Device
@@ -145,7 +145,7 @@ typedef struct nccl_net_ofi_sendrecv_domain {
  * locks and the lifetime of resouces is maintained with a reference
  * counter.
  */
-typedef struct nccl_net_ofi_sendrecv_device {
+struct nccl_net_ofi_sendrecv_device_t {
   /* This base device interface struct provides access to the
    * sendrecv endpoint's functions such as
    * sendrecv_get_properties(), sendrecv_get_ep(), and
@@ -174,9 +174,9 @@ typedef struct nccl_net_ofi_sendrecv_device {
 
   /* Fabric handle */
   struct fid_fabric *fabric;
-} nccl_net_ofi_sendrecv_device_t;
+};
 
-typedef struct nccl_net_ofi_sendrecv_req {
+struct nccl_net_ofi_sendrecv_req_t {
   nccl_net_ofi_req_t base;
 
   /* Associated Comm object */
@@ -202,14 +202,13 @@ typedef struct nccl_net_ofi_sendrecv_req {
 
   /* Backpointer to freelist elem (for cleanup) */
   nccl_ofi_freelist_elem_t *elem;
-} nccl_net_ofi_sendrecv_req_t;
+};
 
-struct nccl_net_ofi_sendrecv_plugin {
+struct nccl_net_ofi_sendrecv_plugin_t {
   nccl_net_ofi_plugin_t base;
 
   struct fi_info *provider_list;
 };
-typedef struct nccl_net_ofi_sendrecv_plugin nccl_net_ofi_sendrecv_plugin_t;
 
 /*
  * @brief	Initialize plugin with sendrecv protocol structures

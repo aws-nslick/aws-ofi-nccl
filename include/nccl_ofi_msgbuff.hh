@@ -42,7 +42,7 @@ extern "C" {
  */
 
 /* Enumeration to keep track of different msg statuses. */
-typedef enum {
+enum nccl_ofi_msgbuff_status_t {
   /** The message has been marked completed **/
   NCCL_OFI_MSGBUFF_COMPLETED,
   /** The message has been added to the buffer but not marked complete **/
@@ -51,37 +51,37 @@ typedef enum {
   NCCL_OFI_MSGBUFF_NOTSTARTED,
   /** The index is not in the range of completed or not-started messages **/
   NCCL_OFI_MSGBUFF_UNAVAILABLE,
-} nccl_ofi_msgbuff_status_t;
+};
 
-typedef enum {
+enum nccl_ofi_msgbuff_result_t {
   /** Operation completed successfully **/
   NCCL_OFI_MSGBUFF_SUCCESS,
   /** The provided index was invalid; see msg_idx_status output **/
   NCCL_OFI_MSGBUFF_INVALID_IDX,
   /** Other error **/
   NCCL_OFI_MSGBUFF_ERROR,
-} nccl_ofi_msgbuff_result_t;
+};
 
 /* Type of element stored in msg buffer. This is used to distinguish between
    reqs and rx buffers (when we don't have req) stored in the message buffer */
-typedef enum {
+enum nccl_ofi_msgbuff_elemtype_t {
   /* Request */
   NCCL_OFI_MSGBUFF_REQ,
   /* Rx buffer */
   NCCL_OFI_MSGBUFF_BUFF
-} nccl_ofi_msgbuff_elemtype_t;
+};
 
 /* Internal buffer storage type, used to keep status of elements currently stored in
  * buffer */
-typedef struct {
+struct nccl_ofi_msgbuff_elem_t {
   // Status of message: COMPLETED, INPROGRESS, or NOTSTARTED
   nccl_ofi_msgbuff_status_t stat;
   // Type of element
   nccl_ofi_msgbuff_elemtype_t type;
   void *elem;
-} nccl_ofi_msgbuff_elem_t;
+};
 
-typedef struct {
+struct nccl_ofi_msgbuff_t {
   // Element storage buffer. Allocated in msgbuff_init
   nccl_ofi_msgbuff_elem_t *buff;
   /* Max number of INPROGRESS elements. These are the only
@@ -100,7 +100,7 @@ typedef struct {
   uint16_t msg_next;
   // Mutex for this msg buffer -- locks all non-init operations
   pthread_mutex_t lock;
-} nccl_ofi_msgbuff_t;
+};
 
 /**
  * Allocates and initializes a new message buffer.
