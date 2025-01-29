@@ -2,8 +2,7 @@
  * Copyright (c) 2018-2024 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#ifndef NCCL_OFI_SYSTEM_H_
-#define NCCL_OFI_SYSTEM_H_
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -26,4 +25,3 @@ const char *nccl_net_ofi_get_product_name(void);
 }
 #endif
 
-#endif  // End NCCL_OFI_SYSTEM_H_

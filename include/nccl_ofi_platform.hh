@@ -2,8 +2,7 @@
  * Copyright (c) 2018-2024 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#ifndef NCCL_OFI_PLATFORM_H_
-#define NCCL_OFI_PLATFORM_H_
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -63,4 +62,3 @@ bool platform_default_domain_per_thread(void) __attribute__((weak));
 }
 #endif
 
-#endif // End NCCL_OFI_PLATFORM_H_

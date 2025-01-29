@@ -3,8 +3,7 @@
  * Copyright (c) 2015-2018, NVIDIA CORPORATION. All rights reserved.
  */
 
-#ifndef NCCL_OFI_LOG_H_
-#define NCCL_OFI_LOG_H_
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -49,4 +48,3 @@ extern nccl_ofi_logger_t ofi_log_function;
 } // End extern "C"
 #endif
 
-#endif // End NCCL_OFI_LOG_H_

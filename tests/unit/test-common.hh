@@ -2,8 +2,7 @@
  * Copyright (c) 2018-2023 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#ifndef TEST_COMMON_H_
-#define TEST_COMMON_H_
+#pragma once
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -46,4 +45,3 @@ static inline void logger(ncclDebugLogLevel level, unsigned long flags, const ch
 #pragma GCC diagnostic pop
 }
 
-#endif // End TEST_COMMON_H_

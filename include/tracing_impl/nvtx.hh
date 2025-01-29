@@ -2,8 +2,7 @@
  * Copyright (c) 2022-2024 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#ifndef NVTX_H
-#define NVTX_H
+#pragma once
 
 #if HAVE_NVTX_TRACING
 #include <nvtx3/nvToolsExt.h>
@@ -233,4 +232,3 @@ static inline void nvtx_end(nvtxRangeId_t id) {
 
 #endif
 
-#endif /* NVTX_H */

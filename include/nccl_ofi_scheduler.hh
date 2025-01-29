@@ -2,8 +2,7 @@
  * Copyright (c) 2023 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#ifndef NCCL_OFI_SCHEDULER_H_
-#define NCCL_OFI_SCHEDULER_H_
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -125,4 +124,3 @@ int nccl_net_ofi_threshold_scheduler_init(int num_rails, size_t min_stripe_size,
 } // End extern "C"
 #endif
 
-#endif // End NCCL_OFI_SCHEDULER_H_

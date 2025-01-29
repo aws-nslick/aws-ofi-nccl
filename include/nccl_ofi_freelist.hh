@@ -2,8 +2,7 @@
  * Copyright (c) 2018-2023 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#ifndef NCCL_OFI_FREELIST_H
-#define NCCL_OFI_FREELIST_H
+#pragma once
 
 
 #ifdef __cplusplus
@@ -245,4 +244,3 @@ static inline void nccl_ofi_freelist_entry_free(nccl_ofi_freelist_t *freelist,
 } // End extern "C"
 #endif
 
-#endif // End NCCL_OFI_FREELIST_H

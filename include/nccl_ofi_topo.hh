@@ -2,8 +2,7 @@
  * Copyright (c) 2023 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#ifndef NCCL_NET_OFI_TOPO_H_
-#define NCCL_NET_OFI_TOPO_H_
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -319,4 +318,3 @@ int nccl_ofi_topo_write_nccl_topology(nccl_ofi_topo_t *topo, FILE *file);
 }
 #endif
 
-#endif // End NCCL_NET_OFI_TOPO_H_

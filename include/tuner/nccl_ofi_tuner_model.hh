@@ -1,5 +1,4 @@
-#ifndef NCCL_OFI_TUNER_MODEL_H_
-#define NCCL_OFI_TUNER_MODEL_H_
+#pragma once
 
 #include <stdbool.h>
 #include "tuner/nccl_ofi_tuner_common.hh"
@@ -60,4 +59,3 @@ ncclResult_t model_get_coll_info_internal_v2(nccl_ofi_tuner_context_t *ctx,
 
 ncclResult_t model_destroy_internal(nccl_ofi_tuner_context_t *ctx);
 
-#endif /* NCCL_OFI_TUNER_MODEL_H_ */

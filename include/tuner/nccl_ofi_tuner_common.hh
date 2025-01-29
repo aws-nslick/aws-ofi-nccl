@@ -2,8 +2,7 @@
  * Copyright (c) 2024 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#ifndef NCCL_OFI_TUNER_COMMON_H_
-#define NCCL_OFI_TUNER_COMMON_H_
+#pragma once
 
 #include "config.hh"
 
@@ -61,4 +60,3 @@ struct nccl_ofi_tuner_context {
 	ncclResult_t (*destroy_internal)(nccl_ofi_tuner_context_t *ctx);
 };
 
-#endif /* NCCL_OFI_TUNER_COMMON_H_ */

@@ -2,8 +2,7 @@
  * Copyright (c) 2018 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#ifndef TEST_COMMON_H_
-#define TEST_COMMON_H_
+#pragma once
 
 #include "config.hh"
 
@@ -224,4 +223,3 @@ static test_nccl_net_t *get_extNet(void)
 	return extNet;
 }
 
-#endif // End TEST_COMMON_H_

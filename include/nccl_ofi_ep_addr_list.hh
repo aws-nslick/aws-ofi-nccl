@@ -2,8 +2,7 @@
  * Copyright (c) 2024 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#ifndef NCCL_OFI_EP_ADDR_LIST_H
-#define NCCL_OFI_EP_ADDR_LIST_H
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -84,4 +83,3 @@ void nccl_ofi_ep_addr_list_fini(nccl_ofi_ep_addr_list_t *ep_list);
 } // End extern "C"
 #endif
 
-#endif

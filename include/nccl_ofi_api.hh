@@ -3,8 +3,7 @@
  * Copyright (c) 2022-2023 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#ifndef NET_OFI_API_H_
-#define NET_OFI_API_H_
+#pragma once
 
 
 #ifdef __cplusplus
@@ -54,4 +53,3 @@ ncclResult_t nccl_net_ofi_iread(void* rComm, void* dest, size_t size, void* mhan
 }
 #endif // End extern "C"
 
-#endif // End NET_OFI_API_H_

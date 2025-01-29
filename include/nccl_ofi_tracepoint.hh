@@ -3,8 +3,7 @@
  */
 
 
-#ifndef NCCL_OFI_TRACEPOINT_H_
-#define NCCL_OFI_TRACEPOINT_H_
+#pragma once
 
 #include "config.hh"
 #include "tracing_impl/nvtx.hh"
@@ -121,4 +120,3 @@
 	NCCL_OFI_TRACE_PENDING_REMOVE_NVTX(request); \
 } while(0)
 
-#endif /* NCCL_OFI_TRACEPOINT_H_ */

@@ -2,8 +2,7 @@
  * Copyright (c) 2023 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#ifndef NCCL_OFI_MSGBUFF_H_
-#define NCCL_OFI_MSGBUFF_H_
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -186,4 +185,3 @@ nccl_ofi_msgbuff_result_t nccl_ofi_msgbuff_complete(nccl_ofi_msgbuff_t *msgbuff,
 } // End extern "C"
 #endif
 
-#endif // End NCCL_OFI_MSGBUFF_H_

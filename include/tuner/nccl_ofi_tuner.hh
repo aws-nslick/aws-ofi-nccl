@@ -2,8 +2,7 @@
  * Copyright (c) 2024 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#ifndef NCCL_OFI_TUNER_H_
-#define NCCL_OFI_TUNER_H_
+#pragma once
 
 #include "config.hh"
 
@@ -19,4 +18,3 @@ NCCL_OFI_EXPORT_SYMBOL extern const ncclTuner_v3_t ncclTunerPlugin_v3;
 NCCL_OFI_EXPORT_SYMBOL extern const ncclTuner_v2_t ncclTunerPlugin_v2;
 NCCL_OFI_EXPORT_SYMBOL extern const ncclTuner_v1_t ncclTunerPlugin_v1;
 
-#endif /* NCCL_OFI_TUNER_H_ */

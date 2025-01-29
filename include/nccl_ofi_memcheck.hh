@@ -2,8 +2,7 @@
  * Copyright 2014-2023 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  */
 
-#ifndef NCCL_OFI_MEMCHECK_H
-#define NCCL_OFI_MEMCHECK_H
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -173,4 +172,3 @@ static inline void nccl_net_ofi_mem_mempool_free(void *handle, void *data, size_
 } // End extern "C"
 #endif
 
-#endif // End NCCL_OFI_MEMCHECK_H

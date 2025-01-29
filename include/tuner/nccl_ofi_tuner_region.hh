@@ -2,8 +2,7 @@
  * Copyright (c) 2024 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#ifndef NCCL_OFI_TUNER_REGION_H_
-#define NCCL_OFI_TUNER_REGION_H_
+#pragma once
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -74,4 +73,3 @@ nccl_ofi_tuner_point_t extend_region(nccl_ofi_tuner_point_t a,
 int is_inside_region(nccl_ofi_tuner_point_t point,
 					 nccl_ofi_tuner_region_t *region);
 
-#endif /* NCCL_OFI_TUNER_REGION_H_ */

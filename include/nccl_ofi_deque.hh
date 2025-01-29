@@ -2,8 +2,7 @@
  * Copyright (c) 2023 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#ifndef NCCL_OFI_DEQUE_H
-#define NCCL_OFI_DEQUE_H
+#pragma once
 
 
 #ifdef __cplusplus
@@ -257,4 +256,3 @@ static inline nccl_ofi_deque_elem_t *nccl_ofi_deque_get_next(nccl_ofi_deque_t *d
 } // End extern "C"
 #endif
 
-#endif // End NCCL_OFI_DEQUE_H

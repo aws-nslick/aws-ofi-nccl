@@ -2,8 +2,7 @@
  * Copyright (c) 2018-2024 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#ifndef NCCL_OFI_CONFIG_BOTTOM_H
-#define NCCL_OFI_CONFIG_BOTTOM_H
+#pragma once
 
 #define NCCL_OFI_N_NVTX_DOMAIN_PER_COMM 8
 
@@ -49,4 +48,3 @@ static inline int memfd_create(const char *name, unsigned int flags)
 }
 #endif /* ifndef HAVE_MEMFD_CREATE */
 
-#endif

@@ -2,8 +2,7 @@
  * Copyright (c) 2018-2024 Amazon.com, Inc. or its affiliates. All rights reserved.
  */
 
-#ifndef NCCL_OFI_OFIUTILS_H
-#define NCCL_OFI_OFIUTILS_H
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -48,4 +47,3 @@ int nccl_ofi_mr_keys_need_own_key(struct fi_info* provider, bool *provide_own_mr
 } // End extern "C"
 #endif
 
-#endif
