@@ -1,0 +1,143 @@
+#+TITLE: porting aws-ofi-nccl to C++
+
+* Rename all the files
+
+#+begin_src elisp
+  (setq org-babel-sh-command 'zsh)
+  #+end_src
+
+#+RESULTS:
+: zsh
+
+
+  #+begin_src shell
+    our_files() { git ls-files 'src' 'tests' 'include' 'configure.ac' 'Makefile.am' ; }
+    basename_filter() { xargs basename -a | sort -u ; }
+    remove_test_filter() { rg -v '^tests/' ; }
+    include_test_filter() { rg '^tests/' ; }
+    header_filter() { rg '[.](h(h)?)$' ; }
+    translation_unit_filter() { rg '[.](c(c)?)$' ; }
+    build_system_filter() { rg '(Makefile.am|configure.ac)' ; }
+    our_build_files() { our_files | build_system_filter | sort -u ; }
+    our_header_files() { cat <(our_files | header_filter) <(echo "include/config.h") | sort -u ; }
+    our_tus() { our_files | translation_unit_filter | sort -u ; }
+    our_source() { cat <(our_header_files) <(our_tus) | sort -u ; }
+    our_source_basenames() { cat <(our_header_files) <(our_tus) | basename_filter ; }
+    restore_git() {
+        git restore --staged src tests include Makefile.am configure.ac  ;
+        git restore src tests include Makefile.am configure.ac  ;
+    }
+
+    git commit --allow-empty --no-verify --signoff --gpg-sign -m "tree: port the plugin to c++"
+
+    our_source | remove_test_filter | basename_filter | (while read -r SRC_FILE ; do
+        sed -i -E "s,${SRC_FILE:t:r}[.]${SRC_FILE:e},${SRC_FILE:t:r}.${SRC_FILE:t:e}${SRC_FILE:t:e},g" $(our_files) ;
+    done)
+
+    our_source | include_test_filter | basename_filter | (while read -r SRC_FILE ; do
+        sed -i -E "s,(\s)${SRC_FILE:t:r}[.]${SRC_FILE:e},${SRC_FILE:t:r}.${SRC_FILE:t:e}${SRC_FILE:t:e},g" $(our_files) ;
+    done)
+
+    # fixup the tests, which were excluded above to avoid the
+    # nccl_ofi_freelist.c/freelist.c aliasing that would otherwise
+    # happen...
+    our_tus | include_test_filter | xargs sed -i 's/test-common[.]h/test-common.hh/g'
+
+    # Do this as a separate commit, because git can still recognize that they are the same files.
+    git commit --no-verify --signoff --gpg-sign --fixup=HEAD -m "handle extension renames in all files (BUILD FAILS)"
+
+    # Now actually move them where the build expects them to be.
+    our_tus | (while read -r TRANSLATION_UNIT ; do
+        git mv ${TRANSLATION_UNIT} ${TRANSLATION_UNIT}c ;
+    done)
+
+    our_header_files | (while read -r HEADER_FILE ; do
+        test -f ${HEADER_FILE} && git mv ${HEADER_FILE} ${HEADER_FILE}h ;
+    done)
+
+    git commit --no-verify --signoff --gpg-sign --fixup=HEAD -m "move all files to be treated as c++ source. (BUILD PASSES)"
+#+end_src
+
+First, apply a script that uses =#pragma once= instead of
+=ifndef=/=define=/=endif=. This makes the AST /much/ nicer to deal
+with when using ast-grep or clang tooling. There's a corresponding
+=once2guard= tool that can be used to undo this later-on, if we want.
+
+#+begin_src shell
+  our_header_files | rg -v config.h | (while read -r file ; do
+    guard2once ${file}
+  done)
+  git add $(our_files)
+  git commit --no-verify --signoff --gpg-sign --fixup=HEAD -m "use pragma once to make ast nicer to deal with (BUILD PASSES)"
+#+end_src
+
+The next step starts using ast-grep, which will create horrible
+formatting and diffs which need special flags to be read by any
+reasonable human being. To make the diffs cleaner, clang format will
+be used. Do the initial formatting commit now.
+
+#+begin_src shell
+  clang-format -i $(our_files) && treefmt && git add .
+  git commit --no-verify --signoff --gpg-sign --fixup=HEAD -m "apply consistent formatting for cleaner diffs (BUILD PASSES)"
+#+end_src
+
+
+  Apply some rules to enforce that all types assume a =_t= suffix; this
+  will help prevent build issues caused by forward declarations and type
+  mismatches.
+
+  #+begin_src shell
+    ast-grep scan -r contrib/astgrep/rules/pointless-enum-alias.yml -U $(our_files)
+    ast-grep scan -r contrib/astgrep/rules/anonymous-struct-type-alias.yml -U $(our_files)
+    ast-grep scan -r contrib/astgrep/rules/unnecessary-type-alias.yml -U $(our_files)
+    ast-grep scan -r contrib/astgrep/rules/self-referencing-type-alias.yml -U $(our_files)
+    ast-grep scan -r contrib/astgrep/rules/redundant-enum-type-alias.yml -U $(our_files)
+
+    ast-grep run --pattern 'struct nccl_ofi_freelist_elem' -r 'struct nccl_ofi_freelist_elem_t' -U $(our_files)
+    ast-grep run --pattern 'struct nccl_ofi_tuner_model_params' -r 'struct nccl_ofi_tuner_model_params_t' -U $(our_files)
+    ast-grep run --pattern 'struct nccl_ofi_tuner_model_dims' -r 'struct nccl_ofi_tuner_model_dims_t' -U $(our_files)
+    ast-grep run --pattern 'struct nccl_net_ofi_rdma_req' -r 'struct nccl_net_ofi_rdma_req_t' -U $(our_files)
+    ast-grep run --pattern 'struct nccl_net_ofi_scheduler' -r 'struct nccl_net_ofi_scheduler_t' -U $(our_files)
+    ast-grep run --pattern 'struct nccl_ofi_properties' -r 'struct nccl_ofi_properties_t' -U $(our_files)
+    ast-grep run --pattern 'struct nccl_ofi_tuner_region_dims' -r 'struct nccl_ofi_tuner_region_dims_t' -U $(our_files)
+    ast-grep run --pattern 'struct ep_pair_list_elem' -r 'struct ep_pair_list_elem_t' -U $(our_files)
+    ast-grep run --pattern 'struct nccl_ofi_tuner_model_dims' --rewrite 'struct nccl_ofi_tuner_model_dims_t' -U $(our_files)
+    ast-grep run --pattern 'struct nccl_net_ofi_ep_rail' --rewrite 'struct nccl_net_ofi_ep_rail_t' -U $(our_files)
+    ast-grep run --pattern 'struct nccl_ofi_properties' --rewrite 'struct nccl_ofi_properties_t' -U $(our_files)
+    ast-grep run --pattern 'struct nccl_net_ofi_comm' --rewrite 'struct nccl_net_ofi_comm_t' -U $(our_files)
+    ast-grep run --pattern 'struct nccl_net_ofi_device' --rewrite 'struct nccl_net_ofi_device_t' -U $(our_files)
+    ast-grep run --pattern 'struct nccl_net_ofi_domain' --rewrite 'struct nccl_net_ofi_domain_t' -U $(our_files)
+    ast-grep run --pattern 'struct nccl_net_ofi_ep' --rewrite 'struct nccl_net_ofi_ep_t' -U $(our_files)
+    ast-grep run --pattern 'struct nccl_net_ofi_listen_comm' --rewrite 'struct nccl_net_ofi_listen_comm_t' -U $(our_files)
+    ast-grep run --pattern 'struct nccl_net_ofi_mr_handle' --rewrite 'struct nccl_net_ofi_mr_handle_t' -U $(our_files)
+    ast-grep run --pattern 'struct nccl_net_ofi_plugin' --rewrite 'struct nccl_net_ofi_plugin_t' -U $(our_files)
+    ast-grep run --pattern 'struct nccl_net_ofi_rdma_ep' --rewrite 'struct nccl_net_ofi_rdma_ep_t' -U $(our_files)
+    ast-grep run --pattern 'struct nccl_net_ofi_rdma_plugin' --rewrite 'struct nccl_net_ofi_rdma_plugin_t' -U $(our_files)
+    ast-grep run --pattern 'struct nccl_net_ofi_recv_comm' --rewrite 'struct nccl_net_ofi_recv_comm_t' -U $(our_files)
+    ast-grep run --pattern 'struct nccl_net_ofi_req' --rewrite 'struct nccl_net_ofi_req_t' -U $(our_files)
+    ast-grep run --pattern 'struct nccl_net_ofi_send_comm' --rewrite 'struct nccl_net_ofi_send_comm_t' -U $(our_files)
+    ast-grep run --pattern 'struct nccl_net_ofi_sendrecv_plugin' --rewrite 'struct nccl_net_ofi_sendrecv_plugin_t' -U $(our_files)
+    ast-grep run --pattern 'struct nccl_ofi_ep_addr_list' --rewrite 'struct nccl_ofi_ep_addr_list_t' -U $(our_files)
+    ast-grep run --pattern 'struct nccl_ofi_freelist_elem' -r 'struct nccl_ofi_freelist_elem_t' -U $(our_files)
+    ast-grep run --pattern 'struct nccl_ofi_tuner_model_params' -r 'struct nccl_ofi_tuner_model_params_t' -U $(our_files)
+    ast-grep run --pattern 'struct nccl_ofi_tuner_model_dims' -r 'struct nccl_ofi_tuner_model_dims_t' -U $(our_files)
+    ast-grep run --pattern 'struct nccl_net_ofi_rdma_req' -r 'struct nccl_net_ofi_rdma_req_t' -U $(our_files)
+    ast-grep run --pattern 'struct nccl_net_ofi_scheduler' -r 'struct nccl_net_ofi_scheduler_t' -U $(our_files)
+    ast-grep run --pattern 'struct nccl_ofi_properties' -r 'struct nccl_ofi_properties_t' -U $(our_files)
+    ast-grep run --pattern 'struct nccl_ofi_tuner_region_dims' -r 'struct nccl_ofi_tuner_region_dims_t' -U $(our_files)
+    ast-grep run --pattern 'struct ep_pair_list_elem' -r 'struct ep_pair_list_elem_t' -U $(our_files)
+    ast-grep run --pattern 'struct nccl_ofi_tuner_model_dims' --rewrite 'struct nccl_ofi_tuner_model_dims_t' -U $(our_files)
+    ast-grep run --pattern 'struct nccl_net_ofi_ep_rail' --rewrite 'struct nccl_net_ofi_ep_rail_t' -U $(our_files)
+    ast-grep run --pattern 'struct nccl_ofi_properties' --rewrite 'struct nccl_ofi_properties_t' -U $(our_files)
+    ast-grep run --pattern 'struct nccl_ofi_tuner_context' --rewrite 'struct nccl_ofi_tuner_context_t' -U $(our_files)
+
+    ast-grep scan -r contrib/astgrep/rules/pointless-enum-alias.yml -U $(our_files)
+    ast-grep scan -r contrib/astgrep/rules/anonymous-struct-type-alias.yml -U $(our_files)
+    ast-grep scan -r contrib/astgrep/rules/unnecessary-type-alias.yml -U $(our_files)
+    ast-grep scan -r contrib/astgrep/rules/self-referencing-type-alias.yml -U $(our_files)
+    ast-grep scan -r contrib/astgrep/rules/redundant-enum-type-alias.yml -U $(our_files)
+
+    clang-format -i $(our_files) && treefmt && git add .
+    git add src include tests
+    git commit --no-verify --signoff --gpg-sign --fixup=HEAD -m "prevent excessive type aliasing from fwddecls."
+  #+end_src
