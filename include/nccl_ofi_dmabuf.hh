@@ -11,6 +11,5 @@ extern "C" {
 int nccl_ofi_dmabuf_viable(void);
 
 #ifdef __cplusplus
-}  // End extern "C"
+} // End extern "C"
 #endif
-

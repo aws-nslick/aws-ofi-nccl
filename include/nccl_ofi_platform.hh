@@ -52,7 +52,6 @@ int platform_config_endpoint(struct fi_info *info, struct fid_ep *ep) __attribut
  */
 void platform_sort_rails(struct fi_info **info_list, size_t num_rails, size_t num_groups) __attribute__((weak));
 
-
 /*
  * does the platform have an opinion on domain_per_thread configuration?
  */
@@ -61,4 +60,3 @@ bool platform_default_domain_per_thread(void) __attribute__((weak));
 #ifdef __cplusplus
 }
 #endif
-

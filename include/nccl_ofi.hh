@@ -4,27 +4,26 @@
 
 #pragma once
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #include <stdbool.h>
 
+#include <nccl/net.h>
 #include <rdma/fabric.h>
-#include <rdma/fi_errno.h>
+#include <rdma/fi_cm.h>
 #include <rdma/fi_domain.h>
 #include <rdma/fi_endpoint.h>
-#include <rdma/fi_cm.h>
-#include <rdma/fi_tagged.h>
+#include <rdma/fi_errno.h>
 #include <rdma/fi_rma.h>
-#include <nccl/net.h>
+#include <rdma/fi_tagged.h>
 #include <uthash/uthash.h>
 
-#include "nccl_ofi_log.hh"
-#include "nccl_ofi_topo.hh"
 #include "nccl_ofi_idpool.hh"
+#include "nccl_ofi_log.hh"
 #include "nccl_ofi_mr.hh"
+#include "nccl_ofi_topo.hh"
 
 /*
  * NCCL_NET_HANDLE_MAXSIZE is a limited resource (and defined in NCCL).
@@ -36,23 +35,23 @@ extern "C" {
  * We also store tags and communicator stage information in remaining
  * part of the handle.
  */
-#define MAX_EP_ADDR		(56)
+#define MAX_EP_ADDR (56)
 
 /*
  * For each tag, we use MSB as control bit and remaining
  * for identifying different rings. We look at mem_tag_format for
  * an endpoint to determine if provider is reserving any MSBs.
  */
-#define OFI_HIGHEST_TAG_BIT		(0x1UL << 63)
+#define OFI_HIGHEST_TAG_BIT (0x1UL << 63)
 
 /*
  * We are supporting minimum 2^32 rings per endpoint and reserving 1 bit
  * for marking control sends/recvs.
  */
-#define MIN_TAG_BITS_FOR_RING_ID	(32 + 1)
+#define MIN_TAG_BITS_FOR_RING_ID (32 + 1)
 
 /* Maximum number of grouped receives */
-#define NCCL_OFI_MAX_RECVS	1
+#define NCCL_OFI_MAX_RECVS 1
 
 /*
  * This defines a higher value than maximum inflight requests supported by NCCL
@@ -60,7 +59,7 @@ extern "C" {
  * we are able to support more number of outstanding requests with dynamic buffer
  * depth changes in NCCL and Neuron.
  */
-#define NCCL_OFI_MAX_REQUESTS	(128)
+#define NCCL_OFI_MAX_REQUESTS (128)
 
 /*
  * Number of send requests that can be active at any given time.  In
@@ -72,18 +71,17 @@ extern "C" {
 #define NCCL_OFI_MAX_SEND_REQUESTS (NCCL_OFI_MAX_REQUESTS * NCCL_OFI_MAX_RECVS)
 
 /* Flush read size (bytes) */
-#define NCCL_OFI_FLUSH_SIZE             (4ULL)
+#define NCCL_OFI_FLUSH_SIZE (4ULL)
 
 /* CPU cache line size (bytes) */
-#define NCCL_OFI_DEFAULT_CPU_CACHE_LINE_SIZE	(64ULL)
+#define NCCL_OFI_DEFAULT_CPU_CACHE_LINE_SIZE (64ULL)
 
 /* Initial number of entries in the MR cache of a device */
-#define NCCL_OFI_MR_CACHE_INIT_SIZE     128
+#define NCCL_OFI_MR_CACHE_INIT_SIZE 128
 
 /* Indicates if GPUDirect is supported by libfabric provider */
-enum gdr_support_level_t {GDR_UNKNOWN, GDR_SUPPORTED, GDR_UNSUPPORTED};
+enum gdr_support_level_t { GDR_UNKNOWN, GDR_SUPPORTED, GDR_UNSUPPORTED };
 extern enum gdr_support_level_t support_gdr;
-
 
 /* Indicates if the cudaDeviceFlushGPUDirectRDMAWrites function should be used
  * to flush data to the GPU. Note, CUDA flush support is not supported on all
@@ -160,73 +158,73 @@ typedef struct nccl_net_ofi_recv_comm nccl_net_ofi_recv_comm_t;
  * is complete.
  */
 struct nccl_net_ofi_req {
-	int (*test)(nccl_net_ofi_req_t *req, int *done, int *size);
+  int (*test)(nccl_net_ofi_req_t *req, int *done, int *size);
 };
 
 /* Various stages of connection establishment */
 typedef enum nccl_ofi_comm_stage {
-	COMM_CREATE_START = 0,
-	COMM_SEND_CONN,
-	COMM_RECV_CONN,
-	COMM_CONN_REQ_PENDING,
-	COMM_CONN_RESP_REQ_PENDING,
-	COMM_CONNECTED,
+  COMM_CREATE_START = 0,
+  COMM_SEND_CONN,
+  COMM_RECV_CONN,
+  COMM_CONN_REQ_PENDING,
+  COMM_CONN_RESP_REQ_PENDING,
+  COMM_CONNECTED,
 } nccl_ofi_comm_stage_t;
 
 typedef struct save_comm_state {
-	nccl_net_ofi_comm_t *comm;
-	nccl_net_ofi_req_t *req;
-	nccl_ofi_comm_stage_t stage;
+  nccl_net_ofi_comm_t *comm;
+  nccl_net_ofi_req_t *req;
+  nccl_ofi_comm_stage_t stage;
 } save_comm_state_t;
 
 typedef struct nccl_ofi_connection_info {
-	char ep_name[MAX_EP_ADDR];
-	uint64_t ep_namelen;
-	uint64_t connect_to_self;
-	nccl_net_ofi_req_t* req;
+  char ep_name[MAX_EP_ADDR];
+  uint64_t ep_namelen;
+  uint64_t connect_to_self;
+  nccl_net_ofi_req_t *req;
 } nccl_ofi_connection_info_t;
 /* Since this is a message on the wire, check that it has the expected size */
 static_assert(sizeof(nccl_ofi_connection_info_t) == 80, "Wrong size for SENDRECV connect message");
 
 typedef struct nccl_net_ofi_conn_handle {
-	char ep_name[MAX_EP_ADDR];
-	uint32_t comm_id;
-	/* Save temporary communicator state when creating send communicator */
-	save_comm_state_t state;
+  char ep_name[MAX_EP_ADDR];
+  uint32_t comm_id;
+  /* Save temporary communicator state when creating send communicator */
+  save_comm_state_t state;
 } nccl_net_ofi_conn_handle_t;
 
 /**
  * Properties structure
  */
 typedef struct nccl_ofi_properties {
-	char *name;
-	/** Path to the device in /sys */
-	char *pci_path;
-	/** globally unique identifier for NIC */
-	uint64_t guid;
-	/** support device memory */
-	bool hmem_support;
-	/** support dmabuf interface */
-	bool dmabuf_support;
-	/** Port number */
-	int port_number;
-	/** Port speed in Mbps */
-	int port_speed;
-	/** Port latency */
-	float latency;
-	/** Maximum number of comms supported */
-	unsigned int max_communicators;
-	/** Maximum number of grouped receives */
-	unsigned int max_group_receives;
-	/** regMr is global if is not tied to a particular comm **/
-	int regIsGlobal;
-	/** Maximum size of buffer supported to be transfered via
-	 * RMA write inline operation **/
-	size_t max_write_inline_size;
-	/** Maximum size of the memory region remote access key in bytes **/
-	size_t max_mr_key_size;
-	/** Indicator whether RMA operations of NCCL Net API are supported **/
-	int rma_supported;
+  char *name;
+  /** Path to the device in /sys */
+  char *pci_path;
+  /** globally unique identifier for NIC */
+  uint64_t guid;
+  /** support device memory */
+  bool hmem_support;
+  /** support dmabuf interface */
+  bool dmabuf_support;
+  /** Port number */
+  int port_number;
+  /** Port speed in Mbps */
+  int port_speed;
+  /** Port latency */
+  float latency;
+  /** Maximum number of comms supported */
+  unsigned int max_communicators;
+  /** Maximum number of grouped receives */
+  unsigned int max_group_receives;
+  /** regMr is global if is not tied to a particular comm **/
+  int regIsGlobal;
+  /** Maximum size of buffer supported to be transfered via
+   * RMA write inline operation **/
+  size_t max_write_inline_size;
+  /** Maximum size of the memory region remote access key in bytes **/
+  size_t max_mr_key_size;
+  /** Indicator whether RMA operations of NCCL Net API are supported **/
+  int rma_supported;
 } nccl_ofi_properties_t;
 
 /**
@@ -237,64 +235,60 @@ typedef struct nccl_ofi_properties {
  * propoeries, and accessing domains (ie, groups of NIC resources).
  */
 struct nccl_net_ofi_device {
-	struct nccl_net_ofi_plugin *plugin;
+  struct nccl_net_ofi_plugin *plugin;
 
-	/* this device's index in the plugin's devices array */
-	int dev_id;
+  /* this device's index in the plugin's devices array */
+  int dev_id;
 
-	/*
-	 * name of the device - should include the provider name, but may be
-	 * augmented (in the case of mrail).  Set during the transport's
-	 * initialization, and should be read-only from that point.
-	 */
-	char *name;
+  /*
+   * name of the device - should include the provider name, but may be
+   * augmented (in the case of mrail).  Set during the transport's
+   * initialization, and should be read-only from that point.
+   */
+  char *name;
 
-	/* do we need to use an mr rkey pool?  This is a
-	 * provider-specific behavior determined when providers are
-	 * selected.
-	 */
-	bool need_mr_rkey_pool;
+  /* do we need to use an mr rkey pool?  This is a
+   * provider-specific behavior determined when providers are
+   * selected.
+   */
+  bool need_mr_rkey_pool;
 
-	int (*get_properties)(nccl_net_ofi_device_t *base_dev,
-			      nccl_ofi_properties_t *props);
+  int (*get_properties)(nccl_net_ofi_device_t *base_dev, nccl_ofi_properties_t *props);
 
-	/* Retrieve a domain associated with this device.  There may
-	 * be more than one domain per device, depending on a number
-	 * of performance tradeoffs (be sure to read the domain
-	 * description below).
-	 */
-	nccl_net_ofi_domain_t *(*get_domain)(nccl_net_ofi_device_t *dev);
+  /* Retrieve a domain associated with this device.  There may
+   * be more than one domain per device, depending on a number
+   * of performance tradeoffs (be sure to read the domain
+   * description below).
+   */
+  nccl_net_ofi_domain_t *(*get_domain)(nccl_net_ofi_device_t *dev);
 
-	int (*get_ep)(nccl_net_ofi_device_t *base_dev,
-		      nccl_net_ofi_ep_t **ep);
+  int (*get_ep)(nccl_net_ofi_device_t *base_dev, nccl_net_ofi_ep_t **ep);
 
-	int (*get_mr_key)(nccl_net_ofi_device_t *base_dev, void* mhandle,
-			  uint64_t* mr_key);
+  int (*get_mr_key)(nccl_net_ofi_device_t *base_dev, void *mhandle, uint64_t *mr_key);
 
-	/**
-	 * destructor - releases resources associated with device
-	 */
-	int (*release)(nccl_net_ofi_device_t *device);
+  /**
+   * destructor - releases resources associated with device
+   */
+  int (*release)(nccl_net_ofi_device_t *device);
 
-	/* Lock for concurrency since domains can be shared by
-	 * multiple entities. */
-	pthread_mutex_t device_lock;
+  /* Lock for concurrency since domains can be shared by
+   * multiple entities. */
+  pthread_mutex_t device_lock;
 
-/* private */
-	/*
-	 * create a new domain.  This funcion is a private pure
-	 * virtual function, which is called from the base
-	 * implementation of get_domain() and should not be called
-	 * from the more general case.
-	 */
-	nccl_net_ofi_domain_t *(*create_domain)(nccl_net_ofi_device_t *dev);
+  /* private */
+  /*
+   * create a new domain.  This funcion is a private pure
+   * virtual function, which is called from the base
+   * implementation of get_domain() and should not be called
+   * from the more general case.
+   */
+  nccl_net_ofi_domain_t *(*create_domain)(nccl_net_ofi_device_t *dev);
 
-	/*
-	 * hash table indexed by thread id of active domains.
-	 */
-	nccl_net_ofi_domain_t *domain_table;
+  /*
+   * hash table indexed by thread id of active domains.
+   */
+  nccl_net_ofi_domain_t *domain_table;
 };
-
 
 /**
  * Domain Object - Represents a protection and thread safety domain
@@ -306,61 +300,58 @@ struct nccl_net_ofi_device {
  * same domain will share the same lock.
  */
 struct nccl_net_ofi_domain {
-	/* Backpointer to the device associated with this domain. */
-	nccl_net_ofi_device_t *device;
+  /* Backpointer to the device associated with this domain. */
+  nccl_net_ofi_device_t *device;
 
-        /*
-	 * Retrieve an endpoint for this domain.  If a suitable
-	 * endpoint does not exist, call create_endpoint() to create
-	 * one and return that endpoint.  This function is a pure
-	 * virtual function that must be implemented by inheriting
-	 * classes.
-	 */
-	int (*get_ep)(nccl_net_ofi_domain_t *domain,
-		      nccl_net_ofi_ep_t **endpoint);
+  /*
+   * Retrieve an endpoint for this domain.  If a suitable
+   * endpoint does not exist, call create_endpoint() to create
+   * one and return that endpoint.  This function is a pure
+   * virtual function that must be implemented by inheriting
+   * classes.
+   */
+  int (*get_ep)(nccl_net_ofi_domain_t *domain, nccl_net_ofi_ep_t **endpoint);
 
-	/*
-	 * Destructor - release resources associated with the domain
-	 */
-	int (*release)(nccl_net_ofi_domain_t *domain);
+  /*
+   * Destructor - release resources associated with the domain
+   */
+  int (*release)(nccl_net_ofi_domain_t *domain);
 
-	/*
-	 * Protocol-agnostic MR cache for this device.
-	 */
-	nccl_ofi_mr_cache_t *mr_cache;
+  /*
+   * Protocol-agnostic MR cache for this device.
+   */
+  nccl_ofi_mr_cache_t *mr_cache;
 
-	/* Memory registration key pool */
-	nccl_ofi_idpool_t mr_rkey_pool;
+  /* Memory registration key pool */
+  nccl_ofi_idpool_t mr_rkey_pool;
 
-	pthread_mutex_t domain_lock;
+  pthread_mutex_t domain_lock;
 
-/* Private */
-	/* pure virtual function called when resources associated with
-	 * the ep should be destroyed.  Device lock will be held when
-	 * this function is called.
-	 */
-	int (*free)(nccl_net_ofi_domain_t *domain);
+  /* Private */
+  /* pure virtual function called when resources associated with
+   * the ep should be destroyed.  Device lock will be held when
+   * this function is called.
+   */
+  int (*free)(nccl_net_ofi_domain_t *domain);
 
-	/* Create a new endpoint
-	 *
-	 * Pure virtual function to allocate a new endpoint structure
-	 */
-	int (*create_endpoint)(nccl_net_ofi_domain_t *domain,
-			       nccl_net_ofi_ep_t **ep);
+  /* Create a new endpoint
+   *
+   * Pure virtual function to allocate a new endpoint structure
+   */
+  int (*create_endpoint)(nccl_net_ofi_domain_t *domain, nccl_net_ofi_ep_t **ep);
 
-	/* hash table of active endpoints.  We reuse endpoints based
-	 * on the thread that calls get_ep().
-	 */
-	nccl_net_ofi_ep_t *endpoint_table;
+  /* hash table of active endpoints.  We reuse endpoints based
+   * on the thread that calls get_ep().
+   */
+  nccl_net_ofi_ep_t *endpoint_table;
 
-	/* thread id of the thread that called get_domain().  Used as
-	   the hash key for the domain hash */
-	long creating_thread_id;
+  /* thread id of the thread that called get_domain().  Used as
+     the hash key for the domain hash */
+  long creating_thread_id;
 
-	/* hash table handle */
-	UT_hash_handle hh;
+  /* hash table handle */
+  UT_hash_handle hh;
 };
-
 
 /**
  * Endpoint - A per-Proxy Thread device abstraction
@@ -378,81 +369,77 @@ struct nccl_net_ofi_domain {
  * implementation.
  */
 struct nccl_net_ofi_ep {
-	/* Backpointer to the domain associated with this ep. */
-	nccl_net_ofi_domain_t *domain;
+  /* Backpointer to the domain associated with this ep. */
+  nccl_net_ofi_domain_t *domain;
 
-	/* Create a receiving object and provide a handle to it.
-	 *
-	 * The callee can expect that the handle provides
-	 * NCCL_NET_HANDLE_MAXSIZE bytes and will be exchanged across
-	 * the wire through an out of band mechanism. The callee must
-	 * allocate memory for listen_comm.
-	 *
-	 * The callee has to guarantee that the state stage of the
-	 * handle is set to COMM_CREATE_START.
-	 */
-	int (*listen)(nccl_net_ofi_ep_t *ep,
-			       nccl_net_ofi_conn_handle_t *handle,
-			       nccl_net_ofi_listen_comm_t **listen_comm);
+  /* Create a receiving object and provide a handle to it.
+   *
+   * The callee can expect that the handle provides
+   * NCCL_NET_HANDLE_MAXSIZE bytes and will be exchanged across
+   * the wire through an out of band mechanism. The callee must
+   * allocate memory for listen_comm.
+   *
+   * The callee has to guarantee that the state stage of the
+   * handle is set to COMM_CREATE_START.
+   */
+  int (*listen)(nccl_net_ofi_ep_t *ep, nccl_net_ofi_conn_handle_t *handle, nccl_net_ofi_listen_comm_t **listen_comm);
 
-	/* Create a connection to a process that has called
-	 * listen().
-	 *
-	 * The callee has to guarantee the following invariants when
-	 * this function returns 0 and no send
-	 * communicator has been returned
-	 * 1) The state stage of the handle is set to a value
-	 * different from COMM_CREATE_START.
-	 * 2) The communicator state of the handle stores a pointer to
-	 * a communicator. Also, the endpoint pointer member variable
-	 * of that communicator points to the endpoint passed to
-	 * this connect() function.
-	 *
-	 * The callee must allocate memory for send_comm.
-	 */
-	int (*connect)(nccl_net_ofi_ep_t *ep,
-				nccl_net_ofi_conn_handle_t *handle,
-				nccl_net_ofi_send_comm_t **send_comm);
+  /* Create a connection to a process that has called
+   * listen().
+   *
+   * The callee has to guarantee the following invariants when
+   * this function returns 0 and no send
+   * communicator has been returned
+   * 1) The state stage of the handle is set to a value
+   * different from COMM_CREATE_START.
+   * 2) The communicator state of the handle stores a pointer to
+   * a communicator. Also, the endpoint pointer member variable
+   * of that communicator points to the endpoint passed to
+   * this connect() function.
+   *
+   * The callee must allocate memory for send_comm.
+   */
+  int (*connect)(nccl_net_ofi_ep_t *ep, nccl_net_ofi_conn_handle_t *handle, nccl_net_ofi_send_comm_t **send_comm);
 
-	/*
-	 * @brief	Release nccl_ofi_ep.
-	 *
-	 * Decrease reference counter. Release resources and free
-	 * endpoint if reference counter becomes zero. Must be
-	 * protected by lock stored in base_dev.
-	 */
-	int (*release_ep)(nccl_net_ofi_ep_t *ep);
+  /*
+   * @brief	Release nccl_ofi_ep.
+   *
+   * Decrease reference counter. Release resources and free
+   * endpoint if reference counter becomes zero. Must be
+   * protected by lock stored in base_dev.
+   */
+  int (*release_ep)(nccl_net_ofi_ep_t *ep);
 
-/* private */
-	/* pure virtual function called when resources associated with
-	 * the ep should be destroyed.  Device lock will be held when
-	 * this function is called.
-	 */
-	int (*free_ep)(nccl_net_ofi_ep_t *ep);
+  /* private */
+  /* pure virtual function called when resources associated with
+   * the ep should be destroyed.  Device lock will be held when
+   * this function is called.
+   */
+  int (*free_ep)(nccl_net_ofi_ep_t *ep);
 
-	/* thread id of the thread that called get_ep().  Used as the
-	   hash key for the endpoint hash */
-	long creating_thread_id;
+  /* thread id of the thread that called get_ep().  Used as the
+     hash key for the endpoint hash */
+  long creating_thread_id;
 
-	/* hash table handle */
-	UT_hash_handle hh;
+  /* hash table handle */
+  UT_hash_handle hh;
 
-	/* Endpoint reference counter for resource management.
-	 * sendrecv_get_ep()/sendrecv_release_ep() must be called in
-	 * pair when an object is acquired to use and
-	 * released. sendrecv_get_ep() allocates a new object when it
-	 * is called for the first time. sendrecv_get_ep() creates the
-	 * endpoint libfabric resources if the reference counter was
-	 * zero. sendrecv_release_ep() releases the resources if the
-	 * reference counter is decreased down to zero. */
-	int ref_cnt;
+  /* Endpoint reference counter for resource management.
+   * sendrecv_get_ep()/sendrecv_release_ep() must be called in
+   * pair when an object is acquired to use and
+   * released. sendrecv_get_ep() allocates a new object when it
+   * is called for the first time. sendrecv_get_ep() creates the
+   * endpoint libfabric resources if the reference counter was
+   * zero. sendrecv_release_ep() releases the resources if the
+   * reference counter is decreased down to zero. */
+  int ref_cnt;
 };
 
 enum nccl_net_ofi_comm_type_t {
-	NCCL_NET_OFI_BASE_COMM,
-	NCCL_NET_OFI_LISTEN_COMM,
-	NCCL_NET_OFI_SEND_COMM,
-	NCCL_NET_OFI_RECV_COMM,
+  NCCL_NET_OFI_BASE_COMM,
+  NCCL_NET_OFI_LISTEN_COMM,
+  NCCL_NET_OFI_SEND_COMM,
+  NCCL_NET_OFI_RECV_COMM,
 };
 
 /**
@@ -464,87 +451,78 @@ enum nccl_net_ofi_comm_type_t {
  * and recv communicators.
  */
 struct nccl_net_ofi_comm {
-	enum nccl_net_ofi_comm_type_t type;
-	nccl_net_ofi_ep_t *ep;
-	int dev_id;
+  enum nccl_net_ofi_comm_type_t type;
+  nccl_net_ofi_ep_t *ep;
+  int dev_id;
 };
 
 /**
  * Listen Communicator - Communicator for a listen/accept pairing
  */
 struct nccl_net_ofi_listen_comm {
-	nccl_net_ofi_comm_t base;
+  nccl_net_ofi_comm_t base;
 
-	int (*accept)(nccl_net_ofi_listen_comm_t *listen_comm,
-			       nccl_net_ofi_recv_comm_t **recv_comm);
-	int (*close)(nccl_net_ofi_listen_comm_t *listen_comm);
+  int (*accept)(nccl_net_ofi_listen_comm_t *listen_comm, nccl_net_ofi_recv_comm_t **recv_comm);
+  int (*close)(nccl_net_ofi_listen_comm_t *listen_comm);
 };
 
 struct nccl_net_ofi_send_comm {
-	nccl_net_ofi_comm_t base;
+  nccl_net_ofi_comm_t base;
 
-	/*
-	 * @brief	Register memory region on send communicator (both Host and CUDA)
-	 *
-	 * @return	Memory handle for data send operations
-	 * @return	0 on success
-	 *		non-zero on error
-	 */
-	int (*regMr)(nccl_net_ofi_send_comm_t *send_comm, nccl_ofi_mr_ckey_ref ckey, int type,
-				 void **mhandle);
+  /*
+   * @brief	Register memory region on send communicator (both Host and CUDA)
+   *
+   * @return	Memory handle for data send operations
+   * @return	0 on success
+   *		non-zero on error
+   */
+  int (*regMr)(nccl_net_ofi_send_comm_t *send_comm, nccl_ofi_mr_ckey_ref ckey, int type, void **mhandle);
 
-	/*
-	 * @brief	Deregister memory region on send communicator (both Host and CUDA)
-	 *
-	 * @return	Memory handle for data send operations
-	 * @return	0 on success
-	 *		non-zero on error
-	 */
-	int (*deregMr)(nccl_net_ofi_send_comm_t *send_comm, nccl_net_ofi_mr_handle_t *mhandle);
+  /*
+   * @brief	Deregister memory region on send communicator (both Host and CUDA)
+   *
+   * @return	Memory handle for data send operations
+   * @return	0 on success
+   *		non-zero on error
+   */
+  int (*deregMr)(nccl_net_ofi_send_comm_t *send_comm, nccl_net_ofi_mr_handle_t *mhandle);
 
-	int (*send)(nccl_net_ofi_send_comm_t *send_comm, void *data, int size, int tag,
-			     nccl_net_ofi_mr_handle_t *mhandle, nccl_net_ofi_req_t **req);
+  int (*send)(nccl_net_ofi_send_comm_t *send_comm, void *data, int size, int tag, nccl_net_ofi_mr_handle_t *mhandle, nccl_net_ofi_req_t **req);
 
-	int (*close)(nccl_net_ofi_send_comm_t *send_comm);
+  int (*close)(nccl_net_ofi_send_comm_t *send_comm);
 
-	int (*write)(nccl_net_ofi_send_comm_t *send_comm, void* src, size_t size, void* src_mhandle,
-		     uint64_t dest, uint64_t mr_key, nccl_net_ofi_req_t **req);
-	int (*write_inline)(nccl_net_ofi_send_comm_t *, void* src, size_t size,
-			    uint64_t dest, uint64_t mr_key, nccl_net_ofi_req_t **request);
+  int (*write)(nccl_net_ofi_send_comm_t *send_comm, void *src, size_t size, void *src_mhandle, uint64_t dest, uint64_t mr_key, nccl_net_ofi_req_t **req);
+  int (*write_inline)(nccl_net_ofi_send_comm_t *, void *src, size_t size, uint64_t dest, uint64_t mr_key, nccl_net_ofi_req_t **request);
 };
 
 struct nccl_net_ofi_recv_comm {
-	nccl_net_ofi_comm_t base;
+  nccl_net_ofi_comm_t base;
 
-	/*
-	 * @brief	Register memory region on recv communicator (both Host and CUDA)
-	 *
-	 * @return	Memory handle for data recv operations
-	 * @return	0 on success
-	 *		non-zero on error
-	 */
-	int (*regMr)(nccl_net_ofi_recv_comm_t *recv_comm, nccl_ofi_mr_ckey_ref ckey, int type,
-				 void **mhandle);
+  /*
+   * @brief	Register memory region on recv communicator (both Host and CUDA)
+   *
+   * @return	Memory handle for data recv operations
+   * @return	0 on success
+   *		non-zero on error
+   */
+  int (*regMr)(nccl_net_ofi_recv_comm_t *recv_comm, nccl_ofi_mr_ckey_ref ckey, int type, void **mhandle);
 
-	/*
-	 * @brief	Deregister memory region on recv communicator (both Host and CUDA)
-	 *
-	 * @return	Memory handle for data recv operations
-	 * @return	0 on success
-	 *		non-zero on error
-	 */
-	int (*deregMr)(nccl_net_ofi_recv_comm_t *recv_comm, nccl_net_ofi_mr_handle_t *mhandle);
+  /*
+   * @brief	Deregister memory region on recv communicator (both Host and CUDA)
+   *
+   * @return	Memory handle for data recv operations
+   * @return	0 on success
+   *		non-zero on error
+   */
+  int (*deregMr)(nccl_net_ofi_recv_comm_t *recv_comm, nccl_net_ofi_mr_handle_t *mhandle);
 
-	int (*recv)(nccl_net_ofi_recv_comm_t *recv_comm, int n, void **data, int *sizes, int *tags,
-			     nccl_net_ofi_mr_handle_t **mhandles, nccl_net_ofi_req_t **req);
+  int (*recv)(nccl_net_ofi_recv_comm_t *recv_comm, int n, void **data, int *sizes, int *tags, nccl_net_ofi_mr_handle_t **mhandles, nccl_net_ofi_req_t **req);
 
-	int (*flush)(nccl_net_ofi_recv_comm_t *recv_comm, int n, void **data, int *sizes,
-			      nccl_net_ofi_mr_handle_t **mhandles, nccl_net_ofi_req_t **req);
+  int (*flush)(nccl_net_ofi_recv_comm_t *recv_comm, int n, void **data, int *sizes, nccl_net_ofi_mr_handle_t **mhandles, nccl_net_ofi_req_t **req);
 
-	int (*close)(nccl_net_ofi_recv_comm_t *recv_comm);
+  int (*close)(nccl_net_ofi_recv_comm_t *recv_comm);
 
-	int (*read)(nccl_net_ofi_recv_comm_t *recv_comm, void* dest, size_t size, void* dest_mhandle,
-		    uint64_t src, uint64_t mr_key, nccl_net_ofi_req_t **req);
+  int (*read)(nccl_net_ofi_recv_comm_t *recv_comm, void *dest, size_t size, void *dest_mhandle, uint64_t src, uint64_t mr_key, nccl_net_ofi_req_t **req);
 };
 
 /**
@@ -557,46 +535,43 @@ struct nccl_net_ofi_recv_comm {
  * on the plugin.
  */
 struct nccl_net_ofi_plugin {
-/* public */
+  /* public */
 
-	/**
-	 * Complete initialization of plugin
-	 *
-	 * When a plugin is first created, it should not create any
-	 * network resources -- create is called to understand the
-	 * configuration of the network and see which transports can
-	 * run.  The base code will pick one and call complete_init,
-	 * at which point devices and network resources can be
-	 * created.
-	 */
-	int (*complete_init)(nccl_net_ofi_plugin_t *plugin);
+  /**
+   * Complete initialization of plugin
+   *
+   * When a plugin is first created, it should not create any
+   * network resources -- create is called to understand the
+   * configuration of the network and see which transports can
+   * run.  The base code will pick one and call complete_init,
+   * at which point devices and network resources can be
+   * created.
+   */
+  int (*complete_init)(nccl_net_ofi_plugin_t *plugin);
 
-	int (*assign_device)(nccl_net_ofi_plugin_t *plugin,
-			     size_t device_index, nccl_net_ofi_device_t *device);
+  int (*assign_device)(nccl_net_ofi_plugin_t *plugin, size_t device_index, nccl_net_ofi_device_t *device);
 
-	nccl_net_ofi_device_t *(*get_device)(nccl_net_ofi_plugin_t *plugin,
-					     size_t device_index);
+  nccl_net_ofi_device_t *(*get_device)(nccl_net_ofi_plugin_t *plugin, size_t device_index);
 
-	size_t (*get_num_devices)(nccl_net_ofi_plugin_t *plugin);
+  size_t (*get_num_devices)(nccl_net_ofi_plugin_t *plugin);
 
-	int (*release_plugin)(nccl_net_ofi_plugin_t *plugin);
+  int (*release_plugin)(nccl_net_ofi_plugin_t *plugin);
 
-	/*
-	 * Determine whether to allocate the domain per process or per
-	 * thread.
-	 * false: allocate domain per process
-	 * true: allocate domain per thread
-	 */
-	bool domain_per_thread;
+  /*
+   * Determine whether to allocate the domain per process or per
+   * thread.
+   * false: allocate domain per process
+   * true: allocate domain per thread
+   */
+  bool domain_per_thread;
 
-/* private */
-	/* Array of devices */
-	nccl_net_ofi_device_t **p_devs;
+  /* private */
+  /* Array of devices */
+  nccl_net_ofi_device_t **p_devs;
 
-	/* Number of devices in devs array */
-	size_t p_num_devs;
+  /* Number of devices in devs array */
+  size_t p_num_devs;
 };
-
 
 /*
  * Create a plugin object
@@ -638,8 +613,7 @@ int nccl_net_ofi_domain_fini(nccl_net_ofi_domain_t *domain);
 /**
  * Constructor for a device object
  */
-int nccl_net_ofi_device_init(nccl_net_ofi_device_t *device, nccl_net_ofi_plugin_t *plugin,
-			     int device_index, struct fi_info *ofi_info);
+int nccl_net_ofi_device_init(nccl_net_ofi_device_t *device, nccl_net_ofi_plugin_t *plugin, int device_index, struct fi_info *ofi_info);
 
 /**
  * Destructor for a device object
@@ -668,8 +642,7 @@ int nccl_net_ofi_plugin_fini(nccl_net_ofi_plugin_t *plugin);
  *
  * @return	Populated props structure
  */
-int nccl_net_ofi_info_properties(nccl_net_ofi_plugin_t *plugin, struct fi_info *nic_prov,
-				 int dev_id, int num_devices, nccl_ofi_properties_t *props);
+int nccl_net_ofi_info_properties(nccl_net_ofi_plugin_t *plugin, struct fi_info *nic_prov, int dev_id, int num_devices, nccl_ofi_properties_t *props);
 
 /*
  * @brief	Allocate memory region for memory registration
@@ -702,7 +675,6 @@ int nccl_net_ofi_alloc_mr_buffer(size_t size, void **ptr);
  */
 int nccl_net_ofi_dealloc_mr_buffer(void *ptr, size_t size);
 
-
 /*
  * @brief       Parse selected provider for required behavior flags
  * @return      0 (Success)
@@ -710,8 +682,7 @@ int nccl_net_ofi_dealloc_mr_buffer(void *ptr, size_t size);
  * Set required behavior flags (and print debugging information) for
  * local_mr, virt_addr_mr, and endpoint_mr.
  */
-int nccl_net_ofi_query_provider_capabilities(const struct fi_info *selected_provider,
-					     unsigned int num_providers);
+int nccl_net_ofi_query_provider_capabilities(const struct fi_info *selected_provider, unsigned int num_providers);
 
 /*
  * @brief       Retrieve maximum size of inject RMA operations of ofi endpoint
@@ -720,8 +691,7 @@ int nccl_net_ofi_query_provider_capabilities(const struct fi_info *selected_prov
  *              -FI_ENOPROTOOPT, in case option to retrieve size is not available
  *              error, on others
  */
-int get_inject_rma_size_opt(struct fid_ep *ofi_ep,
-			    size_t *max_write_inline_size);
+int get_inject_rma_size_opt(struct fid_ep *ofi_ep, size_t *max_write_inline_size);
 
 /*
  * @brief       gettid() wrapper
@@ -732,4 +702,3 @@ long nccl_net_ofi_gettid(void);
 #ifdef __cplusplus
 } // End extern "C"
 #endif
-

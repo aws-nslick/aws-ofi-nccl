@@ -42,8 +42,7 @@ nccl_ofi_ep_addr_list_t *nccl_ofi_ep_addr_list_init(size_t max_addr_size);
  *	   -ENOMEM, memory allocation failure
  *	   -EINVAL, invalid argument
  */
-int nccl_ofi_ep_addr_list_get(nccl_ofi_ep_addr_list_t *ep_list, void *addr_in,
-			      size_t addr_size, nccl_net_ofi_ep_t **ep);
+int nccl_ofi_ep_addr_list_get(nccl_ofi_ep_addr_list_t *ep_list, void *addr_in, size_t addr_size, nccl_net_ofi_ep_t **ep);
 
 /**
  * Add ep to the list ep_pair_list, with a single connection to addr.
@@ -58,9 +57,7 @@ int nccl_ofi_ep_addr_list_get(nccl_ofi_ep_addr_list_t *ep_list, void *addr_in,
  *	   -ENOMEM, memory allocation failure
  *	   -EINVAL, invalid argument
  */
-int nccl_ofi_ep_addr_list_insert(nccl_ofi_ep_addr_list_t *ep_list,
-				 nccl_net_ofi_ep_t *ep, void *addr_in,
-				 size_t addr_size);
+int nccl_ofi_ep_addr_list_insert(nccl_ofi_ep_addr_list_t *ep_list, nccl_net_ofi_ep_t *ep, void *addr_in, size_t addr_size);
 
 /**
  * Remove ep from the list ep_pair_list, if present
@@ -82,4 +79,3 @@ void nccl_ofi_ep_addr_list_fini(nccl_ofi_ep_addr_list_t *ep_list);
 #ifdef __cplusplus
 } // End extern "C"
 #endif
-

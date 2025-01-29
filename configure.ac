@@ -1,11 +1,11 @@
-# -*- Autoconf -*-
+#- * - Autoconf - * -
 #
-# Copyright (c) 2018-2023, Amazon.com, Inc. or its affiliates. All rights reserved.
+#Copyright(c) 2018 - 2023, Amazon.com, Inc.or its affiliates.All rights reserved.
 #
-# See LICENSE.txt for license information
+#See LICENSE.txt for license information
 #
 
-# Initialization
+#Initialization
 AC_INIT([aws-ofi-nccl], [GitHub-dev], [al-ofi-nccl-team@amazon.com], , [http://github.com/aws/aws-ofi-nccl])
 AC_PREREQ([2.69])
 AC_CONFIG_SRCDIR([src/nccl_ofi_net.cc])
@@ -43,7 +43,7 @@ LT_INIT([shared disable-static pic-only])
 
 NCCL_NET_OFI_DISTCHCK_CONFIGURE_FLAGS=
 
-# Checks for programs
+#Checks for programs
 AC_PROG_CC
 AM_PROG_CC_C_O
 AC_PROG_CXX
@@ -72,8 +72,7 @@ AS_IF([test "${ax_enable_debug}" = "no"], [
             ])
 CHECK_ENABLE_SANITIZER()
 
-
-# Checks for header files
+#Checks for header files
 AC_HEADER_STDBOOL
 AS_IF([test "${ac_cv_header_stdbool_h}" = "no"],
       [AC_MSG_ERROR([NCCL OFI Plugin requires stdbool.h])])
@@ -85,13 +84,12 @@ AC_CHECK_HEADER([unistd.h], [], [AC_MSG_ERROR([NCCL OFI Plugin rquires unistd.h]
 
 AC_CHECK_HEADERS([linux/limits.h])
 
-# Checks for types
+#Checks for types
 AC_TYPE_SIZE_T
 AC_TYPE_SSIZE_T
 AC_TYPE_UINT64_T
 
-
-# Checks for library functions
+#Checks for library functions
 AC_FUNC_MALLOC
 AC_CHECK_FUNC([memset], [], [AC_MSG_ERROR([NCCL OFI Plugin requires memset function.])])
 AC_CHECK_FUNC([realpath], [], [AC_MSG_ERROR([NCCL OFI Plugin requires realpath function.])])
@@ -120,7 +118,7 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
     [AC_MSG_RESULT([no])
      AC_MSG_ERROR([Found glibc prior to version 2.3.  Version 2.3 or later required])])
 
-# Checks for external packages
+#Checks for external packages
 CHECK_PKG_LIBFABRIC([], [AC_MSG_ERROR([NCCL OFI Plugin could not find a working Libfabric install.])])
 
 have_device_interface=no
@@ -151,7 +149,7 @@ AS_IF([test "${valgrind_enabled}" = "1" -a "${enable_asan}" = "yes"],
 
 CHECK_ENABLE_MEMFD_CREATE()
 
-# do we want our tests?
+#do we want our tests ?
 CHECK_PKG_MPI([found_mpi="yes"], [found_mpi="no"])
 
 AC_ARG_ENABLE([tests],
@@ -170,7 +168,7 @@ AS_IF([test "${enable_tests}" != "no" -a "${have_device_interface}" = "neuron" ]
 AM_CONDITIONAL([ENABLE_UNIT_TESTS], [test "$build_unit_tests" == "yes"])
 AM_CONDITIONAL([ENABLE_FUNC_TESTS], [test "$build_func_tests" == "yes"])
 
-# Enable output at the TRACE level for unit tests.
+#Enable output at the TRACE level for unit tests.
 AC_ARG_ENABLE([trace],
    [AS_HELP_STRING([--enable-trace], [Enable printing trace messages in test programs])])
 AC_MSG_CHECKING([whether to enable trace messages])

@@ -1,9 +1,1 @@
-aws_platform_mapper
-deque
-ep_addr_list
-freelist
-idpool
-mr
-msgbuff
-region_based_tuner
-scheduler
+aws_platform_mapper deque ep_addr_list freelist idpool mr msgbuff region_based_tuner scheduler

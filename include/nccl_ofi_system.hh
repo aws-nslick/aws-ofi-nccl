@@ -24,4 +24,3 @@ const char *nccl_net_ofi_get_product_name(void);
 #ifdef __cplusplus
 }
 #endif
-
